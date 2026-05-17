@@ -31,7 +31,7 @@ export default function ProductCard({ product }: { product: Product }) {
           src={product.image}
           alt={product.name}
           fill
-          className="object-contain p-5 group-hover:scale-105 transition-transform duration-500"
+          className="object-contain p-3 sm:p-5 group-hover:scale-105 transition-transform duration-500"
           style={{ mixBlendMode: "multiply" }}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
@@ -71,7 +71,7 @@ export default function ProductCard({ product }: { product: Product }) {
       </Link>
 
       {/* Content */}
-      <div className="p-4 flex flex-col gap-2 flex-1">
+      <div className="p-3 sm:p-4 flex flex-col gap-2 flex-1">
         <Link href={`/produits/${product.slug}`}>
           <h3 className="text-sm font-bold text-gray-900 line-clamp-2 hover:text-orange-500 transition-colors leading-snug">
             {product.name}
@@ -85,7 +85,7 @@ export default function ProductCard({ product }: { product: Product }) {
               <p className="text-xs text-gray-400 line-through leading-none mb-0.5">
                 {product.originalPrice.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
               </p>
-              <p className="text-xl font-black text-orange-500 leading-tight">
+              <p className="text-lg sm:text-xl font-black text-orange-500 leading-tight">
                 {product.currentPrice.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
               </p>
             </div>
@@ -107,10 +107,10 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
 
       {/* Add to cart */}
-      <div className="px-4 pb-4">
+      <div className="px-3 pb-3 sm:px-4 sm:pb-4">
         <button
           onClick={handleAdd}
-          className={`w-full py-2.5 text-sm font-bold rounded-xl transition-all ${
+          className={`w-full py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all ${
             added
               ? "bg-green-500 text-white"
               : "bg-orange-500 hover:bg-orange-600 text-white hover:-translate-y-0.5 shadow-md shadow-orange-100"

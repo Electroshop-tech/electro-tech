@@ -101,7 +101,7 @@ export default async function ProductPage({
           />
 
           {/* ── Center: Info (4 cols) ── */}
-          <div className="md:col-span-4 space-y-5">
+          <div className="md:col-span-4 space-y-5 order-3 md:order-none">
             {/* Condition + Guarantee */}
             <div className="space-y-3">
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
@@ -179,7 +179,7 @@ export default async function ProductPage({
           </div>
 
           {/* ── Right: Purchase box (3 cols) ── */}
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 order-2 md:order-none">
             <div className="border border-gray-200 rounded-2xl p-5 space-y-4 sticky top-24">
 
               {/* Stock + discount pill */}

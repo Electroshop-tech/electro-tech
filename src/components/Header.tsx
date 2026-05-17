@@ -21,8 +21,8 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 shadow-md">
-      {/* Top bar */}
-      <div className="bg-blue-950 text-white text-xs py-1.5">
+      {/* Top bar - hidden on mobile */}
+      <div className="hidden sm:block bg-blue-950 text-white text-xs py-1.5">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href="/contact" className="hover:underline">Contactez-Nous</Link>
@@ -142,9 +142,9 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Search bar */}
+          {/* Search bar - hidden on mobile, dedicated row below */}
           <form
-            className="flex-1 flex items-center bg-white rounded-full overflow-hidden shadow-sm ring-2 ring-transparent focus-within:ring-orange-400/60 transition-all duration-200"
+            className="flex-1 hidden sm:flex items-center bg-white rounded-full overflow-hidden shadow-sm ring-2 ring-transparent focus-within:ring-orange-400/60 transition-all duration-200"
             onSubmit={(e) => e.preventDefault()}
           >
             {/* Category selector */}
@@ -184,7 +184,7 @@ export default function Header() {
           </form>
 
           {/* Right icons */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0 ml-auto sm:ml-0">
             {/* Account */}
             <Link
               href="/compte"
@@ -258,6 +258,24 @@ export default function Header() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Mobile search row */}
+      <div className="sm:hidden bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 px-3 pb-3">
+        <form className="flex items-center bg-white rounded-full overflow-hidden shadow-sm" onSubmit={(e) => e.preventDefault()}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher un produit..."
+            className="flex-1 pl-4 pr-2 py-2.5 text-sm outline-none text-slate-800 placeholder-slate-400"
+          />
+          <button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 flex items-center transition-colors flex-shrink-0" aria-label="Rechercher">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+          </button>
+        </form>
       </div>
 
       {/* Navigation bar */}
@@ -435,35 +453,77 @@ export default function Header() {
 
       {/* Mobile nav */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
-          <nav className="max-w-7xl mx-auto px-4 py-2">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/categorie/${cat.slug}`}
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-3 py-2.5 border-b border-gray-50 text-slate-700 hover:text-orange-500"
-              >
-                <span>{cat.icon}</span>
-                <span className="text-sm font-medium">{cat.name}</span>
-              </Link>
-            ))}
-            {[
-              { href: "/categorie/passerelle-multimedia", label: "Passerelle Multimédia" },
-              { href: "/categorie/accessoires", label: "Accessoires" },
-              { href: "/categorie/camera-surveillance", label: "Caméra de Surveillance" },
-              { href: "/contact", label: "Contact" },
-            ].map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsMenuOpen(false)}
-                className="block py-2.5 border-b border-gray-50 text-sm font-medium text-slate-700 hover:text-orange-500"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+        <div className="md:hidden bg-white border-t border-gray-100 shadow-xl" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+          {/* Account banner */}
+          <div className="bg-gradient-to-r from-blue-950 to-blue-900 px-4 py-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-white font-bold text-sm">Mon Espace</p>
+              <p className="text-white/50 text-xs mt-0.5">
+                {authUser ? `Bonjour, ${authUser.firstName}` : "Connectez-vous à votre compte"}
+              </p>
+            </div>
+            <Link
+              href="/compte"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors"
+            >
+              {authUser ? `${authUser.firstName[0]}${authUser.lastName[0]}` : "Se connecter"}
+            </Link>
+          </div>
+
+          {/* Categories */}
+          <div className="px-4 pt-4 pb-2">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Catégories</p>
+            <div className="space-y-0.5">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/categorie/${cat.slug}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3 rounded-xl hover:bg-orange-50 active:bg-orange-100 transition-colors group"
+                >
+                  <span className="text-xl w-8 text-center">{cat.icon}</span>
+                  <span className="text-sm font-semibold text-slate-700 group-hover:text-orange-500 transition-colors flex-1">{cat.name}</span>
+                  <svg className="w-4 h-4 text-gray-300 group-hover:text-orange-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick links grid */}
+          <div className="px-4 pt-3 pb-4 border-t border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pt-1">Liens rapides</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { href: "/produits", label: "Tous les produits", icon: "🛍️" },
+                { href: "/promotions", label: "Promotions", icon: "🔥" },
+                { href: "/contact", label: "Contact", icon: "💬" },
+                { href: "/magasin", label: "Notre magasin", icon: "🏪" },
+              ].map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-2 py-3 px-3 rounded-xl bg-gray-50 hover:bg-orange-50 active:bg-orange-100 text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors"
+                >
+                  <span className="text-base">{link.icon}</span>
+                  <span className="leading-tight text-xs">{link.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Contact footer */}
+          <div className="bg-gray-50 border-t border-gray-100 px-4 py-3 flex items-center gap-3">
+            <svg className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            <span className="text-xs font-semibold text-gray-600">(+212) 716-408919</span>
+            <span className="text-gray-300 text-xs">·</span>
+            <span className="text-xs text-gray-400">Lun–Sam 9h–19h</span>
+          </div>
         </div>
       )}
     </header>

@@ -21,11 +21,11 @@ export default function ProductSection({
     <section className="py-10 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
         {/* Section header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <span className="w-1 h-8 bg-orange-500 rounded-full inline-block" />
-              <h2 className="text-3xl font-black text-slate-900 tracking-tight">{title}</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{title}</h2>
             </div>
             {subtitle && (
               <p className="text-sm text-slate-400 ml-4 mt-1">{subtitle}</p>
@@ -43,7 +43,7 @@ export default function ProductSection({
         </div>
 
         {/* Products grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

@@ -31,7 +31,32 @@ export default function ProduitsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Mobile category filter pills */}
+      <div className="lg:hidden bg-white border-b border-gray-100 overflow-x-auto">
+        <div className="flex gap-2 px-4 py-3" style={{ whiteSpace: "nowrap" }}>
+          <Link
+            href="/produits"
+            className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-orange-500 text-white flex-shrink-0"
+          >
+            Tous ({allProducts.length})
+          </Link>
+          {categories.map((cat) => {
+            const count = allProducts.filter((p) => p.category === cat).length;
+            return (
+              <Link
+                key={cat}
+                href={`/categorie/${cat}`}
+                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-orange-50 hover:text-orange-500 transition-colors flex-shrink-0"
+              >
+                {categoryLabels[cat] ?? cat}
+                <span className="text-gray-400 font-medium">({count})</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6 lg:py-8">
         <div className="flex gap-6">
 
           {/* ── Sidebar filters ── */}
@@ -84,14 +109,14 @@ export default function ProduitsPage() {
           {/* ── Main content ── */}
           <div className="flex-1">
             {/* Header row */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
               <div>
                 <h1 className="text-xl font-black text-gray-900">
                   Tous les <span className="text-orange-500">produits</span>
                 </h1>
                 <p className="text-gray-400 text-sm mt-0.5">{allProducts.length} produits disponibles</p>
               </div>
-              <select className="border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <select className="w-full sm:w-auto border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500">
                 <option>Trier par : Pertinence</option>
                 <option>Prix croissant</option>
                 <option>Prix décroissant</option>

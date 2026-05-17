@@ -146,7 +146,7 @@ export default function HeroBanner() {
       `}</style>
 
       <section className="bg-slate-950 border-b border-white/5 overflow-hidden select-none">
-        <div className="relative h-[640px]">
+        <div className="relative h-auto lg:h-[640px]">
 
           {/* Glow blobs */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -160,7 +160,7 @@ export default function HeroBanner() {
           <div className="absolute inset-0 opacity-[0.028] pointer-events-none" style={{ backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.9) 1px,transparent 1px)", backgroundSize:"44px 44px" }} />
 
           {/* Two-column layout */}
-          <div className="relative z-10 h-full max-w-7xl mx-auto px-8 lg:px-14 grid lg:grid-cols-2 items-center gap-8 pb-20">
+          <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-14 grid lg:grid-cols-2 items-center gap-6 lg:gap-8 pt-8 pb-28 sm:pt-10 lg:pt-0 lg:pb-20">
 
             {/* ── Left: Rich text ── */}
             <div key={`text-${current}`} className="hero-text flex flex-col gap-4">
@@ -176,7 +176,7 @@ export default function HeroBanner() {
               </div>
 
               {/* Title — multiline with leading word styled */}
-              <h1 className="text-5xl xl:text-6xl font-black text-white leading-[1.05] tracking-tight whitespace-pre-line">
+              <h1 className="text-3xl sm:text-4xl xl:text-6xl font-black text-white leading-[1.05] tracking-tight whitespace-pre-line">
                 {slide.title}
               </h1>
 
@@ -198,7 +198,7 @@ export default function HeroBanner() {
               {/* Feature bullets */}
               <ul className="flex flex-col gap-2 mt-1">
                 {slide.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-white/65 text-sm leading-snug">
+                  <li key={i} className={`flex items-start gap-2.5 text-white/65 text-sm leading-snug${i >= 2 ? " hidden sm:flex" : ""}`}>
                     <svg className="w-4 h-4 text-orange-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
@@ -239,7 +239,7 @@ export default function HeroBanner() {
               </div>
 
               {/* Trust badges */}
-              <div className="flex flex-wrap gap-4 pt-1 border-t border-white/[0.07]">
+              <div className="hidden sm:flex flex-wrap gap-4 pt-1 border-t border-white/[0.07]">
                 {[
                   { icon: "M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4", label: "Livraison 24-48h" },
                   { icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", label: "Garantie 1 an" },
@@ -257,14 +257,14 @@ export default function HeroBanner() {
             </div>
 
             {/* ── Right: 3D image ── */}
-            <div className="relative h-full flex items-center justify-center" style={{ transformStyle:"preserve-3d" }}>
+            <div className="relative h-52 sm:h-72 lg:h-full flex items-center justify-center" style={{ transformStyle:"preserve-3d" }}>
               {exiting !== null && (
                 <div
                   key={`exit-${exiting}`}
                   className={`absolute inset-0 flex items-center justify-center ${dir === "right" ? "hero-exit-left" : "hero-exit-right"}`}
                   style={{ transformStyle:"preserve-3d" }}
                 >
-                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[500px] w-auto object-contain" />
+                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[180px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" />
                 </div>
               )}
               <div
@@ -272,7 +272,7 @@ export default function HeroBanner() {
                 className={busy ? (dir === "right" ? "hero-enter-right" : "hero-enter-left") : "hero-float"}
                 style={{ transformStyle:"preserve-3d" }}
               >
-                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[500px] w-auto object-contain" priority={current === 0} />
+                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[180px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" priority={current === 0} />
               </div>
             </div>
 
@@ -290,7 +290,7 @@ export default function HeroBanner() {
             </div>
 
             {/* Controls row */}
-            <div className="max-w-7xl mx-auto px-8 lg:px-14 py-3.5 flex items-center justify-end">
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-14 py-3.5 flex items-center justify-end">
 
               {/* Arrow buttons */}
               <div className="flex items-center gap-2">

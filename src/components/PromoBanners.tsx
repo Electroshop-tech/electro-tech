@@ -81,7 +81,7 @@ export default function PromoBanners() {
               <Link
                 key={b.id}
                 href={b.href}
-                className={`promo-card relative flex items-center bg-gradient-to-br ${b.gradient} rounded-3xl overflow-hidden p-7 min-h-[230px] group hover:scale-[1.015] hover:shadow-2xl transition-all duration-400`}
+                className={`promo-card relative flex items-center bg-gradient-to-br ${b.gradient} rounded-3xl overflow-hidden p-5 sm:p-7 min-h-[180px] sm:min-h-[230px] group hover:scale-[1.015] hover:shadow-2xl transition-all duration-400`}
               >
                 {/* Dot grid texture */}
                 <div
@@ -103,7 +103,7 @@ export default function PromoBanners() {
 
                   {/* Product name + specs */}
                   <div>
-                    <p className="text-white text-[22px] font-black leading-tight tracking-tight">{b.productName}</p>
+                    <p className="text-white text-lg sm:text-[22px] font-black leading-tight tracking-tight">{b.productName}</p>
                     <p className={`${b.accentColor} text-[11px] font-semibold mt-1.5 tracking-wide`}>{b.specs}</p>
                   </div>
 
@@ -113,7 +113,7 @@ export default function PromoBanners() {
                       <p className="text-white/30 text-xs line-through leading-none mb-1">
                         {b.originalPrice} {b.currency}
                       </p>
-                      <p className="text-white text-[2.6rem] font-black leading-none">
+                      <p className="text-white text-[2rem] sm:text-[2.6rem] font-black leading-none">
                         {b.currentPrice}
                         <span className="text-xl font-bold ml-1">{b.currency}</span>
                       </p>

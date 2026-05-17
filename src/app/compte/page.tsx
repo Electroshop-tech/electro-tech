@@ -124,18 +124,18 @@ export default function ComptePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 text-white py-10">
+      <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 text-white py-7 sm:py-10">
         <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex items-center gap-2 text-xs text-white/50 mb-4">
+          <nav className="flex items-center gap-2 text-xs text-white/50 mb-3 sm:mb-4">
             <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
             <span>/</span><span className="text-white/80">Mon Compte</span>
           </nav>
-          <h1 className="text-3xl font-black">Mon Compte</h1>
+          <h1 className="text-2xl sm:text-3xl font-black">Mon Compte</h1>
           <p className="text-white/60 text-sm mt-1">{user ? `Bienvenue, ${user.firstName} !` : "Connectez-vous ou créez votre espace personnel."}</p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 py-6 sm:py-12">
         {loading && (
           <div className="flex justify-center py-20">
             <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
@@ -160,7 +160,7 @@ export default function ComptePage() {
                   ))}
                 </div>
 
-                <div className="p-8 lg:p-10">
+                <div className="p-5 sm:p-8 lg:p-10">
                   {/* Alerts */}
                   {error && (
                     <div className="mb-5 flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-700 text-sm">
