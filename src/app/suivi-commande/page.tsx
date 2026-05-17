@@ -41,7 +41,7 @@ function getSteps(status: "processing" | "shipped" | "delivered", date: string):
       key: "processing",
       label: "En préparation",
       sub: "Notre équipe prépare votre colis",
-      date: status !== "confirmed" ? fmt(0) : undefined,
+      date: fmt(0),
       done: ["processing", "shipped", "delivered"].includes(status),
       active: status === "processing",
     },
