@@ -7,6 +7,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductReviews from "@/components/ProductReviews";
 import NewsletterSection from "@/components/NewsletterSection";
 import ProductGallery from "@/components/ProductGallery";
+import MobileStickyCart from "@/components/MobileStickyCart";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,7 @@ export default async function ProductPage({
   const images = product.images ?? [product.image];
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen pb-20 md:pb-0">
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-2 text-xs text-gray-500 flex-wrap">
@@ -102,57 +103,54 @@ export default async function ProductPage({
 
           {/* ── Center: Info (4 cols) ── */}
           <div className="md:col-span-4 space-y-5 order-3 md:order-none">
-            {/* Condition + Guarantee */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Condition + Guarantee — combined row */}
+            <div className="flex items-center gap-0 bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+              <div className="flex items-center gap-2.5 flex-1 px-3 py-2.5">
+                <div className="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 font-medium">État</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {product.condition ?? (product.isRefurbished ? "Produit occasion" : "Produit neuf")}
+                  <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">État</p>
+                  <p className="text-xs font-bold text-gray-900">
+                    {product.condition ?? (product.isRefurbished ? "Occasion" : "Neuf")}
                   </p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-px h-10 bg-gray-200" />
+              <div className="flex items-center gap-2.5 flex-1 px-3 py-2.5">
+                <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 font-medium">Garantie</p>
-                  <p className="text-sm font-bold text-gray-900">{product.guarantee ?? "12 Mois"}</p>
+                  <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">Garantie</p>
+                  <p className="text-xs font-bold text-gray-900">{product.guarantee ?? "12 Mois"}</p>
                 </div>
               </div>
             </div>
 
             {/* Specs */}
             <div>
-              <h3 className="text-sm font-black text-gray-900 mb-3">Les points forts</h3>
-              <ul className="space-y-2">
+              <h3 className="text-sm font-black text-gray-900 mb-2.5 flex items-center gap-2">
+                <span className="w-1 h-4 bg-orange-500 rounded-full" />
+                Les points forts
+              </h3>
+              <ul className="space-y-1.5">
                 {displaySpecs.map((spec, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
+                    <svg className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
                     {spec}
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Add to devis */}
-            <div className="pt-2 border-t border-gray-100">
-              <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-orange-500 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                Ajouter au devis
-              </button>
-            </div>
+
 
             {/* Category + Share */}
             <div className="space-y-2 text-sm border-t border-gray-100 pt-4">
@@ -162,18 +160,20 @@ export default async function ProductPage({
                   {catLabel}
                 </Link>
               </p>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-gray-700">Partager :</span>
-                {[
-                  { label: "f", href: "#", color: "text-blue-600" },
-                  { label: "𝕏", href: "#", color: "text-gray-800" },
-                  { label: "in", href: "#", color: "text-blue-700" },
-                  { label: "🔗", href: "#", color: "text-gray-500" },
-                ].map((s) => (
-                  <a key={s.label} href={s.href} className={`${s.color} font-bold hover:opacity-70 transition-opacity text-sm`}>
-                    {s.label}
-                  </a>
-                ))}
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-gray-700 text-sm mr-1">Partager :</span>
+                <a href="#" aria-label="Facebook" className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>
+                </a>
+                <a href="#" aria-label="X" className="w-8 h-8 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center hover:bg-gray-800 hover:text-white transition-all">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                </a>
+                <a href="#" aria-label="LinkedIn" className="w-8 h-8 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center hover:bg-blue-700 hover:text-white transition-all">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z" /><circle cx="4" cy="4" r="2" /></svg>
+                </a>
+                <a href="#" aria-label="Copier le lien" className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-500 hover:text-white transition-all">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                </a>
               </div>
             </div>
           </div>
@@ -226,7 +226,15 @@ export default async function ProductPage({
 
               {/* Qty + Add to cart */}
               <div className="border-t border-gray-100 pt-4">
-                <AddToCartWidget price={product.currentPrice} />
+                <AddToCartWidget product={{
+                  id: product.id,
+                  name: product.name,
+                  brand: product.brand,
+                  price: product.currentPrice,
+                  originalPrice: product.originalPrice,
+                  image: product.image,
+                  slug: product.slug,
+                }} />
               </div>
 
               {/* Trust badges */}
@@ -290,14 +298,13 @@ export default async function ProductPage({
                 </div>
                 {/* Image */}
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="relative w-full max-w-md aspect-[4/3]">
-                    <Image
-                      src={section.image}
-                      alt={section.title}
-                      fill
-                      className="object-contain drop-shadow-lg"
-                    />
-                  </div>
+                  <Image
+                    src={section.image}
+                    alt={section.title}
+                    width={480}
+                    height={360}
+                    className="object-contain drop-shadow-lg w-full max-w-sm md:max-w-md rounded-xl"
+                  />
                 </div>
               </div>
             ))}
@@ -348,6 +355,15 @@ export default async function ProductPage({
       </div>
 
       <NewsletterSection />
+      <MobileStickyCart product={{
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        price: product.currentPrice,
+        originalPrice: product.originalPrice,
+        image: product.image,
+        slug: product.slug,
+      }} />
     </div>
   );
 }

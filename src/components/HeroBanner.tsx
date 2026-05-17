@@ -160,13 +160,13 @@ export default function HeroBanner() {
           <div className="absolute inset-0 opacity-[0.028] pointer-events-none" style={{ backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.9) 1px,transparent 1px)", backgroundSize:"44px 44px" }} />
 
           {/* Two-column layout */}
-          <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-14 grid lg:grid-cols-2 items-center gap-6 lg:gap-8 pt-8 pb-28 sm:pt-10 lg:pt-0 lg:pb-20">
+          <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-14 grid lg:grid-cols-2 items-center gap-4 sm:gap-6 lg:gap-8 pt-6 pb-20 sm:pt-10 sm:pb-28 lg:pt-0 lg:pb-20">
 
             {/* ── Left: Rich text ── */}
-            <div key={`text-${current}`} className="hero-text flex flex-col gap-4">
+            <div key={`text-${current}`} className="hero-text flex flex-col gap-3 sm:gap-4 order-2 lg:order-1">
 
               {/* Badge row */}
-              <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-3">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider text-white ${slide.badgeBg}`}>
                   <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-pulse" />
                   {slide.badge}
@@ -181,7 +181,7 @@ export default function HeroBanner() {
               </h1>
 
               {/* Star rating */}
-              <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
                 <div className="flex">
                   {[1,2,3,4,5].map(i => (
                     <svg key={i} className={`w-4 h-4 ${i <= Math.round(slide.rating) ? "text-amber-400" : "text-white/20"}`} fill="currentColor" viewBox="0 0 20 20">
@@ -196,7 +196,7 @@ export default function HeroBanner() {
               </div>
 
               {/* Feature bullets */}
-              <ul className="flex flex-col gap-2 mt-1">
+              <ul className="hidden sm:flex flex-col gap-2 mt-1">
                 {slide.features.map((f, i) => (
                   <li key={i} className={`flex items-start gap-2.5 text-white/65 text-sm leading-snug${i >= 2 ? " hidden sm:flex" : ""}`}>
                     <svg className="w-4 h-4 text-orange-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,7 +223,7 @@ export default function HeroBanner() {
               <div className="flex flex-wrap items-center gap-3">
                 <Link
                   href={slide.href}
-                  className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold px-7 py-3.5 rounded-2xl transition-all duration-200 shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 active:translate-y-0 text-sm"
+                  className="inline-flex sm:inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold px-7 py-3.5 rounded-2xl transition-all duration-200 shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-0.5 active:translate-y-0 text-sm w-full sm:w-auto justify-center"
                 >
                   Voir le produit
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,7 +232,7 @@ export default function HeroBanner() {
                 </Link>
                 <Link
                   href="/produits"
-                  className="inline-flex items-center gap-2 text-white/55 hover:text-white text-sm font-medium px-5 py-3.5 rounded-2xl border border-white/10 hover:border-white/25 transition-all duration-200"
+                  className="hidden sm:inline-flex items-center gap-2 text-white/55 hover:text-white text-sm font-medium px-5 py-3.5 rounded-2xl border border-white/10 hover:border-white/25 transition-all duration-200"
                 >
                   Explorer la gamme
                 </Link>
@@ -257,14 +257,14 @@ export default function HeroBanner() {
             </div>
 
             {/* ── Right: 3D image ── */}
-            <div className="relative h-52 sm:h-72 lg:h-full flex items-center justify-center" style={{ transformStyle:"preserve-3d" }}>
+            <div className="relative h-64 sm:h-72 lg:h-full flex items-center justify-center order-1 lg:order-2" style={{ transformStyle:"preserve-3d" }}>
               {exiting !== null && (
                 <div
                   key={`exit-${exiting}`}
                   className={`absolute inset-0 flex items-center justify-center ${dir === "right" ? "hero-exit-left" : "hero-exit-right"}`}
                   style={{ transformStyle:"preserve-3d" }}
                 >
-                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[180px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" />
+                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[220px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" />
                 </div>
               )}
               <div
@@ -272,7 +272,7 @@ export default function HeroBanner() {
                 className={busy ? (dir === "right" ? "hero-enter-right" : "hero-enter-left") : "hero-float"}
                 style={{ transformStyle:"preserve-3d" }}
               >
-                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[180px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" priority={current === 0} />
+                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[220px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" priority={current === 0} />
               </div>
             </div>
 

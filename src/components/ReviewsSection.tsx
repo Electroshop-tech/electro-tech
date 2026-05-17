@@ -15,11 +15,11 @@ const StarRow = ({ size = "w-4 h-4" }: { size?: string }) => (
 
 export default function ReviewsSection() {
   return (
-    <section className="py-16 bg-slate-50">
+    <section className="py-10 sm:py-16 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4">
 
         {/* Header row */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8 sm:mb-12">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="w-1 h-6 bg-orange-500 rounded-full inline-block" />
@@ -52,11 +52,11 @@ export default function ReviewsSection() {
         </div>
 
         {/* Cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="flex gap-4 overflow-x-auto pb-3 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {reviews.map((review, i) => (
+            <div key={review.id} className="shrink-0 w-[300px] sm:w-auto snap-start">
             <div
-              key={review.id}
-              className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col gap-4 hover:shadow-xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 shadow-sm group"
+              className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col gap-4 hover:shadow-xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 shadow-sm group h-full"
             >
               {/* Quote mark */}
               <div className="text-orange-200 text-5xl font-black leading-none select-none -mb-2">&ldquo;</div>
@@ -95,6 +95,7 @@ export default function ReviewsSection() {
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           ))}
         </div>

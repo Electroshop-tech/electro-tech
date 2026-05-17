@@ -67,27 +67,29 @@ export default function Home() {
       {/* New arrivals */}
       <section className="py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-end justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <span className="w-1 h-7 bg-purple-500 rounded-full inline-block" />
-              <div>
-                <h2 className="text-2xl font-black text-slate-900">Nouveaux Arrivages</h2>
-                <p className="text-sm text-slate-500">Dernières caméras, box TV et accessoires en stock</p>
+          <div className="flex items-center justify-between mb-6 gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-1 h-7 bg-purple-500 rounded-full shrink-0 inline-block" />
+              <div className="min-w-0">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 truncate">Nouveaux Arrivages</h2>
+                <p className="hidden sm:block text-sm text-slate-500">Dernières caméras, box TV et accessoires en stock</p>
               </div>
             </div>
             <Link
               href="/nouveautes"
-              className="flex items-center gap-1.5 text-sm font-bold text-purple-600 hover:text-purple-700 border border-purple-200 hover:border-purple-400 rounded-xl px-4 py-2 hover:bg-purple-50 transition-all"
+              className="shrink-0 flex items-center gap-1 text-xs sm:text-sm font-bold text-purple-600 hover:text-purple-700 border border-purple-200 hover:border-purple-400 rounded-xl px-3 py-2 hover:bg-purple-50 transition-all"
             >
               Voir tout
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="flex gap-3 overflow-x-auto pb-3 sm:pb-0 sm:grid sm:grid-cols-3 lg:grid-cols-6 sm:gap-4 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <div key={product.id} className="shrink-0 w-[165px] sm:w-auto snap-start">
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         </div>

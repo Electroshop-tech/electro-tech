@@ -2,88 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { useCart } from "@/lib/cartContext";
 
-type CartItem = {
-  id: number;
-  name: string;
-  brand: string;
-  sku: string;
-  price: number;
-  originalPrice: number;
-  image: string;
-  qty: number;
-  deliveryMin: string;
-  deliveryMax: string;
-};
-
-const initialCart: CartItem[] = [
-  {
-    id: 1,
-    name: "Hikvision DS-2CD2143G2-I 4MP AcuSense",
-    brand: "Hikvision",
-    sku: "DS-2CD2143G2-I",
-    price: 890,
-    originalPrice: 1100,
-    image: "/images/placeholder-camera.svg",
-    qty: 1,
-    deliveryMin: "19 mai",
-    deliveryMax: "21 mai",
-  },
-  {
-    id: 2,
-    name: "Xiaomi Mi Box S 4K Ultra HD Android TV",
-    brand: "Xiaomi",
-    sku: "MDZ-22-AB",
-    price: 299,
-    originalPrice: 399,
-    image: "/images/placeholder-mediabox.svg",
-    qty: 1,
-    deliveryMin: "19 mai",
-    deliveryMax: "21 mai",
-  },
-  {
-    id: 3,
-    name: "Chargeur GaN 65W 3 Ports USB-C",
-    brand: "Baseus",
-    sku: "BSS-GAN65W",
-    price: 199,
-    originalPrice: 299,
-    image: "/images/placeholder-accessoire.svg",
-    qty: 1,
-    deliveryMin: "20 mai",
-    deliveryMax: "22 mai",
-  },
-];
-
-const FREE_SHIPPING_AT = 2000;
-
-type Shipping = "domicile" | "retrait" | "autre";
+type Shipping = "domicile";
 
 export default function PanierPage() {
-  const [cart, setCart] = useState<CartItem[]>(initialCart);
+  const { items: cart, removeFromCart: removeItem, updateQty, cartTotal: subtotal } = useCart();
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState(false);
-  const [shipping, setShipping] = useState<Shipping>("domicile");
 
-  const updateQty = (id: number, delta: number) => {
-    setCart((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item
-      )
-    );
-  };
-
-  const removeItem = (id: number) => setCart((prev) => prev.filter((i) => i.id !== id));
-
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const promoDiscount = promoApplied ? Math.round(subtotal * 0.1) : 0;
-  const shippingCost = subtotal >= FREE_SHIPPING_AT ? 0 : shipping === "retrait" ? 0 : shipping === "autre" ? 59 : 40;
-  const total = subtotal - promoDiscount + shippingCost;
-
-  const progressPct = Math.min(100, Math.round((subtotal / FREE_SHIPPING_AT) * 100));
-  const remaining = Math.max(0, FREE_SHIPPING_AT - subtotal);
+  const total = subtotal - promoDiscount;
+  const cartSavings = cart.reduce((s, i) => s + (i.originalPrice - i.price) * i.qty, 0);
 
   const applyPromo = () => {
     if (promoCode.trim().toUpperCase() === "ELECTRO10") {
@@ -98,17 +29,35 @@ export default function PanierPage() {
   return (
     <main className="min-h-screen bg-gray-100">
       {/* Steps */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-center gap-3 text-sm font-bold tracking-widest uppercase">
-          <span className="text-slate-900 border-b-2 border-orange-500 pb-0.5">Panier</span>
-          <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span className="text-gray-400">Commander</span>
-          <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span className="text-gray-400">Commande terminee</span>
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-6 py-4">
+          <div className="flex items-start">
+            {/* Step 1 – active */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center shadow-md shadow-orange-200">
+                <span className="text-white text-xs font-black">1</span>
+              </div>
+              <span className="text-[10px] font-black text-orange-500 uppercase tracking-wider">Panier</span>
+            </div>
+            {/* Connector */}
+            <div className="flex-1 h-0.5 bg-orange-200 mt-4 mx-2" />
+            {/* Step 2 */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
+                <span className="text-gray-400 text-xs font-black">2</span>
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Commander</span>
+            </div>
+            {/* Connector */}
+            <div className="flex-1 h-0.5 bg-gray-200 mt-4 mx-2" />
+            {/* Step 3 */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
+                <span className="text-gray-400 text-xs font-black">3</span>
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Terminé</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -129,27 +78,30 @@ export default function PanierPage() {
             {/* LEFT */}
             <div className="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
 
-              {/* Free shipping progress */}
-              <div className="px-6 pt-5 pb-4 border-b border-gray-100">
-                {subtotal >= FREE_SHIPPING_AT ? (
-                  <p className="text-sm font-semibold text-green-600">
-                    Vous beneficiez de la <span className="font-black">livraison gratuite</span> !
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-600 mb-2">
-                    Ajoutez <span className="font-black text-orange-500">{remaining.toLocaleString("fr-FR")}€</span> au panier et beneficiez de la livraison gratuite !
-                  </p>
-                )}
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2 overflow-hidden">
-                  <div
-                    className="h-2 rounded-full bg-orange-500 transition-all duration-500"
-                    style={{ width: `${progressPct}%` }}
-                  />
+              {/* Free shipping banner */}
+              <div className="relative overflow-hidden bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100 px-5 py-3.5 flex items-center gap-3">
+                {/* Left accent bar */}
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-emerald-500" />
+                {/* Check circle */}
+                <div className="shrink-0 w-9 h-9 rounded-full bg-green-500 flex items-center justify-center shadow-sm shadow-green-200">
+                  <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                {/* Text */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-black text-green-800 leading-none">Livraison offerte sur votre commande</p>
+                  <p className="text-[11px] text-green-600 mt-0.5">Expédition sous 24h · Suivi inclus · Partout au Maroc</p>
+                </div>
+                {/* Saving badge */}
+                <div className="shrink-0 flex flex-col items-center bg-green-500 rounded-xl px-3 py-1.5 shadow-sm">
+                  <span className="text-[9px] text-white/80 font-bold uppercase tracking-wide leading-none">Économie</span>
+                  <span className="text-sm text-white font-black leading-tight">{cartSavings > 0 ? `${cartSavings}€` : '0€'}</span>
                 </div>
               </div>
 
-              {/* Table header */}
-              <div className="grid grid-cols-12 px-6 py-3 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-widest">
+              {/* Table header - desktop only */}
+              <div className="hidden md:grid grid-cols-12 px-6 py-3 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-widest">
                 <span className="col-span-1" />
                 <span className="col-span-5">Produit</span>
                 <span className="col-span-2 text-center">Prix</span>
@@ -159,7 +111,62 @@ export default function PanierPage() {
 
               {/* Items */}
               {cart.map((item, idx) => (
-                <div key={item.id} className={`grid grid-cols-12 gap-2 items-center px-6 py-4 ${idx < cart.length - 1 ? "border-b border-gray-50" : ""}`}>
+                <div key={item.id}>
+
+                  {/* Mobile card layout */}
+                  <div className={`md:hidden px-4 py-4 ${idx < cart.length - 1 ? "border-b border-gray-100" : ""}`}>
+                    <div className="flex gap-3">
+                      {/* Image */}
+                      <div className="w-20 h-20 flex-shrink-0 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={decodeURIComponent(item.image)} alt={item.name} className="object-contain p-2 w-full h-full" />
+                      </div>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm font-bold text-slate-900 leading-snug line-clamp-2 flex-1">{item.name}</p>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="shrink-0 w-7 h-7 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center active:bg-red-100 active:text-red-500 transition-colors"
+                            aria-label="Supprimer"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-1 mt-1">
+                          <svg className="w-3 h-3 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM3.56 5H18.44l-1.5 7H5.06L3.56 5z" />
+                          </svg>
+                          <p className="text-[11px] text-orange-500 font-medium">Livraison gratuite 24–48h</p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Bottom row: qty + price */}
+                    <div className="flex items-center justify-between mt-3 pl-0">
+                      <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
+                        <button
+                          onClick={() => updateQty(item.id, -1)}
+                          className="w-9 h-9 flex items-center justify-center text-gray-500 active:bg-gray-100 font-bold text-lg"
+                        >−</button>
+                        <span className="w-9 h-9 flex items-center justify-center text-sm font-black text-slate-900 border-x border-gray-200">{item.qty}</span>
+                        <button
+                          onClick={() => updateQty(item.id, 1)}
+                          className="w-9 h-9 flex items-center justify-center text-gray-500 active:bg-gray-100 font-bold text-lg"
+                        >+</button>
+                      </div>
+                      <div className="text-right">
+                        {item.originalPrice > item.price && (
+                          <p className="text-[10px] text-gray-300 line-through leading-none">{(item.originalPrice * item.qty).toLocaleString("fr-FR")}€</p>
+                        )}
+                        <p className="text-lg font-black text-orange-500 leading-tight">{(item.price * item.qty).toLocaleString("fr-FR")}€</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop table row */}
+                  <div className={`hidden md:grid grid-cols-12 gap-2 items-center px-6 py-4 ${idx < cart.length - 1 ? "border-b border-gray-50" : ""}`}>
                   {/* Remove */}
                   <div className="col-span-1 flex items-center justify-center">
                     <button
@@ -176,12 +183,13 @@ export default function PanierPage() {
                   {/* Product */}
                   <div className="col-span-5 flex items-center gap-3">
                     <div className="w-16 h-16 rounded-lg border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      <Image src={item.image} alt={item.name} width={64} height={64} className="object-contain p-1.5" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={decodeURIComponent(item.image)} alt={item.name} className="object-contain p-1.5 w-full h-full" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">{item.name}</p>
                       <p className="text-xs text-orange-500 font-semibold mt-0.5 italic">
-                        Livraison estimee : {item.deliveryMin} - {item.deliveryMax}
+                        Livraison gratuite 24–48h
                       </p>
                     </div>
                   </div>
@@ -219,128 +227,119 @@ export default function PanierPage() {
                   <div className="col-span-2 text-right">
                     <p className="text-sm font-black text-orange-500">{(item.price * item.qty).toLocaleString("fr-FR")}€</p>
                   </div>
+                  </div>
+
                 </div>
               ))}
 
               {/* Promo code */}
-              <div className="px-6 py-5 border-t border-gray-100 flex items-center gap-3">
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(e) => { setPromoCode(e.target.value); setPromoError(false); }}
-                  placeholder="Code promo"
-                  className="w-48 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-orange-400 placeholder-gray-300"
-                />
-                <button
-                  onClick={applyPromo}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-2.5 rounded-lg text-sm transition-colors"
-                >
-                  Appliquer Le Code Promo
-                </button>
+              <div className="px-4 sm:px-6 py-4 border-t border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a2 2 0 012-2z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => { setPromoCode(e.target.value); setPromoError(false); }}
+                      placeholder="Code promo"
+                      className={`w-full pl-9 pr-3 py-2.5 text-sm border rounded-xl focus:outline-none placeholder-gray-300 ${promoError ? 'border-red-300 bg-red-50' : promoApplied ? 'border-green-300 bg-green-50' : 'border-gray-200 focus:border-orange-400'}`}
+                    />
+                  </div>
+                  <button
+                    onClick={applyPromo}
+                    className="shrink-0 bg-slate-900 active:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors"
+                  >
+                    Appliquer
+                  </button>
+                </div>
                 {promoApplied && (
-                  <span className="text-xs text-green-600 font-bold flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <p className="text-xs text-green-600 font-bold flex items-center gap-1 mt-2">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    -10% applique
-                  </span>
+                    Code ELECTRO10 appliqué — −10% !
+                  </p>
                 )}
                 {promoError && (
-                  <span className="text-xs text-red-500 font-bold">Code invalide</span>
+                  <p className="text-xs text-red-500 font-bold mt-2">Code invalide. Essayez ELECTRO10</p>
                 )}
               </div>
             </div>
 
             {/* RIGHT — Summary */}
             <div className="lg:col-span-1 bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="px-6 pt-6 pb-2 border-b border-gray-100">
-                <h2 className="text-xl font-black text-slate-900">Recapitulatif</h2>
+              <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center gap-2">
+                <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h2 className="text-lg font-black text-slate-900">Récapitulatif</h2>
               </div>
 
-              <div className="px-6 py-5 space-y-4">
+              <div className="px-5 py-5 space-y-4">
                 {/* Subtotal */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 font-semibold">Sous-total</span>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Sous-total ({cart.reduce((s, i) => s + i.qty, 0)} article{cart.reduce((s, i) => s + i.qty, 0) > 1 ? 's' : ''})</span>
                   <span className="font-bold text-slate-900">{subtotal.toLocaleString("fr-FR")}€</span>
                 </div>
 
                 {promoDiscount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-green-600 font-semibold">Reduction (10%)</span>
-                    <span className="font-bold text-green-600">-{promoDiscount.toLocaleString("fr-FR")}€</span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-green-600 font-semibold flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Réduction (10%)
+                    </span>
+                    <span className="font-bold text-green-600">−{promoDiscount.toLocaleString("fr-FR")}€</span>
                   </div>
                 )}
 
-                {/* Shipping options */}
-                <div>
-                  <p className="text-sm font-semibold text-gray-600 mb-2">Expedition</p>
-                  <div className="space-y-2 text-sm">
-                    <label className="flex items-center justify-between gap-2 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="shipping"
-                          checked={shipping === "domicile"}
-                          onChange={() => setShipping("domicile")}
-                          className="accent-blue-600 w-4 h-4"
-                        />
-                        <span className="text-gray-700">Livraison a domicile</span>
-                      </div>
-                      <span className="font-bold text-orange-500 whitespace-nowrap">
-                        {subtotal >= FREE_SHIPPING_AT ? "Gratuite" : "40€"}
-                      </span>
-                    </label>
-                    <label className="flex items-center justify-between gap-2 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="shipping"
-                          checked={shipping === "retrait"}
-                          onChange={() => setShipping("retrait")}
-                          className="accent-blue-600 w-4 h-4"
-                        />
-                        <span className="text-gray-700">Retrait en magasin</span>
-                      </div>
-                      <span className="font-bold text-green-600">Gratuit</span>
-                    </label>
-                    <label className="flex items-center justify-between gap-2 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="shipping"
-                          checked={shipping === "autre"}
-                          onChange={() => setShipping("autre")}
-                          className="accent-blue-600 w-4 h-4"
-                        />
-                        <span className="text-gray-700">Autre ville</span>
-                      </div>
-                      <span className="font-bold text-slate-900">
-                        {subtotal >= FREE_SHIPPING_AT ? "Gratuite" : "59€"}
-                      </span>
-                    </label>
+                {/* Delivery - single option */}
+                <div className="flex items-center justify-between bg-green-50 border border-green-100 rounded-xl px-3 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-bold text-green-800">Livraison à domicile</p>
+                      <p className="text-[10px] text-green-600">Partout au Maroc · 24–48h</p>
+                    </div>
                   </div>
+                  <span className="text-sm font-black text-green-600">Gratuite</span>
                 </div>
 
-                {/* Divider */}
+                {/* Divider + Total */}
                 <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                   <span className="text-base font-black text-slate-900">Total</span>
-                  <span className="text-2xl font-black text-orange-500">{total.toLocaleString("fr-FR")}€</span>
+                  <div className="text-right">
+                    <p className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString("fr-FR")}€</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">TTC · Livraison gratuite</p>
+                  </div>
                 </div>
 
                 {/* Checkout */}
                 <Link
                   href="/commander"
-                  className="block w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3.5 rounded-lg text-center transition-all text-sm tracking-wide"
+                  className="flex items-center justify-center gap-2 w-full bg-orange-500 active:bg-orange-600 text-white font-black py-4 rounded-2xl text-center transition-all text-sm tracking-wide shadow-lg shadow-orange-200"
                 >
-                  Valider La Commande
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                  Valider la commande
                 </Link>
 
-                <p className="text-xs text-gray-400 text-center flex items-center justify-center gap-1">
-                  <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
-                  Paiement 100% securise
-                </p>
+                <div className="flex items-center justify-center gap-3">
+                  <p className="text-xs text-gray-400 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                    Paiement sécurisé
+                  </p>
+                  <span className="text-gray-200">·</span>
+                  <p className="text-xs text-gray-400">Retours 14 jours</p>
+                </div>
               </div>
             </div>
           </div>

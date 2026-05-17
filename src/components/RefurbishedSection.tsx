@@ -79,11 +79,21 @@ export default function WhyUsSection() {
         <div className="wus-orb absolute top-[10%] left-[8%]  w-72 h-72 rounded-full bg-orange-500/20 blur-3xl pointer-events-none" style={{"--delay":"0s"} as React.CSSProperties} />
         <div className="wus-orb absolute bottom-[8%] right-[6%] w-80 h-80 rounded-full bg-blue-500/20   blur-3xl pointer-events-none" style={{"--delay":"3s"} as React.CSSProperties} />
 
-        {/* Top fade */}
-        <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-gray-50 to-transparent z-20 pointer-events-none" />
+        {/* Top fade — desktop only */}
+        <div className="hidden sm:block absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-gray-50 to-transparent z-20 pointer-events-none" />
 
-        {/* Image — entrance + glow */}
-        <div className="wus-reveal wus-glow relative overflow-hidden">
+        {/* Mobile image — plain, no animation */}
+        <Image
+          src="/images/For mobile version.png"
+          alt="Pourquoi nous choisir ElectroShop-Tech"
+          width={1080}
+          height={1080}
+          className="sm:hidden w-full h-auto"
+          priority
+        />
+
+        {/* Desktop image — entrance + glow */}
+        <div className="hidden sm:block wus-reveal wus-glow relative overflow-hidden">
 
           <Image
             src="/images/Pourquoi nous choisir.png"

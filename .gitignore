@@ -40,4 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
+# debug screenshots (generated during development)
+public/*.png
+public/*.jpg
+public/images/For mobile version.png

@@ -86,7 +86,7 @@ export default function PromotionsPage() {
           ))}
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 py-12">
+        <div className="relative max-w-7xl mx-auto px-4 py-8 sm:py-12">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-white/60 mb-6">
             <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
@@ -100,7 +100,7 @@ export default function PromotionsPage() {
                 <span className="text-lg">🔥</span>
                 <span className="text-xs font-bold tracking-wide uppercase">Offres limitées</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black mb-3 leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 leading-tight">
                 Bon Plans &<br />Promotions
               </h1>
               <p className="text-white/80 text-sm leading-relaxed max-w-lg">
@@ -124,7 +124,7 @@ export default function PromotionsPage() {
 
       {/* ── Trust bar ── */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center gap-8 flex-wrap">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
           {[
             { icon: "🚚", text: "Livraison 24-48h" },
             { icon: "🔒", text: "Paiement sécurisé" },
@@ -173,12 +173,12 @@ export default function PromotionsPage() {
         )}
 
         {/* Promo CTA banner */}
-        <div className="mt-12 bg-gradient-to-r from-blue-900 to-blue-700 rounded-3xl p-8 text-white text-center">
+        <div className="mt-12 bg-gradient-to-r from-blue-900 to-blue-700 rounded-3xl p-5 sm:p-8 text-white text-center">
           <h3 className="text-xl font-black mb-2">Ne ratez aucune offre !</h3>
           <p className="text-white/70 text-sm mb-5">
             Inscrivez-vous à notre newsletter et recevez nos meilleures promotions en avant-première.
           </p>
-          <form className="flex items-center gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex items-center gap-3 max-w-md mx-auto" action="#">
             <input
               type="email"
               placeholder="Votre adresse e-mail"

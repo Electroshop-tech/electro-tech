@@ -81,7 +81,7 @@ export default async function CategoryPage({
     <div className="bg-gray-50 min-h-screen">
 
       {/* ── Category hero ── */}
-      <div className={`relative bg-gradient-to-r ${meta?.gradient ?? "from-slate-800 to-slate-700"} text-white overflow-hidden h-[520px]`}>
+      <div className={`relative bg-gradient-to-r ${meta?.gradient ?? "from-slate-800 to-slate-700"} text-white overflow-hidden h-[300px] sm:h-[400px] lg:h-[520px]`}>
         {/* Full-bleed image — fills container, cropped to banner height */}
         {meta?.heroImg && (
           <Image
@@ -99,7 +99,7 @@ export default async function CategoryPage({
 
         {/* ── Text content ── */}
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full max-w-7xl mx-auto px-8 lg:px-16">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
             <div className="max-w-lg">
 
               {/* Breadcrumb */}
@@ -122,16 +122,16 @@ export default async function CategoryPage({
               </div>
 
               {/* Title */}
-              <h1 className="text-5xl lg:text-6xl font-black mb-3 leading-none tracking-tight">{cat.name}</h1>
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-black mb-3 leading-none tracking-tight">{cat.name}</h1>
 
               {/* Description — short version */}
-              <p className="text-white/65 text-sm leading-relaxed mb-5 max-w-sm">
+              <p className="hidden sm:block text-white/65 text-sm leading-relaxed mb-5 max-w-sm">
                 {meta?.description}
               </p>
 
               {/* Feature pills */}
               {meta?.features && (
-                <div className="flex flex-wrap gap-2 mb-7">
+                <div className="hidden sm:flex flex-wrap gap-2 mb-7">
                   {meta.features.map((f) => (
                     <span key={f} className="inline-flex items-center gap-1.5 bg-white/10 text-white text-[11px] font-semibold px-3 py-1 rounded-full border border-white/20 backdrop-blur-sm">
                       <svg className="w-2.5 h-2.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
@@ -306,7 +306,7 @@ export default async function CategoryPage({
           <div className="flex-1 min-w-0">
 
             {/* Toolbar */}
-            <div className="flex items-center justify-between gap-4 mb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
               <p className="text-sm text-gray-500">
                 <span className="font-bold text-gray-900">{products.length}</span>{" "}
                 {products.length === 1 ? "résultat" : "résultats"} dans{" "}
@@ -314,7 +314,7 @@ export default async function CategoryPage({
               </p>
               <div className="flex items-center gap-2">
                 <label className="text-xs text-gray-500 font-medium">Trier :</label>
-                <select className="border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-medium text-gray-700 outline-none bg-white focus:border-orange-400 cursor-pointer">
+                <select className="flex-1 sm:flex-none border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-medium text-gray-700 outline-none bg-white focus:border-orange-400 cursor-pointer">
                   {Object.entries(sortLabels).map(([val, label]) => (
                     <option key={val} value={val}>{label}</option>
                   ))}

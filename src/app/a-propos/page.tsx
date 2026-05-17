@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 const highlights = [
   { label: "Produits authentiques", desc: "100% originaux, sourcés chez les fabricants", icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" },
@@ -26,7 +26,7 @@ export default function AProposPage() {
     <main className="min-h-screen bg-white">
 
       {/* ── HERO ── */}
-      <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 pt-20 pb-0 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 pt-10 sm:pt-20 pb-0 relative overflow-hidden">
         {/* Glows */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-72 h-72 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
@@ -34,12 +34,12 @@ export default function AProposPage() {
         <div className="relative max-w-7xl mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-end">
             {/* Left */}
-            <div className="pb-20">
+            <div className="pb-10 sm:pb-20">
               <div className="inline-flex items-center gap-2 border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs font-black px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest">
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                 Qui sommes-nous
               </div>
-              <h1 className="text-5xl lg:text-6xl font-black text-white leading-[1.05] tracking-tight mb-5">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.05] tracking-tight mb-5">
                 L&rsquo;expert tech<br />
                 <span className="text-orange-400">de confiance</span><br />
                 au Maroc
@@ -70,7 +70,7 @@ export default function AProposPage() {
       </section>
 
       {/* ── STORY + TIMELINE ── */}
-      <section className="py-20 max-w-7xl mx-auto px-4">
+      <section className="py-10 sm:py-20 max-w-7xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div>
             <p className="text-orange-500 text-xs font-black uppercase tracking-widest mb-3">Notre histoire</p>

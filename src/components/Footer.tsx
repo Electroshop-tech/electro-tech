@@ -64,17 +64,17 @@ export default function Footer() {
 
       {/* Trust bar */}
       <div className="bg-slate-900 border-y border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="max-w-7xl mx-auto px-4 py-5 sm:py-6 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           {trustItems.map((item) => (
-            <div key={item.title} className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <div key={item.title} className="flex items-center gap-2.5 sm:gap-4">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d={item.path} />
                 </svg>
               </div>
-              <div>
-                <p className="text-white text-sm font-bold leading-tight">{item.title}</p>
-                <p className="text-slate-500 text-xs mt-0.5">{item.desc}</p>
+              <div className="min-w-0">
+                <p className="text-white text-xs sm:text-sm font-bold leading-tight">{item.title}</p>
+                <p className="text-slate-500 text-[10px] sm:text-xs mt-0.5 leading-tight">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -82,17 +82,17 @@ export default function Footer() {
       </div>
 
       {/* Main columns */}
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10">
+      <div className="max-w-7xl mx-auto px-4 py-7 sm:py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-10">
 
-        {/* Brand â€” 2 cols wide */}
-        <div className="lg:col-span-2 space-y-5">
+        {/* Brand — 2 cols wide on desktop */}
+        <div className="lg:col-span-2 space-y-4">
           <Link href="/" className="inline-flex items-baseline leading-none select-none">
             <span className="font-black text-[26px] text-white" style={{ letterSpacing: "-0.5px" }}>Electro</span>
             <span className="font-black text-[26px] text-orange-400" style={{ letterSpacing: "-0.5px" }}>Shop</span>
             <span className="font-light text-[13px] text-white/40 ml-0.5">-tech</span>
           </Link>
 
-          <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+          <p className="hidden sm:block text-slate-400 text-sm leading-relaxed max-w-xs">
             Votre Spécialiste marocain en box Android TV, accessoires high-tech et caméras de surveillance. Produits 100&nbsp;% authentiques, livrés rapidement partout au Maroc.
           </p>
 
@@ -145,13 +145,16 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Nav columns — 2×2 grid on mobile, 3 separate cols on sm+ */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:contents">
+
         {/* Catégories */}
         <div>
           <FooterHeading>Catégories</FooterHeading>
           <ul className="space-y-2.5">
             {[
               { href: "/categorie/passerelle-multimedia", label: "Box Android TV" },
-              { href: "/categorie/passerelle-multimedia", label: "TV Stick" },
+              { href: "/categorie/passerelle-multimedia#tv-stick", label: "TV Stick" },
               { href: "/categorie/camera-surveillance", label: "Caméras de Surveillance" },
               { href: "/categorie/accessoires", label: "Accessoires" },
               { href: "/produits", label: "Chargeurs & Câbles" },
@@ -189,9 +192,10 @@ export default function Footer() {
         </div>
 
         {/* Informations */}
-        <div>
+        {/* Informations — spans both cols on mobile so it sits below the 2×2 */}
+        <div className="col-span-2 sm:col-auto">
           <FooterHeading>Informations</FooterHeading>
-          <ul className="space-y-2.5">
+          <ul className="grid grid-cols-2 sm:grid-cols-1 gap-x-4 gap-y-2.5">
             {[
               { href: "/a-propos", label: "Qui sommes-nous ?" },
               { href: "/contact", label: "Contactez-nous" },
@@ -208,18 +212,20 @@ export default function Footer() {
             ))}
           </ul>
         </div>
+
+        </div>{/* end nav wrapper */}
       </div>
 
       {/* Bottom bar */}
       <div className="border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-slate-500 text-xs">
-            &copy; {currentYear}{" "}
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-slate-500 text-xs text-center sm:text-left">
+            &copy; {currentYear}{" "}
             <span className="text-slate-400 font-semibold">ElectroShop-Tech.ma</span>{" "}
             SARL &mdash; Tous droits réservés
           </p>
-          <div className="flex items-center gap-3">
-            <span className="text-slate-500 text-xs">Paiement sécurisé :</span>
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            <span className="text-slate-500 text-[10px] sm:text-xs shrink-0">Paiement sécurisé :</span>
             <div className="flex items-center gap-1.5">
 
               {/* Visa */}

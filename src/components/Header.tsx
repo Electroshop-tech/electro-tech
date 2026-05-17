@@ -5,11 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { categories } from "@/lib/data";
+import { useCart } from "@/lib/cartContext";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
-  const [cartCount] = useState(0);
+  const { cartCount } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
   const pathname = usePathname();
@@ -102,7 +103,7 @@ export default function Header() {
               <div className="flex items-baseline" style={{ lineHeight: 1 }}>
                 {/* Electro — shimmer sweep */}
                 <span
-                  className="font-black text-[26px]"
+                  className="font-black text-[22px] sm:text-[26px]"
                   style={{
                     background: 'linear-gradient(90deg, #e2eeff 0%, #ffffff 30%, #b8d4ff 50%, #ffffff 70%, #e2eeff 100%)',
                     backgroundSize: '250% auto',
@@ -115,7 +116,7 @@ export default function Header() {
                 >Electro</span>
                 {/* Shop — static orange */}
                 <span
-                  className="font-black text-[26px] text-orange-400"
+                  className="font-black text-[22px] sm:text-[26px] text-orange-400"
                   style={{ letterSpacing: '-0.5px' }}
                 >Shop</span>
                 {/* -tech suffix */}
@@ -130,9 +131,9 @@ export default function Header() {
                   }}
                 >-tech</span>
               </div>
-              {/* Tagline */}
+              {/* Tagline — hidden on mobile */}
               <div
-                className="text-white text-[8px] font-bold uppercase mt-[3px] flex items-center gap-1"
+                className="hidden sm:flex text-white text-[8px] font-bold uppercase mt-[3px] items-center gap-1"
                 style={{ animation: 'taglineReveal 0.9s ease-out 0.2s both', opacity: 0 }}
               >
                 <span style={{ animation: 'dotSpark 2s ease-in-out 1.2s infinite' }} className="w-[3px] h-[3px] rounded-full bg-orange-400 inline-block" />
@@ -184,7 +185,50 @@ export default function Header() {
           </form>
 
           {/* Right icons */}
-          <div className="flex items-center gap-1 flex-shrink-0 ml-auto sm:ml-0">
+          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 ml-auto sm:ml-0">
+
+            {/* ── Mobile icons (< sm) ── */}
+            <Link
+              href="/compte"
+              className="sm:hidden w-10 h-10 flex items-center justify-center rounded-xl text-white/75 hover:text-white hover:bg-white/10 active:bg-white/20 transition-colors"
+              aria-label="Compte"
+            >
+              <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" />
+              </svg>
+            </Link>
+
+            <Link
+              href="/panier"
+              className="sm:hidden relative w-10 h-10 flex items-center justify-center rounded-xl text-white/75 hover:text-white hover:bg-white/10 active:bg-white/20 transition-colors"
+              aria-label="Panier"
+            >
+              <svg className="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-black rounded-full min-w-[20px] h-[20px] flex items-center justify-center leading-none ring-2 ring-blue-950 px-1">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
+            </Link>
+
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="sm:hidden w-10 h-10 flex items-center justify-center rounded-xl transition-colors"
+              style={{ color: isMenuOpen ? '#f97316' : 'rgba(255,255,255,0.85)' }}
+              aria-label="Menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+
+            {/* ── Desktop icons (sm+) ── */}
             {/* Account */}
             <Link
               href="/compte"
@@ -221,34 +265,34 @@ export default function Header() {
             {/* Divider */}
             <div className="hidden sm:block w-px h-8 bg-white/20 mx-1" />
 
-            {/* Cart */}
+            {/* Cart (desktop) */}
             <Link
               href="/panier"
-              className="flex items-center gap-2.5 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full transition-colors"
+              className="hidden sm:flex items-center gap-2.5 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-full transition-colors"
             >
               <div className="relative flex-shrink-0">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 {cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-white text-orange-500 text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center">
-                    {cartCount}
+                  <span className="absolute -top-1.5 -right-1.5 bg-white text-orange-500 text-[10px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center leading-none ring-2 ring-orange-500 px-0.5">
+                    {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
               </div>
-              <div className="hidden sm:block leading-none">
+              <div className="leading-none">
                 <div className="text-[10px] opacity-80 font-medium">Mon Panier</div>
                 <div className="text-sm font-bold">0,00 €</div>
               </div>
             </Link>
 
-            {/* Mobile menu */}
+            {/* Hamburger (tablet sm–md) */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-white ml-1 p-1"
+              className="hidden sm:flex md:hidden w-10 h-10 items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors ml-1"
               aria-label="Menu"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -472,57 +516,62 @@ export default function Header() {
           </div>
 
           {/* Categories */}
-          <div className="px-4 pt-4 pb-2">
+          <div className="px-4 pt-4 pb-3">
             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Catégories</p>
-            <div className="space-y-0.5">
-              {categories.map((cat) => (
+            <div className="grid grid-cols-3 gap-2.5">
+              {[
+                { id: 1, slug: "passerelle-multimedia", img: "/Categories images/passerelle multimedia.png", name: "Box & TV Stick",  bg: "bg-orange-50", border: "border-orange-100" },
+                { id: 2, slug: "accessoires",           img: "/Categories images/accessoires.png",           name: "Accessoires",    bg: "bg-blue-50",   border: "border-blue-100"   },
+                { id: 3, slug: "camera-surveillance",   img: "/Categories images/camera de surveillance.png",name: "Caméras",        bg: "bg-violet-50", border: "border-violet-100" },
+              ].map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/categorie/${cat.slug}`}
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 py-3 px-3 rounded-xl hover:bg-orange-50 active:bg-orange-100 transition-colors group"
+                  className={`flex flex-col items-center gap-1.5 pt-3 pb-2.5 px-1 rounded-2xl border ${cat.bg} ${cat.border} active:scale-95 transition-all overflow-hidden`}
                 >
-                  <span className="text-xl w-8 text-center">{cat.icon}</span>
-                  <span className="text-sm font-semibold text-slate-700 group-hover:text-orange-500 transition-colors flex-1">{cat.name}</span>
-                  <svg className="w-4 h-4 text-gray-300 group-hover:text-orange-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <div className="w-full h-16 flex items-center justify-center">
+                    <img src={cat.img} alt={cat.name} className="h-full w-full object-contain drop-shadow-sm" />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-700 text-center leading-tight">{cat.name}</span>
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Quick links grid */}
-          <div className="px-4 pt-3 pb-4 border-t border-gray-100">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 pt-1">Liens rapides</p>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { href: "/produits", label: "Tous les produits", icon: "🛍️" },
-                { href: "/promotions", label: "Promotions", icon: "🔥" },
-                { href: "/contact", label: "Contact", icon: "💬" },
-                { href: "/magasin", label: "Notre magasin", icon: "🏪" },
-              ].map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-2 py-3 px-3 rounded-xl bg-gray-50 hover:bg-orange-50 active:bg-orange-100 text-sm font-semibold text-slate-700 hover:text-orange-600 transition-colors"
-                >
-                  <span className="text-base">{link.icon}</span>
-                  <span className="leading-tight text-xs">{link.label}</span>
-                </Link>
-              ))}
-            </div>
+          {/* Nav links */}
+          <div className="px-4 pb-4 space-y-1.5">
+            <Link
+              href="/produits"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-2xl active:scale-95 transition-all bg-gray-50 border border-gray-100"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-800">Tous les produits</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Box TV, caméras, accessoires</p>
+              </div>
+              <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
 
           {/* Contact footer */}
-          <div className="bg-gray-50 border-t border-gray-100 px-4 py-3 flex items-center gap-3">
-            <svg className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-            </svg>
-            <span className="text-xs font-semibold text-gray-600">(+212) 716-408919</span>
-            <span className="text-gray-300 text-xs">·</span>
-            <span className="text-xs text-gray-400">Lun–Sam 9h–19h</span>
+          <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between gap-3 bg-gray-50">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-700">(+212) 716-408919</p>
+                <p className="text-[10px] text-slate-400">Lun–Sam 9h–19h</p>
+              </div>
+            </div>
+            <a href="tel:+212716408919" className="shrink-0 bg-orange-500 text-white text-[11px] font-bold px-4 py-2 rounded-xl active:scale-95 transition-all">
+              Appeler
+            </a>
           </div>
         </div>
       )}

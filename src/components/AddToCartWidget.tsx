@@ -1,13 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useCart } from "@/lib/cartContext";
 
-export default function AddToCartWidget({ price }: { price: number }) {
+type CartProduct = {
+  id: number;
+  name: string;
+  brand: string;
+  price: number;
+  originalPrice: number;
+  image: string;
+  slug: string;
+};
+
+export default function AddToCartWidget({ product }: { product: CartProduct }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [wishlist, setWishlist] = useState(false);
+  const { addToCart } = useCart();
 
   const handleAdd = () => {
+    addToCart({ ...product, image: decodeURIComponent(product.image) }, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -33,7 +46,7 @@ export default function AddToCartWidget({ price }: { price: number }) {
           </button>
         </div>
         <span className="ml-auto text-sm font-black text-gray-800">
-          {(price * qty).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
+          {(product.price * qty).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
         </span>
       </div>
 
