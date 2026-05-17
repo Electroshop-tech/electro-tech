@@ -75,3 +75,52 @@ export interface HeroSlide {
   bgColor: string;
   accentColor: string;
 }
+
+// ── Auth / User ───────────────────────────────────────────────────────────────
+
+export interface Address {
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface OrderItem {
+  productId: number;
+  productName: string;
+  productImage: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  id: string;
+  userId: string;
+  items: OrderItem[];
+  subtotal: number;
+  total: number;
+  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  address: Address;
+  paymentMethod: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  address?: Address;
+  createdAt: string;
+}
+
+export interface CartItem {
+  productId: number;
+  productName: string;
+  productImage: string;
+  quantity: number;
+  price: number;
+}

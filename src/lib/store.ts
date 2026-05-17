@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import type { Product, Category, Brand, HeroSlide, Review } from "./types";
+import type { Product, Category, Brand, HeroSlide, Review, User, Order } from "./types";
 
 const DB_PATH = path.join(process.cwd(), "data", "db.json");
 
@@ -11,6 +11,8 @@ export interface DB {
   heroSlides: HeroSlide[];
   reviews: Review[];
   nextProductId: number;
+  users: User[];
+  orders: Order[];
 }
 
 function getDefaultDB(): DB {
@@ -25,6 +27,8 @@ function getDefaultDB(): DB {
     heroSlides: staticData.heroSlides ?? [],
     reviews: staticData.reviews ?? [],
     nextProductId: products.length > 0 ? Math.max(...products.map((p: Product) => p.id)) + 1 : 1,
+    users: [],
+    orders: [],
   };
 }
 
@@ -41,6 +45,8 @@ export function readDB(): DB {
         heroSlides: parsed.heroSlides ?? defaults.heroSlides,
         reviews: parsed.reviews ?? defaults.reviews,
         nextProductId: parsed.nextProductId ?? defaults.nextProductId,
+        users: parsed.users ?? [],
+        orders: parsed.orders ?? [],
       };
     }
   } catch (err) {
@@ -191,4 +197,75 @@ export function deleteHeroSlide(id: number): boolean {
 // ── Reviews ───────────────────────────────────────────────────────────────────
 export function getReviews(): Review[] {
   return readDB().reviews;
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+export function getUsers(): User[] {
+  return readDB().users ?? [];
+}
+
+export function getUserById(id: string): User | undefined {
+  return (readDB().users ?? []).find((u) => u.id === id);
+}
+
+export function getUserByEmail(email: string): User | undefined {
+  return (readDB().users ?? []).find((u) => u.email.toLowerCase() === email.toLowerCase());
+}
+
+export function createUser(data: Omit<User, "id" | "createdAt">): User {
+  const db = readDB();
+  if (!db.users) db.users = [];
+  const user: User = {
+    ...data,
+    id: `u_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: new Date().toISOString(),
+  };
+  db.users.push(user);
+  writeDB(db);
+  return user;
+}
+
+export function updateUser(id: string, data: Partial<Omit<User, "id" | "createdAt">>): User | null {
+  const db = readDB();
+  if (!db.users) db.users = [];
+  const idx = db.users.findIndex((u) => u.id === id);
+  if (idx === -1) return null;
+  db.users[idx] = { ...db.users[idx], ...data };
+  writeDB(db);
+  return db.users[idx];
+}
+
+// ── Orders ────────────────────────────────────────────────────────────────────
+export function getOrdersByUserId(userId: string): Order[] {
+  return (readDB().orders ?? []).filter((o) => o.userId === userId);
+}
+
+export function getOrderById(id: string): Order | undefined {
+  return (readDB().orders ?? []).find((o) => o.id === id);
+}
+
+export function createOrder(data: Omit<Order, "id" | "createdAt" | "updatedAt">): Order {
+  const db = readDB();
+  if (!db.orders) db.orders = [];
+  const now = new Date().toISOString();
+  const order: Order = {
+    ...data,
+    id: `ord_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: now,
+    updatedAt: now,
+  };
+  db.orders.push(order);
+  writeDB(db);
+  return order;
+}
+
+export function updateOrderStatus(id: string, status: Order["status"]): Order | null {
+  const db = readDB();
+  if (!db.orders) db.orders = [];
+  const idx = db.orders.findIndex((o) => o.id === id);
+  if (idx === -1) return null;
+  db.orders[idx].status = status;
+  db.orders[idx].updatedAt = new Date().toISOString();
+  writeDB(db);
+  return db.orders[idx];
 }

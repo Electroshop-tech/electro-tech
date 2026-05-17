@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -13,6 +13,11 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
   const pathname = usePathname();
+  const [authUser, setAuthUser] = useState<{ firstName: string; lastName: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me").then(r => r.json()).then(d => setAuthUser(d.user ?? null)).catch(() => {});
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 shadow-md">
@@ -28,10 +33,16 @@ export default function Header() {
             <span>(+212) 716-408919</span>
             <span className="opacity-40">|</span>
             <Link href="/magasin" className="hover:underline">Magasin</Link>
-            <Link href="/compte" className="hover:opacity-80">
-              <svg className="w-3.5 h-3.5 inline" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-              </svg>
+            <Link href="/compte" className="hover:opacity-80 flex items-center gap-1">
+              {authUser ? (
+                <span className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-[10px] font-black text-white">
+                  {authUser.firstName[0]}{authUser.lastName[0]}
+                </span>
+              ) : (
+                <svg className="w-3.5 h-3.5 inline" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+              )}
             </Link>
           </div>
         </div>
