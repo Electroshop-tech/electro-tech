@@ -1,65 +1,125 @@
-import Image from "next/image";
+import HeroBanner from "@/components/HeroBanner";
+import NewsletterSection from "@/components/NewsletterSection";
+import ProductSection from "@/components/ProductSection";
+import WhyUsSection from "@/components/RefurbishedSection";
+import ReviewsSection from "@/components/ReviewsSection";
+import ProductCard from "@/components/ProductCard";
+import PromoBanners from "@/components/PromoBanners";
+import { getProducts } from "@/lib/store";
+import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
+  const products = getProducts();
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <>
+      <HeroBanner />
+
+      {/* Flash sale banner */}
+      <section className="bg-gradient-to-r from-orange-500 to-orange-500 py-4">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-white">
+            <span className="bg-white text-orange-500 text-xs font-black px-2.5 py-1 rounded-md">
+              ⚡ VENTE FLASH
+            </span>
+            <span className="font-bold text-sm hidden sm:block">
+              Offres limitées — Ne ratez pas ces prix exceptionnels&nbsp;!
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden md:flex items-center gap-1.5 text-white text-xs font-bold">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>
+              Livraison gratuite incluse
+            </span>
+            <Link
+              href="/promotions"
+              className="flex-shrink-0 bg-white text-orange-500 font-bold text-xs px-4 py-2 rounded-xl hover:bg-orange-50 transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Voir les offres →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <ProductSection
+        title="Nos Meilleures Offres"
+        subtitle="Box multimédia, accessoires et caméras aux meilleurs prix"
+        products={products}
+        viewAllHref="/promotions"
+        accentColor="red"
+      />
+
+      <WhyUsSection />
+
+      <PromoBanners />
+
+      <ProductSection
+        title="Meilleures Ventes"
+        subtitle="Kits de surveillance, box TV et accessoires plébiscités par nos clients"
+        products={products}
+        viewAllHref="/produits"
+        accentColor="red"
+      />
+
+      {/* New arrivals */}
+      <section className="py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-end justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <span className="w-1 h-7 bg-purple-500 rounded-full inline-block" />
+              <div>
+                <h2 className="text-2xl font-black text-slate-900">Nouveaux Arrivages</h2>
+                <p className="text-sm text-slate-500">Dernières caméras, box TV et accessoires en stock</p>
+              </div>
+            </div>
+            <Link
+              href="/nouveautes"
+              className="flex items-center gap-1.5 text-sm font-bold text-purple-600 hover:text-purple-700 border border-purple-200 hover:border-purple-400 rounded-xl px-4 py-2 hover:bg-purple-50 transition-all"
             >
-              Learning
-            </a>{" "}
-            center.
+              Voir tout
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <ReviewsSection />
+
+      <NewsletterSection />
+
+      {/* About snippet */}
+      <section className="py-10 bg-white border-t border-gray-100">
+        <div className="max-w-3xl mx-auto px-4 text-center space-y-3">
+          <h2 className="text-xl font-black text-slate-900">
+            ElectroShop-Tech.ma&nbsp;: Passerelle Multimédia, Accessoires &amp; Caméras au Maroc
+          </h2>
+          <p className="text-sm text-slate-500 leading-relaxed">
+            ElectroShop-Tech.ma est votre spécialiste en ligne pour les box multimédias Android TV,
+            les systèmes de vidéosurveillance IP et les accessoires high-tech au Maroc.
+            Produits 100% authentiques, garantis et livrés rapidement partout au Maroc.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/a-propos"
+            className="inline-flex items-center gap-1.5 text-orange-500 hover:text-orange-600 text-sm font-semibold transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            En savoir plus sur nous
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
-      </main>
-    </div>
+      </section>
+    </>
   );
 }
+
