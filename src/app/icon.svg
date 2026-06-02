@@ -1,13 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <!-- Orange rounded square background -->
-  <rect width="32" height="32" rx="7" fill="#f97316"/>
-  <!-- Shopping bag outline (white) -->
-  <rect x="5" y="13" width="22" height="14" rx="3" fill="white"/>
-  <!-- Bag handles -->
-  <path d="M11 13 L11 9 Q11 4 16 4 Q21 4 21 9 L21 13"
-        fill="none" stroke="white" stroke-width="2.4"
-        stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Lightning bolt (orange on white bag) -->
-  <path d="M18 14.5 L12.5 22 L16 22 L13.5 27 L19.5 19.5 L16 19.5 Z"
-        fill="#f97316"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <!-- Orange gradient rounded square -->
+  <rect width="32" height="32" rx="8" fill="url(#bg)"/>
+  <!-- Bold lightning bolt filling the canvas -->
+  <path d="M18.5 3 L8 18 L14.5 18 L13 29 L24 13 L17 13 Z"
+        fill="white" stroke="white" stroke-width="1.4"
+        stroke-linejoin="round"/>
 </svg>
+
