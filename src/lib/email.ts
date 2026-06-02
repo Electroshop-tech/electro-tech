@@ -11,7 +11,7 @@ function getResend(): Resend | null {
 const BRAND_COLOR = "#f97316";
 const SITE_NAME = "ElectroShop-Tech";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://electroshop-tech.com";
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "contact.electrotech@gmail.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "contact.electrotetch@gmail.com";
 
 // Resolve the address that should receive order/contact notifications.
 // Priority: the email saved by the owner in admin Settings → env → default.
