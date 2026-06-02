@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import type { Order } from "@/lib/types";
 import { customerWhatsAppLink } from "@/lib/whatsapp";
 
@@ -117,11 +117,130 @@ export default function AdminOrdersPage() {
     URL.revokeObjectURL(url);
   }
 
-  return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+  function renderDetail(order: Order) {
+    return (
+      <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">Commandes</h1>
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Articles commandés</p>
+          <div className="space-y-2">
+            {order.items.map((item, i) => (
+              <div key={i} className="flex items-center justify-between text-sm">
+                <span className="text-gray-700">{item.productName} <span className="text-gray-400">×{item.quantity}</span></span>
+                <span className="font-bold text-gray-900">{(item.price * item.quantity).toFixed(2)}€</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between text-sm font-black pt-2 border-t border-gray-200">
+              <span>Total</span>
+              <span className="text-orange-600">{order.total.toFixed(2)}€</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Livraison</p>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {order.address.street}<br />
+            {order.address.postalCode} {order.address.city}<br />
+            {order.address.country}
+          </p>
+          <p className="text-xs text-gray-500 mt-2">
+            <strong>Paiement :</strong> {order.paymentMethod === "cash_on_delivery" ? "À la livraison" : order.paymentMethod}
+          </p>
+          {order.promoCode && <p className="text-xs text-gray-500 mt-1"><strong>Code promo :</strong> {order.promoCode} (-{order.promoDiscount?.toFixed(2)}€)</p>}
+
+          {/* Payment status */}
+          <div className="mt-3">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Statut du paiement</p>
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${PAYMENT_MAP[order.paymentStatus].color}`}>
+                {PAYMENT_MAP[order.paymentStatus].label}
+              </span>
+              <select
+                value={order.paymentStatus}
+                disabled={updating === order.id}
+                onChange={e => savePayment(order.id, e.target.value as Order["paymentStatus"])}
+                className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white disabled:opacity-50"
+              >
+                {(Object.keys(PAYMENT_MAP) as Order["paymentStatus"][]).map(ps => (
+                  <option key={ps} value={ps}>{PAYMENT_MAP[ps].label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Tracking number */}
+          <div className="mt-3">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">N° de suivi</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={trackingInputs[order.id] ?? order.trackingNumber ?? ""}
+                onChange={e => setTrackingInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
+                placeholder="Numéro de suivi..."
+                className="flex-1 min-w-0 text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+              />
+              <button
+                onClick={() => saveTracking(order.id)}
+                disabled={updating === order.id}
+                className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 shrink-0"
+              >
+                Sauver
+              </button>
+            </div>
+          </div>
+
+          {/* Internal notes */}
+          <div className="mt-3">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Notes internes</p>
+            <textarea
+              value={noteInputs[order.id] ?? order.notes ?? ""}
+              onChange={e => setNoteInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
+              placeholder="Ajouter une note (visible uniquement par l'admin)..."
+              rows={2}
+              className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white resize-y"
+            />
+            <button
+              onClick={() => saveNotes(order.id)}
+              disabled={updating === order.id}
+              className="mt-1.5 text-xs bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Enregistrer la note
+            </button>
+          </div>
+
+          {/* Quick actions */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={() => openInvoice(order.id)}
+              className="inline-flex items-center gap-1.5 text-xs bg-white border border-gray-200 hover:bg-gray-50 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              Facture (PDF)
+            </button>
+            {(() => {
+              const wa = customerWhatsAppLink(order);
+              return wa ? (
+                <a
+                  href={wa}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.738-.979zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                  WhatsApp client
+                </a>
+              ) : null;
+            })()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900">Commandes</h1>
           <p className="text-gray-500 text-sm mt-1">{orders.length} commande{orders.length !== 1 ? "s" : ""} au total</p>
         </div>
         {orders.length > 0 && (
@@ -194,184 +313,126 @@ export default function AdminOrdersPage() {
           <p className="text-gray-500 font-semibold">Aucune commande trouvée</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Commande</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Client</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Statut</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Date</th>
-                <th className="text-right px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Changer statut</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map(order => {
-                const s = STATUS_MAP[order.status];
-                const isExp = expanded === order.id;
-                return (
-                  <>
-                    <tr key={order.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setExpanded(isExp ? null : order.id)}>
-                      <td className="px-5 py-4 font-bold text-gray-800">
-                        <span className="text-orange-500 mr-1">{isExp ? "▾" : "▸"}</span>
-                        #{order.id.slice(-8).toUpperCase()}
-                      </td>
-                      <td className="px-5 py-4">
-                        <p className="font-semibold text-gray-800">{order.customerName}</p>
-                        <p className="text-xs text-gray-400">{order.customerEmail}</p>
-                        {order.customerPhone && <p className="text-xs text-gray-400">{order.customerPhone}</p>}
-                      </td>
-                      <td className="px-5 py-4 font-bold text-gray-900">{order.total.toFixed(2)}€</td>
-                      <td className="px-5 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${s.color}`}>
+        <>
+          {/* Desktop table */}
+          <div className="hidden lg:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+            <table className="w-full text-sm min-w-[720px]">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Commande</th>
+                  <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Client</th>
+                  <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total</th>
+                  <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Statut</th>
+                  <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Date</th>
+                  <th className="text-right px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Changer statut</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map(order => {
+                  const s = STATUS_MAP[order.status];
+                  const isExp = expanded === order.id;
+                  return (
+                    <Fragment key={order.id}>
+                      <tr className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setExpanded(isExp ? null : order.id)}>
+                        <td className="px-5 py-4 font-bold text-gray-800">
+                          <span className="text-orange-500 mr-1">{isExp ? "▾" : "▸"}</span>
+                          #{order.id.slice(-8).toUpperCase()}
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="font-semibold text-gray-800">{order.customerName}</p>
+                          <p className="text-xs text-gray-400">{order.customerEmail}</p>
+                          {order.customerPhone && <p className="text-xs text-gray-400">{order.customerPhone}</p>}
+                        </td>
+                        <td className="px-5 py-4 font-bold text-gray-900">{order.total.toFixed(2)}€</td>
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${s.color}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                            {s.label}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-gray-500 text-xs">
+                          {new Date(order.createdAt).toLocaleDateString("fr-FR")}
+                        </td>
+                        <td className="px-5 py-4 text-right" onClick={e => e.stopPropagation()}>
+                          <select
+                            value={order.status}
+                            disabled={updating === order.id}
+                            onChange={e => updateStatus(order.id, e.target.value as Order["status"])}
+                            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white disabled:opacity-50"
+                          >
+                            {(Object.keys(STATUS_MAP) as Order["status"][]).map(st => (
+                              <option key={st} value={st}>{STATUS_MAP[st].label}</option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                      {isExp && (
+                        <tr>
+                          <td colSpan={6} className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                            {renderDetail(order)}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="lg:hidden space-y-3">
+            {filtered.map(order => {
+              const s = STATUS_MAP[order.status];
+              const isExp = expanded === order.id;
+              return (
+                <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <button
+                    onClick={() => setExpanded(isExp ? null : order.id)}
+                    className="w-full text-left p-4 flex items-start gap-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-black text-gray-900 text-sm">#{order.id.slice(-8).toUpperCase()}</span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${s.color}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
                           {s.label}
                         </span>
-                      </td>
-                      <td className="px-5 py-4 text-gray-500 text-xs">
-                        {new Date(order.createdAt).toLocaleDateString("fr-FR")}
-                      </td>
-                      <td className="px-5 py-4 text-right" onClick={e => e.stopPropagation()}>
-                        <select
-                          value={order.status}
-                          disabled={updating === order.id}
-                          onChange={e => updateStatus(order.id, e.target.value as Order["status"])}
-                          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white disabled:opacity-50"
-                        >
-                          {(Object.keys(STATUS_MAP) as Order["status"][]).map(st => (
-                            <option key={st} value={st}>{STATUS_MAP[st].label}</option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                    {isExp && (
-                      <tr key={order.id + "-detail"}>
-                        <td colSpan={6} className="bg-gray-50 px-8 py-4 border-b border-gray-100">
-                          <div className="grid sm:grid-cols-2 gap-6">
-                            <div>
-                              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Articles commandés</p>
-                              <div className="space-y-2">
-                                {order.items.map((item, i) => (
-                                  <div key={i} className="flex items-center justify-between text-sm">
-                                    <span className="text-gray-700">{item.productName} <span className="text-gray-400">×{item.quantity}</span></span>
-                                    <span className="font-bold text-gray-900">{(item.price * item.quantity).toFixed(2)}€</span>
-                                  </div>
-                                ))}
-                                <div className="flex items-center justify-between text-sm font-black pt-2 border-t border-gray-200">
-                                  <span>Total</span>
-                                  <span className="text-orange-600">{order.total.toFixed(2)}€</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Livraison</p>
-                              <p className="text-sm text-gray-700 leading-relaxed">
-                                {order.address.street}<br />
-                                {order.address.postalCode} {order.address.city}<br />
-                                {order.address.country}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-2">
-                                <strong>Paiement :</strong> {order.paymentMethod === "cash_on_delivery" ? "À la livraison" : order.paymentMethod}
-                              </p>
-                              {order.promoCode && <p className="text-xs text-gray-500 mt-1"><strong>Code promo :</strong> {order.promoCode} (-{order.promoDiscount?.toFixed(2)}€)</p>}
-
-                              {/* Payment status */}
-                              <div className="mt-3">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Statut du paiement</p>
-                                <div className="flex items-center gap-2">
-                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${PAYMENT_MAP[order.paymentStatus].color}`}>
-                                    {PAYMENT_MAP[order.paymentStatus].label}
-                                  </span>
-                                  <select
-                                    value={order.paymentStatus}
-                                    disabled={updating === order.id}
-                                    onChange={e => savePayment(order.id, e.target.value as Order["paymentStatus"])}
-                                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white disabled:opacity-50"
-                                  >
-                                    {(Object.keys(PAYMENT_MAP) as Order["paymentStatus"][]).map(ps => (
-                                      <option key={ps} value={ps}>{PAYMENT_MAP[ps].label}</option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </div>
-
-                              {/* Tracking number */}
-                              <div className="mt-3">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">N° de suivi</p>
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="text"
-                                    value={trackingInputs[order.id] ?? order.trackingNumber ?? ""}
-                                    onChange={e => setTrackingInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
-                                    placeholder="Numéro de suivi..."
-                                    className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
-                                  />
-                                  <button
-                                    onClick={() => saveTracking(order.id)}
-                                    disabled={updating === order.id}
-                                    className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                                  >
-                                    Sauver
-                                  </button>
-                                </div>
-                              </div>
-
-                              {/* Internal notes */}
-                              <div className="mt-3">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Notes internes</p>
-                                <textarea
-                                  value={noteInputs[order.id] ?? order.notes ?? ""}
-                                  onChange={e => setNoteInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
-                                  placeholder="Ajouter une note (visible uniquement par l'admin)..."
-                                  rows={2}
-                                  className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white resize-y"
-                                />
-                                <button
-                                  onClick={() => saveNotes(order.id)}
-                                  disabled={updating === order.id}
-                                  className="mt-1.5 text-xs bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                                >
-                                  Enregistrer la note
-                                </button>
-                              </div>
-
-                              {/* Quick actions */}
-                              <div className="mt-4 flex flex-wrap gap-2">
-                                <button
-                                  onClick={() => openInvoice(order.id)}
-                                  className="inline-flex items-center gap-1.5 text-xs bg-white border border-gray-200 hover:bg-gray-50 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition-colors"
-                                >
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                  Facture (PDF)
-                                </button>
-                                {(() => {
-                                  const wa = customerWhatsAppLink(order);
-                                  return wa ? (
-                                    <a
-                                      href={wa}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1.5 text-xs bg-green-500 hover:bg-green-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
-                                    >
-                                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.738-.979zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                                      WhatsApp client
-                                    </a>
-                                  ) : null;
-                                })()}
-                              </div>
-
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      </div>
+                      <p className="font-semibold text-gray-800 text-sm truncate">{order.customerName}</p>
+                      <p className="text-xs text-gray-400 truncate">{order.customerEmail}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="font-black text-orange-600 text-sm">{order.total.toFixed(2)}€</span>
+                        <span className="text-gray-300">·</span>
+                        <span className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString("fr-FR")}</span>
+                      </div>
+                    </div>
+                    <svg className={`w-5 h-5 text-gray-400 shrink-0 transition-transform ${isExp ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="px-4 pb-4">
+                    <select
+                      value={order.status}
+                      disabled={updating === order.id}
+                      onChange={e => updateStatus(order.id, e.target.value as Order["status"])}
+                      className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white disabled:opacity-50 font-semibold text-gray-700"
+                    >
+                      {(Object.keys(STATUS_MAP) as Order["status"][]).map(st => (
+                        <option key={st} value={st}>{STATUS_MAP[st].label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {isExp && (
+                    <div className="bg-gray-50 px-4 py-4 border-t border-gray-100">
+                      {renderDetail(order)}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

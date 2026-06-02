@@ -56,10 +56,10 @@ export default function AdminDashboard() {
 
   const statCards = stats
     ? [
-        { label: "Produits", value: stats.products, sub: `${stats.inStock} en stock · ${stats.outOfStock} épuisés`, color: "text-orange-500", bg: "bg-orange-500/10" },
-        { label: "Commandes", value: stats.orders, sub: `${stats.pendingOrders} en attente`, color: "text-blue-500", bg: "bg-blue-500/10" },
-        { label: "Chiffre d'affaires", value: `${stats.revenue.toLocaleString()}€`, sub: "total cumulé", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-        { label: "Abonnés newsletter", value: stats.subscribers, sub: "inscrits confirmés", color: "text-violet-500", bg: "bg-violet-500/10" },
+        { label: "Produits", value: stats.products, sub: `${stats.inStock} en stock · ${stats.outOfStock} épuisés`, color: "text-orange-500", bg: "bg-orange-500/10", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
+        { label: "Commandes", value: stats.orders, sub: `${stats.pendingOrders} en attente`, color: "text-blue-500", bg: "bg-blue-500/10", icon: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" },
+        { label: "Chiffre d'affaires", value: `${stats.revenue.toLocaleString()}€`, sub: "total cumulé", color: "text-emerald-500", bg: "bg-emerald-500/10", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+        { label: "Abonnés newsletter", value: stats.subscribers, sub: "inscrits confirmés", color: "text-violet-500", bg: "bg-violet-500/10", icon: "M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z" },
       ]
     : [];
 
@@ -84,7 +84,9 @@ export default function AdminDashboard() {
           : statCards.map((s) => (
               <div key={s.label} className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-shadow">
                 <div className={`w-10 h-10 ${s.bg} rounded-xl flex items-center justify-center mb-3`}>
-                  <span className={`${s.color} font-black text-sm`}>#</span>
+                  <svg className={`w-5 h-5 ${s.color}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
+                  </svg>
                 </div>
                 <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
                 <div className="text-slate-500 text-xs mt-0.5">{s.label}</div>
@@ -205,8 +207,8 @@ export default function AdminDashboard() {
             <p className="text-gray-400 text-sm">Aucune commande pour le moment</p>
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-            <table className="w-full text-sm">
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-x-auto shadow-sm">
+            <table className="w-full text-sm min-w-[560px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
                   <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Commande</th>

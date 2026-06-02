@@ -75,9 +75,9 @@ export default function AdminDeliveryZonesPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-gray-900">Zones de livraison</h1>
+        <h1 className="text-xl sm:text-2xl font-black text-gray-900">Zones de livraison</h1>
         <p className="text-gray-500 text-sm mt-1">Gérez les frais de livraison par zone géographique</p>
       </div>
 
@@ -161,8 +161,8 @@ export default function AdminDeliveryZonesPage() {
           <p className="text-gray-400 text-sm mt-1">Ajoutez des zones ci-dessus pour définir les frais de livraison</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Zone</th>

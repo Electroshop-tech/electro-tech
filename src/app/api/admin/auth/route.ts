@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { getAdminUserByEmail, setAdminUserLastLogin } from "@/lib/store";
+import { verifyPassword } from "@/lib/auth";
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "";
 const ADMIN_SECRET = new TextEncoder().encode(
@@ -9,15 +11,37 @@ const ADMIN_SECRET = new TextEncoder().encode(
 const COOKIE_NAME = "admin_token";
 
 export async function POST(req: NextRequest) {
-  const { password } = await req.json();
-  if (!ADMIN_PASSWORD) {
-    return NextResponse.json({ error: "Admin non configuré" }, { status: 500 });
-  }
-  if (password !== ADMIN_PASSWORD) {
-    return NextResponse.json({ error: "Mot de passe incorrect" }, { status: 401 });
+  const { password, email } = await req.json();
+
+  let staffRole = "owner";
+  let name = "Administrateur";
+  let uid: string | null = null;
+
+  if (email && typeof email === "string" && email.trim()) {
+    // Staff account login
+    const user = await getAdminUserByEmail(email);
+    if (!user || !user.active) {
+      return NextResponse.json({ error: "Identifiants incorrects" }, { status: 401 });
+    }
+    const ok = await verifyPassword(password ?? "", user.passwordHash);
+    if (!ok) {
+      return NextResponse.json({ error: "Identifiants incorrects" }, { status: 401 });
+    }
+    staffRole = user.role;
+    name = user.name;
+    uid = user.id;
+    setAdminUserLastLogin(user.id).catch(() => {});
+  } else {
+    // Master password login
+    if (!ADMIN_PASSWORD) {
+      return NextResponse.json({ error: "Admin non configuré" }, { status: 500 });
+    }
+    if (password !== ADMIN_PASSWORD) {
+      return NextResponse.json({ error: "Mot de passe incorrect" }, { status: 401 });
+    }
   }
 
-  const token = await new SignJWT({ role: "admin" })
+  const token = await new SignJWT({ role: "admin", staffRole, name, uid })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")

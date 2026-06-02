@@ -46,9 +46,9 @@ export default function AdminLogsPage() {
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-gray-900">Journal d&apos;activité</h1>
+        <h1 className="text-xl sm:text-2xl font-black text-gray-900">Journal d&apos;activité</h1>
         <p className="text-gray-500 text-sm mt-1">Historique des actions administrateur</p>
       </div>
 

@@ -17,6 +17,8 @@ export interface ProductReview {
   date: string;
   content: string;
   verified?: boolean;
+  approved?: boolean; // undefined = legacy (visible); false = pending/hidden; true = approved
+  reply?: string; // optional admin/shop response
 }
 
 export interface Product {
@@ -42,6 +44,9 @@ export interface Product {
   descriptionSections?: DescriptionSection[];
   characteristics?: Characteristic[];
   productReviews?: ProductReview[];
+  // SEO overrides
+  metaTitle?: string;
+  metaDescription?: string;
 }
 
 export interface Category {
@@ -49,6 +54,8 @@ export interface Category {
   name: string;
   slug: string;
   icon: string;
+  metaTitle?: string;
+  metaDescription?: string;
 }
 
 export interface Brand {
@@ -96,6 +103,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  orderNumber?: string;
   userId: string;
   customerName: string;
   customerEmail: string;

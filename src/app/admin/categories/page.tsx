@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import type { Category } from "@/lib/types";
 
 
-const EMPTY = { name: "", slug: "", icon: "📦" };
+const EMPTY = { name: "", slug: "", icon: "📦", metaTitle: "", metaDescription: "" };
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -43,7 +43,7 @@ export default function CategoriesPage() {
     load();
   };
 
-  const handleEdit = (c: Category) => { setEditing(c); setForm({ name: c.name, slug: c.slug, icon: c.icon }); };
+  const handleEdit = (c: Category) => { setEditing(c); setForm({ name: c.name, slug: c.slug, icon: c.icon, metaTitle: c.metaTitle ?? "", metaDescription: c.metaDescription ?? "" }); };
   const handleCancel = () => { setEditing(null); setForm(EMPTY); };
 
   const handleDelete = async (id: number) => {
@@ -84,6 +84,16 @@ export default function CategoriesPage() {
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-1.5">Icône (emoji)</label>
             <input className={inputCls} value={form.icon} onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))} placeholder="📦" />
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">Titre SEO (meta title)</label>
+            <input className={inputCls} value={form.metaTitle} onChange={(e) => setForm((f) => ({ ...f, metaTitle: e.target.value }))} placeholder="Laisser vide = nom de la catégorie" maxLength={70} />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">Description SEO (meta description)</label>
+            <input className={inputCls} value={form.metaDescription} onChange={(e) => setForm((f) => ({ ...f, metaDescription: e.target.value }))} placeholder="Description affichée dans Google" maxLength={180} />
           </div>
         </div>
         <div className="flex gap-2">

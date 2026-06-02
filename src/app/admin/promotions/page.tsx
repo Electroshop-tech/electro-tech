@@ -14,6 +14,22 @@ interface Promo {
   expires: string;
 }
 
+interface CouponReportRow {
+  code: string;
+  type: string;
+  value: number;
+  active: boolean;
+  ordersCount: number;
+  totalDiscount: number;
+  totalRevenue: number;
+  lastUsed: string | null;
+}
+
+interface CouponReport {
+  report: CouponReportRow[];
+  totals: { codesUsed: number; totalOrders: number; totalDiscount: number; totalRevenue: number };
+}
+
 const headers = { "Content-Type": "application/json" };
 
 export default function PromotionsPage() {
@@ -21,6 +37,19 @@ export default function PromotionsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ code: "", type: "percent" as "percent" | "fixed", value: "", minOrder: "", maxUses: "", expires: "" });
+
+  const [showReport, setShowReport] = useState(false);
+  const [report, setReport] = useState<CouponReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const loadReport = useCallback(() => {
+    setReportLoading(true);
+    fetch("/api/admin/promos/report", { credentials: "include" })
+      .then(r => r.json())
+      .then(d => setReport(d))
+      .catch(() => {})
+      .finally(() => setReportLoading(false));
+  }, []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -75,20 +104,90 @@ export default function PromotionsPage() {
   const inputCls = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition bg-gray-50";
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">Promotions</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900">Promotions</h1>
           <p className="text-gray-500 text-sm mt-1">Gérez vos codes promo et réductions</p>
         </div>
-        <button
-          onClick={() => setShowForm(v => !v)}
-          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-sm"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-          Nouveau code
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { const next = !showReport; setShowReport(next); if (next && !report) loadReport(); }}
+            className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            {showReport ? "Masquer le rapport" : "Rapport d'utilisation"}
+          </button>
+          <button
+            onClick={() => setShowForm(v => !v)}
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            Nouveau code
+          </button>
+        </div>
       </div>
+
+      {/* Usage report */}
+      {showReport && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
+          <h2 className="text-base font-black text-gray-900 mb-4">Rapport d&apos;utilisation des codes</h2>
+          {reportLoading ? (
+            <div className="py-10 text-center"><div className="w-7 h-7 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" /></div>
+          ) : !report ? (
+            <p className="text-gray-400 text-sm">Impossible de charger le rapport.</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 font-semibold">Codes utilisés</p>
+                  <p className="text-xl font-black text-gray-900 mt-0.5">{report.totals.codesUsed}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 font-semibold">Commandes</p>
+                  <p className="text-xl font-black text-blue-600 mt-0.5">{report.totals.totalOrders}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 font-semibold">Réductions accordées</p>
+                  <p className="text-xl font-black text-red-500 mt-0.5">{report.totals.totalDiscount.toFixed(2)}€</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-500 font-semibold">CA généré</p>
+                  <p className="text-xl font-black text-emerald-600 mt-0.5">{report.totals.totalRevenue.toFixed(2)}€</p>
+                </div>
+              </div>
+              {report.report.filter(r => r.ordersCount > 0).length === 0 ? (
+                <p className="text-gray-400 text-sm text-center py-4">Aucun code promo n&apos;a encore été utilisé.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[640px]">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50">
+                        <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Code</th>
+                        <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Commandes</th>
+                        <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Réductions</th>
+                        <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">CA généré</th>
+                        <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Dernière utilisation</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {report.report.filter(r => r.ordersCount > 0).map((r) => (
+                        <tr key={r.code} className="hover:bg-gray-50">
+                          <td className="px-4 py-3"><span className="font-mono font-bold text-slate-800 bg-gray-100 px-2 py-0.5 rounded">{r.code}</span></td>
+                          <td className="px-4 py-3 font-bold text-gray-900">{r.ordersCount}</td>
+                          <td className="px-4 py-3 text-red-500 font-semibold">−{r.totalDiscount.toFixed(2)}€</td>
+                          <td className="px-4 py-3 text-emerald-600 font-bold">{r.totalRevenue.toFixed(2)}€</td>
+                          <td className="px-4 py-3 text-gray-500 text-xs">{r.lastUsed ? new Date(r.lastUsed).toLocaleDateString("fr-FR") : "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* Create form */}
       {showForm && (
@@ -131,13 +230,13 @@ export default function PromotionsPage() {
       )}
 
       {/* Promo list */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         {loading ? (
           <div className="p-12 text-center"><div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" /></div>
         ) : promos.length === 0 ? (
           <div className="p-12 text-center text-gray-400 text-sm">Aucun code promo. Cliquez sur &quot;Nouveau code&quot; pour en créer un.</div>
         ) : (
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[760px]">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
               <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Code</th>

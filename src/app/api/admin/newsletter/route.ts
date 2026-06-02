@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!(await isAdmin(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const { subject, body } = await req.json();
+    const { subject, body, imageBase64, imageMimeType } = await req.json();
 
     if (!subject?.trim() || !body?.trim()) {
       return NextResponse.json(
@@ -35,7 +35,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await sendNewsletterBulk(subs, subject.trim(), body.trim());
+    const result = await sendNewsletterBulk(
+      subs,
+      subject.trim(),
+      body.trim(),
+      imageBase64 && imageMimeType ? { imageBase64, imageMimeType } : undefined
+    );
 
     addAdminLog("newsletter.send", `Newsletter envoyée à ${result.sent}/${subs.length} abonnés`).catch(() => {});
 

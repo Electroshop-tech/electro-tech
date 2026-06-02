@@ -49,9 +49,9 @@ export default function ProductSection({
 
         {/* Products */}
         {mobileScroll ? (
-          <div className="flex gap-3.5 overflow-x-auto pb-3 sm:pb-0 sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:gap-5 lg:gap-6 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-3 overflow-x-auto pb-3 sm:pb-0 sm:grid sm:grid-cols-3 lg:grid-cols-4 sm:gap-5 lg:gap-6 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {products.map((product, i) => (
-              <div key={product.id} data-reveal="up" data-reveal-delay={String(i * 70)} className="shrink-0 w-[165px] sm:w-auto snap-start">
+              <div key={product.id} data-reveal="up" data-reveal-delay={String(i * 70)} className="shrink-0 w-[260px] sm:w-auto snap-start">
                 <ProductCard product={product} />
               </div>
             ))}

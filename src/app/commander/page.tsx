@@ -119,6 +119,7 @@ export default function CommanderPage() {
         "last-order-data",
         JSON.stringify({
           id: orderId,
+          orderNumber: data.order?.orderNumber,
           items: cart,
           subtotal,
           discount: promoApplied?.discount ?? 0,
@@ -178,7 +179,17 @@ export default function CommanderPage() {
 
       {/* Steps bar */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-6 py-4">
+        <div className="max-w-5xl mx-auto px-6 pt-5 pb-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-lg font-black text-slate-900 leading-tight">Finaliser ma commande</h1>
+              <p className="text-[11px] text-gray-400 mt-0.5">Plus qu&apos;une étape avant la livraison à votre porte</p>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-full px-3 py-1.5">
+              <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span className="text-[11px] font-bold text-green-700">Commande 100% sécurisée</span>
+            </div>
+          </div>
           <div className="flex items-start">
             <Link href="/panier" className="flex flex-col items-center gap-1.5">
               <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md shadow-green-200">
@@ -230,9 +241,9 @@ export default function CommanderPage() {
             <div className="lg:col-span-2 space-y-4">
 
               {/* 1 · Personal info */}
-              <div className="bg-white rounded-lg shadow-[0_1px_2px_rgba(15,23,42,0.04)] border border-slate-200 overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-gray-50 flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
+              <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(15,23,42,0.04)] border border-slate-200/80 hover:border-slate-300/80 transition-colors overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-orange-50/70 to-transparent">
+                  <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shrink-0 shadow-sm shadow-orange-200">
                     <span className="text-white text-xs font-black">1</span>
                   </div>
                   <div>
@@ -271,9 +282,9 @@ export default function CommanderPage() {
               </div>
 
               {/* 2 · Delivery address */}
-              <div className="bg-white rounded-lg shadow-[0_1px_2px_rgba(15,23,42,0.04)] border border-slate-200 overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-gray-50 flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
+              <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(15,23,42,0.04)] border border-slate-200/80 hover:border-slate-300/80 transition-colors overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-blue-50/70 to-transparent">
+                  <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center shrink-0 shadow-sm shadow-blue-200">
                     <span className="text-white text-xs font-black">2</span>
                   </div>
                   <div>
@@ -319,9 +330,9 @@ export default function CommanderPage() {
               </div>
 
               {/* 3 · Payment */}
-              <div className="bg-white rounded-lg shadow-[0_1px_2px_rgba(15,23,42,0.04)] border border-slate-200 overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-gray-50 flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-purple-500 flex items-center justify-center shrink-0">
+              <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(15,23,42,0.04)] border border-slate-200/80 hover:border-slate-300/80 transition-colors overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-purple-50/70 to-transparent">
+                  <div className="w-7 h-7 rounded-full bg-purple-500 flex items-center justify-center shrink-0 shadow-sm shadow-purple-200">
                     <span className="text-white text-xs font-black">3</span>
                   </div>
                   <div>
@@ -410,9 +421,9 @@ export default function CommanderPage() {
               </div>
 
               {/* 4 · Promo code */}
-              <div className="bg-white rounded-lg shadow-[0_1px_2px_rgba(15,23,42,0.04)] border border-slate-200 overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-gray-50 flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shrink-0">
+              <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(15,23,42,0.04)] border border-slate-200/80 hover:border-slate-300/80 transition-colors overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-amber-50/70 to-transparent">
+                  <div className="w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shrink-0 shadow-sm shadow-amber-200">
                     <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
@@ -481,8 +492,8 @@ export default function CommanderPage() {
 
             {/* ── RIGHT COLUMN – Summary (desktop only) ── */}
             <div className="hidden lg:block space-y-4">
-              <div className="bg-white rounded-lg shadow-[0_18px_44px_rgba(15,23,42,0.08)] border border-slate-200 overflow-hidden sticky top-4">
-                <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-3">
+              <div className="bg-white rounded-2xl shadow-[0_18px_44px_rgba(15,23,42,0.08)] border border-slate-200/80 overflow-hidden sticky top-4">
+                <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-slate-50 to-transparent">
                   <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

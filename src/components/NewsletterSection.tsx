@@ -1,20 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-
-const avatars = [
-  { src: "https://i.pravatar.cc/40?img=5",  alt: "Client 1" },
-  { src: "https://i.pravatar.cc/40?img=25", alt: "Client 2" },
-  { src: "https://i.pravatar.cc/40?img=61", alt: "Client 3" },
-  { src: "https://i.pravatar.cc/40?img=48", alt: "Client 4" },
-];
-
-const benefits = [
-  "Ventes flash & promotions exclusives en avant-première",
-  "Nouveautés box Android TV dès leur arrivée en stock",
-  "Conseils d'experts et guides d'installation gratuits",
-];
 
 export default function NewsletterSection() {
   const [email, setEmail] = useState("");
@@ -44,78 +30,50 @@ export default function NewsletterSection() {
   };
 
   return (
-    <section className="relative py-16 sm:py-20 bg-[#060a14] overflow-hidden">
+    <section className="relative py-20 sm:py-28 bg-[#060a14] overflow-hidden">
 
       {/* Background glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/2 left-[10%] -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-orange-500/10 blur-[100px]" />
-        <div className="absolute top-1/3 right-[5%] w-[380px] h-[380px] rounded-full bg-blue-600/8 blur-[80px]" />
-        {/* Dot grid */}
+        <div className="absolute -top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full bg-orange-500/[0.10] blur-[130px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] rounded-full bg-blue-600/[0.08] blur-[100px]" />
         <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px)", backgroundSize: "40px 40px" }}
+          className="absolute inset-0 opacity-[0.025] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_75%)]"
+          style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px)", backgroundSize: "38px 38px" }}
         />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-500/25 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
+      <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 text-center">
 
-          {/* ── Left: copy & benefits ── */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-1 h-6 bg-orange-500 rounded-full" />
-              <p className="text-orange-400 text-xs font-black uppercase tracking-widest">Newsletter ElectroShop-Tech</p>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-white leading-[1.1] tracking-tight mb-4">
-              Offres exclusives,<br />
-              <span className="text-orange-400">directement chez vous</span>
-            </h2>
-            <p className="text-slate-400 text-sm leading-relaxed mb-7 max-w-sm">
-              Rejoignez +&nbsp;40 abonnés et recevez en avant‑première ventes flash, nouveautés et promotions spéciales.
-            </p>
-            <ul className="space-y-3.5">
-              {benefits.map((b) => (
-                <li key={b} className="flex items-start gap-3 text-slate-300 text-sm">
-                  <span className="mt-0.5 w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-3 h-3 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </span>
-                  {b}
-                </li>
-              ))}
-            </ul>
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 mb-6 bg-orange-500/10 border border-orange-500/25 rounded-full pl-1.5 pr-4 py-1.5">
+          <span className="relative inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500/20">
+            <span className="absolute inline-flex h-2 w-2 rounded-full bg-orange-400/60 animate-ping" />
+            <span className="relative w-1.5 h-1.5 rounded-full bg-orange-400" />
+          </span>
+          <p className="text-orange-300 text-[11px] font-black uppercase tracking-[0.18em]">Newsletter ElectroShop-Tech</p>
+        </div>
 
-            {/* Trust line */}
-            <div className="flex items-center gap-2 mt-8">
-              <div className="flex -space-x-2">
-                {avatars.map((av, i) => (
-                  <Image
-                    key={i}
-                    src={av.src}
-                    alt={av.alt}
-                    width={28}
-                    height={28}
-                    className="w-7 h-7 rounded-full border-2 border-[#060a14] object-cover"
-                  />
-                ))}
-              </div>
-              <p className="text-slate-500 text-xs">
-                <span className="text-white font-bold">+40</span> abonnés satisfaits
-              </p>
-            </div>
-          </div>
+        {/* Headline */}
+        <h2 className="text-3xl sm:text-4xl lg:text-[2.6rem] font-black text-white leading-[1.1] tracking-tight mb-4">
+          Offres exclusives,{" "}
+          <span className="bg-gradient-to-r from-orange-400 via-orange-300 to-amber-300 bg-clip-text text-transparent">
+            directement chez vous
+          </span>
+        </h2>
+        <p className="text-slate-400 text-sm sm:text-base leading-relaxed mb-10 max-w-md mx-auto">
+          Rejoignez +&nbsp;40 abonnés — ventes flash, nouveautés &amp; promos exclusives en avant-première.
+        </p>
 
-          {/* ── Right: form card ── */}
-          <div className="bg-white/[0.04] backdrop-blur-md border border-white/10 rounded-2xl p-7 sm:p-9 shadow-[0_32px_80px_rgba(0,0,0,0.4)]">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-orange-500/20 border border-orange-500/30 mb-5">
-              <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
+        {/* Card */}
+        <div className="group relative rounded-[1.35rem] p-px bg-gradient-to-br from-white/15 via-white/5 to-transparent shadow-[0_32px_80px_rgba(0,0,0,0.45)]">
+          <div className="absolute -inset-px rounded-[1.35rem] bg-gradient-to-br from-orange-500/20 to-transparent opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-500 pointer-events-none" />
+          <div className="relative bg-[#0b1120]/90 backdrop-blur-xl rounded-[1.3rem] px-7 py-8 sm:px-10 overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
             {submitted ? (
-              <div className="flex flex-col items-center gap-4 py-6 text-center">
+              <div className="flex flex-col items-center gap-4 py-4 text-center">
                 <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
                   <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -126,32 +84,43 @@ export default function NewsletterSection() {
               </div>
             ) : (
               <>
-                <h3 className="text-white font-black text-xl mb-1.5">Inscription gratuite</h3>
-                <p className="text-slate-400 text-sm mb-6">Ventes flash, nouveautés &amp; promos exclusives — sans spam</p>
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Votre adresse e-mail *"
-                    required
-                    className="w-full px-4 py-3.5 bg-white/8 border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-orange-400/70 focus:ring-2 focus:ring-orange-400/20 transition-all"
-                  />
+                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <svg className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Votre adresse e-mail"
+                      required
+                      className="w-full pl-10 pr-4 py-3.5 bg-white/[0.06] border border-white/15 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-orange-400/70 focus:ring-2 focus:ring-orange-400/20 transition-all"
+                    />
+                  </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 bg-orange-500 hover:bg-orange-400 disabled:bg-slate-600 text-white font-bold rounded-xl transition-all duration-200 shadow-[0_12px_28px_rgba(249,115,22,0.28)] hover:shadow-[0_16px_36px_rgba(249,115,22,0.38)] hover:-translate-y-0.5 active:translate-y-0 text-sm"
+                    className="sm:w-auto w-full px-6 py-3.5 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 disabled:from-slate-600 disabled:to-slate-600 text-white font-bold rounded-xl transition-all duration-300 shadow-[0_8px_24px_rgba(249,115,22,0.30)] hover:shadow-[0_12px_32px_rgba(249,115,22,0.45)] hover:-translate-y-0.5 active:translate-y-0 text-sm whitespace-nowrap ring-1 ring-white/10"
                   >
-                    {loading ? "Inscription…" : "Recevoir les offres exclusives →"}
+                    {loading ? "Inscription…" : "S'abonner →"}
                   </button>
                 </form>
-                <p className="text-slate-600 text-xs mt-4 text-center">
-                  Pas de spam · Désinscription en un clic · Données protégées
+                <p className="text-slate-500 text-xs mt-4 flex items-center justify-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1">
+                    <svg className="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Pas de spam
+                  </span>
+                  <span className="text-slate-700">·</span>
+                  Désinscription en un clic
+                  <span className="text-slate-700">·</span>
+                  Données protégées
                 </p>
               </>
             )}
           </div>
         </div>
+
       </div>
     </section>
   );

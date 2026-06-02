@@ -7,7 +7,7 @@ import Link from "next/link";
 const SLIDES = [
   {
     id: 0,
-    image: "/images/3D hero section/box tv.jpg",
+    image: "/images/3D hero section/box tv.png",
     alt: "Android TV Box X96Q",
     badge: "Meilleure Vente",
     badgeBg: "bg-orange-500",
@@ -28,7 +28,7 @@ const SLIDES = [
   },
   {
     id: 1,
-    image: "/images/3D hero section/box tv usb.jpg",
+    image: "/images/3D hero section/box tv usb.png",
     alt: "Android TV Stick Mortal Q8",
     badge: "Nouveau",
     badgeBg: "bg-indigo-500",
@@ -162,19 +162,19 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
           <div className="absolute inset-0 opacity-[0.018] pointer-events-none" style={{ backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.9) 1px,transparent 1px)", backgroundSize:"44px 44px" }} />
 
           {/* Two-column layout */}
-          <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-14 grid lg:grid-cols-2 items-center gap-4 sm:gap-6 lg:gap-10 pt-5 pb-16 sm:pt-10 sm:pb-24 lg:pt-0 lg:pb-16">
+          <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-14 grid grid-cols-1 sm:grid-cols-[3fr_2fr] lg:grid-cols-2 items-center gap-4 sm:gap-6 lg:gap-10 pt-5 pb-20 sm:pt-10 sm:pb-24 lg:pt-0 lg:pb-16">
 
             {/* ── Left: Rich text ── */}
-            <div key={`text-${current}`} className="hero-text flex flex-col gap-3.5 sm:gap-4 order-2 lg:order-1">
+            <div key={`text-${current}`} className="hero-text flex flex-col gap-3 sm:gap-4 order-2 sm:order-1">
 
               {/* Badge row */}
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider text-white ${slide.badgeBg}`}>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold tracking-wider text-white ${slide.badgeBg}`}>
                   <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-pulse" />
                   {slide.badge}
                 </span>
-                <span className="text-white/35 text-[10px] hidden sm:inline">•</span>
-                <span className="text-white/40 text-[10px] sm:text-xs font-medium tracking-widest uppercase">{slide.model}</span>
+                <span className="text-white/35 text-[10px]">•</span>
+                <span className="text-white/50 text-[11px] sm:text-xs font-semibold tracking-wider uppercase">{slide.model}</span>
               </div>
 
               {/* Title — first line white, second line orange */}
@@ -187,18 +187,17 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
               </h1>
 
               {/* Star rating */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <div className="flex">
                   {[1,2,3,4,5].map(i => (
-                    <svg key={i} className={`w-4 h-4 ${i <= Math.round(slide.rating) ? "text-amber-400" : "text-white/20"}`} fill="currentColor" viewBox="0 0 20 20">
+                    <svg key={i} className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${i <= Math.round(slide.rating) ? "text-amber-400" : "text-white/20"}`} fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   ))}
                 </div>
-                <span className="text-amber-400 text-sm font-semibold">{slide.rating}</span>
-                <span className="text-white/35 text-sm">({slide.reviews} avis)</span>
-                <span className="w-1 h-1 rounded-full bg-white/20" />
-                <span className="text-emerald-400 text-xs font-semibold">En stock</span>
+                <span className="text-amber-400 text-xs font-semibold">{slide.rating}</span>
+                <span className="text-white/40 text-xs">({slide.reviews} avis)</span>
+                <span className="text-emerald-400 text-[11px] font-semibold">En stock</span>
               </div>
 
               {/* Feature bullets */}
@@ -214,28 +213,21 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
               </ul>
 
               {/* Price block */}
-              <div className="flex flex-col gap-1.5 mt-1">
-                <div className="inline-flex items-center gap-1.5 text-[10px] text-orange-300/60 font-semibold tracking-widest uppercase">
-                  <span className="w-1 h-1 rounded-full bg-orange-400/60" />
-                  Prix spécial — Stock limité
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="price-shimmer text-5xl font-black tracking-tight">{slide.price}€</span>
+              <div className="flex flex-col gap-1 mt-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="price-shimmer text-4xl sm:text-5xl font-black tracking-tight">{slide.price}€</span>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-sm text-white/30 line-through leading-none">{slide.oldPrice}€</span>
-                    <span className="text-xs font-bold text-emerald-400">Économie {savings}€</span>
+                    <span className="text-sm text-white/35 line-through leading-none">{slide.oldPrice}€</span>
+                    <span className="text-xs font-black text-emerald-400 bg-emerald-400/10 rounded px-1 py-0.5 leading-none">-{discount}%</span>
                   </div>
-                  <span className="bg-emerald-500/15 text-emerald-300 text-xs font-black px-2.5 py-1.5 rounded-xl border border-emerald-500/25 shadow-[0_0_12px_rgba(52,211,153,0.15)]">
-                    -{discount}%
-                  </span>
                 </div>
               </div>
 
               {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-3 mt-1">
                 <Link
                   href={slide.href}
-                  className="inline-flex items-center gap-2 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-black px-7 py-3.5 rounded-xl transition-all duration-200 shadow-[0_12px_28px_rgba(249,115,22,0.30)] hover:shadow-[0_18px_36px_rgba(249,115,22,0.42)] hover:-translate-y-0.5 active:translate-y-0 text-sm w-full sm:w-auto justify-center"
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-black px-5 py-3 sm:px-7 sm:py-3.5 rounded-xl transition-all duration-200 shadow-[0_12px_28px_rgba(249,115,22,0.30)] hover:shadow-[0_18px_36px_rgba(249,115,22,0.42)] hover:-translate-y-0.5 active:translate-y-0 text-sm"
                 >
                   Voir le produit
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,39 +236,19 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
                 </Link>
                 <Link
                   href="/produits"
-                  className="hidden sm:inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-semibold px-5 py-3.5 rounded-xl border border-white/[0.12] hover:border-white/30 hover:bg-white/[0.05] transition-all duration-200 backdrop-blur-sm"
+                  className="inline-flex items-center gap-1.5 text-white/50 hover:text-white text-sm font-semibold px-4 py-3 sm:px-5 rounded-xl border border-white/[0.12] hover:border-white/30 hover:bg-white/[0.05] transition-all duration-200 backdrop-blur-sm"
                 >
-                  Explorer la gamme
+                  Explorer
                   <svg className="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
               </div>
 
-              {/* Trust badges */}
-              <div className="hidden sm:flex flex-wrap gap-2 pt-2 border-t border-white/[0.07]">
-                {[
-                  { icon: "M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4", label: "Livraison 24-48h" },
-                  { icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", label: "Garantie 1 an" },
-                  { icon: "M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6", label: "Retour 30 jours" },
-                ].map((t) => (
-                  <div key={t.label} className="flex items-center gap-1.5 text-white/55 text-xs bg-white/[0.04] border border-white/[0.07] rounded-lg px-2.5 py-1.5">
-                    <svg className="w-3.5 h-3.5 text-orange-400/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={t.icon} />
-                    </svg>
-                    {t.label}
-                  </div>
-                ))}
-              </div>
-
 </div>
 
             {/* ── Right: 3D image ── */}
-            <div className="relative h-64 sm:h-72 lg:h-full flex items-center justify-center order-1 lg:order-2" style={{ transformStyle:"preserve-3d" }}>
-              {/* Warm ambient glow behind image so screen blend-mode dissolves the JPEG black background */}
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
-                <div style={{ width: '85%', height: '85%', borderRadius: '50%', background: 'radial-gradient(ellipse at 50% 55%, rgba(255,210,140,0.32) 0%, rgba(249,115,22,0.18) 38%, rgba(234,88,12,0.06) 60%, transparent 75%)' }} />
-              </div>
+            <div className="relative flex h-full min-h-[220px] sm:h-72 lg:h-full items-center justify-center order-1 sm:order-2" style={{ transformStyle:"preserve-3d" }}>
               {/* Floating spec chips */}
               <div className="absolute top-2 right-2 sm:top-4 sm:right-0 hidden sm:flex flex-col gap-2 z-10">
                 <div className="bg-white/[0.06] backdrop-blur-sm border border-white/[0.10] rounded-2xl px-3.5 py-2 text-center shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
@@ -294,7 +266,7 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
                   className={`absolute inset-0 flex items-center justify-center ${dir === "right" ? "hero-exit-left" : "hero-exit-right"}`}
                   style={{ transformStyle:"preserve-3d" }}
                 >
-                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" style={{ mixBlendMode: 'screen', WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)', maskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)' }} />
+                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[240px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" />
                 </div>
               )}
               <div
@@ -302,7 +274,7 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
                 className={busy ? (dir === "right" ? "hero-enter-right" : "hero-enter-left") : "hero-float"}
                 style={{ transformStyle:"preserve-3d" }}
               >
-                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" style={{ mixBlendMode: 'screen', WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)', maskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)' }} priority={current === 0} />
+                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[240px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" priority={current === 0} />
               </div>
             </div>
 

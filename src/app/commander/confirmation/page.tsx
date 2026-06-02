@@ -17,6 +17,7 @@ interface CartItem {
 
 interface OrderData {
   id: string;
+  orderNumber?: string;
   items: CartItem[];
   subtotal: number;
   discount: number;
@@ -58,6 +59,7 @@ function ConfirmationContent() {
           if (data) {
             setOrder({
               id: data.id,
+              orderNumber: data.orderNumber ?? undefined,
               items: data.items.map((i: { name: string; image: string; price: number; qty: number; brand?: string }, idx: number) => ({ id: idx, ...i })),
               subtotal: data.subtotal,
               discount: data.promoDiscount ?? 0,
@@ -81,7 +83,7 @@ function ConfirmationContent() {
     }
   }, [searchParams]);
 
-  const orderId = order?.id ?? "";
+  const orderId = order?.orderNumber ?? order?.id ?? "";
 
   const copy = () => {
     if (!orderId) return;
@@ -150,7 +152,7 @@ function ConfirmationContent() {
           <div className="px-6 py-5">
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Numéro de suivi</p>
             <div className="flex items-center gap-3 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl px-4 py-3">
-              <span className="flex-1 text-xl font-black text-slate-900 tracking-widest">{orderId || "…"}</span>
+              <span className="flex-1 min-w-0 text-sm sm:text-base font-black text-slate-900 tracking-wide break-all uppercase">{orderId || "…"}</span>
               <button
                 onClick={copy}
                 className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${

@@ -41,10 +41,11 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/icon.png", type: "image/png", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png", type: "image/png", sizes: "192x192" },
     ],
-    apple: "/icon.png",
-    shortcut: "/icon.png",
+    apple: "/favicon.png",
+    shortcut: "/icon.svg",
   },
 };
 
@@ -54,8 +55,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
-      <body className="font-sans antialiased bg-slate-50 text-slate-900">
+    <html lang="fr" className="reveal-js" suppressHydrationWarning>
+      <head>
+        {/* JSON-LD structured data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -106,6 +108,8 @@ export default function RootLayout({
             }),
           }}
         />
+      </head>
+      <body className="font-sans antialiased bg-slate-50 text-slate-900">
         <Providers>
           <Suspense fallback={null}><PageTracker /></Suspense>
           <ScrollAnimations />

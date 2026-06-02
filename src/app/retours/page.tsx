@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import ReturnRequestForm from "@/components/ReturnRequestForm";
 
 const conditions = [
   { ok: true,  text: "Produit dans son emballage d'origine (boite, accessoires inclus)" },
@@ -148,6 +149,16 @@ export default function RetoursPage() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Return request form */}
+        <div className="mt-14 max-w-3xl mx-auto">
+          <div className="text-center mb-6">
+            <p className="text-orange-500 text-xs font-black uppercase tracking-widest mb-2">Formulaire</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Demander un <span className="text-orange-500">retour</span></h2>
+            <p className="text-slate-500 text-sm mt-2">Remplissez ce formulaire avec votre numéro de commande pour lancer votre demande.</p>
+          </div>
+          <ReturnRequestForm />
         </div>
       </section>
     </main>

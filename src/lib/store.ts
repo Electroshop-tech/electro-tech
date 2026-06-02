@@ -69,6 +69,8 @@ function dbProductToProduct(p: {
   descriptionSections: unknown;
   characteristics: unknown;
   productReviews: unknown;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
 }): Product {
   return {
     id: p.id,
@@ -92,11 +94,14 @@ function dbProductToProduct(p: {
     descriptionSections: (p.descriptionSections as Product["descriptionSections"]) ?? undefined,
     characteristics: (p.characteristics as Product["characteristics"]) ?? undefined,
     productReviews: (p.productReviews as Product["productReviews"]) ?? undefined,
+    metaTitle: p.metaTitle ?? undefined,
+    metaDescription: p.metaDescription ?? undefined,
   };
 }
 
 function dbOrderToOrder(o: {
   id: string;
+  orderNumber: string | null;
   userId: string;
   customerName: string;
   customerEmail: string;
@@ -127,6 +132,7 @@ function dbOrderToOrder(o: {
 }): Order {
   return {
     id: o.id,
+    orderNumber: o.orderNumber ?? undefined,
     userId: o.userId,
     customerName: o.customerName,
     customerEmail: o.customerEmail,
@@ -277,6 +283,8 @@ export async function getProducts(): Promise<Product[]> {
       descriptionSections: true,
       characteristics: true,
       productReviews: true,
+      metaTitle: true,
+      metaDescription: true,
     },
   });
   return products.map(dbProductToProduct);
@@ -353,6 +361,8 @@ export async function createProduct(data: Omit<Product, "id">): Promise<Product>
       descriptionSections: (data.descriptionSections as unknown as undefined) ?? undefined,
       characteristics: (data.characteristics as unknown as undefined) ?? undefined,
       productReviews: (data.productReviews as unknown as undefined) ?? undefined,
+      metaTitle: data.metaTitle ?? null,
+      metaDescription: data.metaDescription ?? null,
     },
   });
   return dbProductToProduct(p);
@@ -383,6 +393,8 @@ export async function updateProduct(id: number, data: Partial<Product>): Promise
         ...(data.descriptionSections !== undefined && { descriptionSections: data.descriptionSections as unknown as undefined }),
         ...(data.characteristics !== undefined && { characteristics: data.characteristics as unknown as undefined }),
         ...(data.productReviews !== undefined && { productReviews: data.productReviews as unknown as undefined }),
+        ...(data.metaTitle !== undefined && { metaTitle: data.metaTitle ?? null }),
+        ...(data.metaDescription !== undefined && { metaDescription: data.metaDescription ?? null }),
       },
     });
     return dbProductToProduct(p);
@@ -403,16 +415,47 @@ export async function deleteProduct(id: number): Promise<boolean> {
 // ── Categories ────────────────────────────────────────────────────────────────
 
 export async function getCategories(): Promise<Category[]> {
-  return prisma.category.findMany({ orderBy: { id: "asc" } });
+  const cats = await prisma.category.findMany({ orderBy: { id: "asc" } });
+  return cats.map(dbCategoryToData);
+}
+
+function dbCategoryToData(c: { id: number; name: string; slug: string; icon: string; metaTitle: string | null; metaDescription: string | null }): Category {
+  return {
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    icon: c.icon,
+    metaTitle: c.metaTitle ?? undefined,
+    metaDescription: c.metaDescription ?? undefined,
+  };
 }
 
 export async function createCategory(data: Omit<Category, "id">): Promise<Category> {
-  return prisma.category.create({ data });
+  const c = await prisma.category.create({
+    data: {
+      name: data.name,
+      slug: data.slug,
+      icon: data.icon,
+      metaTitle: data.metaTitle ?? null,
+      metaDescription: data.metaDescription ?? null,
+    },
+  });
+  return dbCategoryToData(c);
 }
 
 export async function updateCategory(id: number, data: Partial<Category>): Promise<Category | null> {
   try {
-    return await prisma.category.update({ where: { id }, data });
+    const c = await prisma.category.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.slug !== undefined && { slug: data.slug }),
+        ...(data.icon !== undefined && { icon: data.icon }),
+        ...(data.metaTitle !== undefined && { metaTitle: data.metaTitle ?? null }),
+        ...(data.metaDescription !== undefined && { metaDescription: data.metaDescription ?? null }),
+      },
+    });
+    return dbCategoryToData(c);
   } catch {
     return null;
   }
@@ -549,6 +592,13 @@ export async function updateUser(id: string, data: Partial<Omit<User, "id" | "cr
 
 // ── Orders ────────────────────────────────────────────────────────────────────
 
+// Friendly, human-readable tracking number: "MA" + 9 digits.
+function generateOrderNumber(): string {
+  const ts = Date.now().toString().slice(-7); // 7 digits from the timestamp
+  const rnd = Math.floor(Math.random() * 100).toString().padStart(2, "0");
+  return `MA${ts}${rnd}`;
+}
+
 export async function getOrders(): Promise<Order[]> {
   const orders = await prisma.order.findMany({
     include: { items: true },
@@ -567,8 +617,8 @@ export async function getOrdersByUserId(userId: string): Promise<Order[]> {
 }
 
 export async function getOrderById(id: string): Promise<Order | undefined> {
-  const o = await prisma.order.findUnique({
-    where: { id },
+  const o = await prisma.order.findFirst({
+    where: { OR: [{ id }, { orderNumber: id }] },
     include: { items: true },
   });
   return o ? dbOrderToOrder(o) : undefined;
@@ -581,6 +631,7 @@ export async function createOrder(
 ): Promise<Order> {
   const o = await prisma.order.create({
     data: {
+      orderNumber: generateOrderNumber(),
       userId: data.userId,
       customerName: data.customerName,
       customerEmail: data.customerEmail,
@@ -1040,4 +1091,205 @@ export async function getDeliveryFeeForCity(city: string): Promise<number | null
     }
   }
   return null;
+}
+
+// ── Returns / Refunds ─────────────────────────────────────────────────────────
+
+export interface ReturnData {
+  id: string;
+  orderId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string | null;
+  reason: string;
+  comment: string | null;
+  status: string;
+  refundAmount: number;
+  adminNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+function dbReturnToData(r: {
+  id: string; orderId: string; customerName: string; customerEmail: string;
+  customerPhone: string | null; reason: string; comment: string | null; status: string;
+  refundAmount: number; adminNote: string | null; createdAt: Date; updatedAt: Date;
+}): ReturnData {
+  return {
+    id: r.id,
+    orderId: r.orderId,
+    customerName: r.customerName,
+    customerEmail: r.customerEmail,
+    customerPhone: r.customerPhone,
+    reason: r.reason,
+    comment: r.comment,
+    status: r.status,
+    refundAmount: r.refundAmount,
+    adminNote: r.adminNote,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+  };
+}
+
+export async function getReturns(): Promise<ReturnData[]> {
+  const rows = await prisma.return.findMany({ orderBy: { createdAt: "desc" } });
+  return rows.map(dbReturnToData);
+}
+
+export async function createReturn(data: {
+  orderId: string; customerName: string; customerEmail: string; customerPhone?: string | null;
+  reason: string; comment?: string | null;
+}): Promise<ReturnData> {
+  const r = await prisma.return.create({
+    data: {
+      orderId: data.orderId.trim(),
+      customerName: data.customerName.trim(),
+      customerEmail: data.customerEmail.trim(),
+      customerPhone: data.customerPhone ?? null,
+      reason: data.reason,
+      comment: data.comment ?? null,
+    },
+  });
+  return dbReturnToData(r);
+}
+
+export async function updateReturn(id: string, data: Partial<{ status: string; refundAmount: number; adminNote: string }>): Promise<ReturnData | null> {
+  try {
+    const r = await prisma.return.update({ where: { id }, data });
+    return dbReturnToData(r);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteReturn(id: string): Promise<boolean> {
+  try {
+    await prisma.return.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ── Back-in-stock notifications ───────────────────────────────────────────────
+
+export interface StockNotificationData {
+  id: number;
+  productId: number;
+  email: string;
+  notified: boolean;
+  createdAt: string;
+}
+
+export async function subscribeStockNotification(productId: number, email: string): Promise<{ ok: boolean; alreadyExists: boolean }> {
+  const normalized = email.trim().toLowerCase();
+  const existing = await prisma.stockNotification.findUnique({
+    where: { productId_email: { productId, email: normalized } },
+  });
+  if (existing) return { ok: true, alreadyExists: true };
+  await prisma.stockNotification.create({ data: { productId, email: normalized } });
+  return { ok: true, alreadyExists: false };
+}
+
+export async function getStockNotifications(productId?: number): Promise<StockNotificationData[]> {
+  const rows = await prisma.stockNotification.findMany({
+    where: productId ? { productId } : undefined,
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(n => ({ id: n.id, productId: n.productId, email: n.email, notified: n.notified, createdAt: n.createdAt.toISOString() }));
+}
+
+export async function getPendingStockNotifications(productId: number): Promise<StockNotificationData[]> {
+  const rows = await prisma.stockNotification.findMany({
+    where: { productId, notified: false },
+  });
+  return rows.map(n => ({ id: n.id, productId: n.productId, email: n.email, notified: n.notified, createdAt: n.createdAt.toISOString() }));
+}
+
+export async function markStockNotificationsSent(productId: number): Promise<void> {
+  await prisma.stockNotification.updateMany({
+    where: { productId, notified: false },
+    data: { notified: true },
+  });
+}
+
+export async function countStockNotifications(): Promise<{ productId: number; count: number }[]> {
+  const grouped = await prisma.stockNotification.groupBy({
+    by: ["productId"],
+    where: { notified: false },
+    _count: { _all: true },
+  });
+  return grouped.map(g => ({ productId: g.productId, count: g._count._all }));
+}
+
+// ── Admin / Staff accounts ────────────────────────────────────────────────────
+
+export interface AdminUserData {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  active: boolean;
+  lastLogin: string | null;
+  createdAt: string;
+}
+
+function dbAdminToData(u: {
+  id: string; email: string; name: string; role: string; active: boolean;
+  lastLogin: Date | null; createdAt: Date;
+}): AdminUserData {
+  return {
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    role: u.role,
+    active: u.active,
+    lastLogin: u.lastLogin ? u.lastLogin.toISOString() : null,
+    createdAt: u.createdAt.toISOString(),
+  };
+}
+
+export async function getAdminUsers(): Promise<AdminUserData[]> {
+  const rows = await prisma.adminUser.findMany({ orderBy: { createdAt: "asc" } });
+  return rows.map(dbAdminToData);
+}
+
+export async function getAdminUserByEmail(email: string): Promise<{ id: string; email: string; name: string; role: string; active: boolean; passwordHash: string } | null> {
+  const u = await prisma.adminUser.findUnique({ where: { email: email.trim().toLowerCase() } });
+  if (!u) return null;
+  return { id: u.id, email: u.email, name: u.name, role: u.role, active: u.active, passwordHash: u.passwordHash };
+}
+
+export async function createAdminUser(data: { email: string; name: string; role: string; passwordHash: string }): Promise<AdminUserData> {
+  const u = await prisma.adminUser.create({
+    data: {
+      email: data.email.trim().toLowerCase(),
+      name: data.name.trim(),
+      role: data.role,
+      passwordHash: data.passwordHash,
+    },
+  });
+  return dbAdminToData(u);
+}
+
+export async function updateAdminUser(id: string, data: Partial<{ name: string; role: string; active: boolean; passwordHash: string }>): Promise<AdminUserData | null> {
+  try {
+    const u = await prisma.adminUser.update({ where: { id }, data });
+    return dbAdminToData(u);
+  } catch {
+    return null;
+  }
+}
+
+export async function setAdminUserLastLogin(id: string): Promise<void> {
+  await prisma.adminUser.update({ where: { id }, data: { lastLogin: new Date() } }).catch(() => {});
+}
+
+export async function deleteAdminUser(id: string): Promise<boolean> {
+  try {
+    await prisma.adminUser.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }

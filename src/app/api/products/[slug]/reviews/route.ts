@@ -50,6 +50,7 @@ export async function POST(
       date: today,
       content: content.trim(),
       verified: false,
+      approved: false,
     };
 
     await updateProduct(product.id, {

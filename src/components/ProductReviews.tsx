@@ -199,7 +199,7 @@ export default function ProductReviews({
           <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm font-semibold">Merci ! Votre avis a été publié avec succès.</span>
+          <span className="text-sm font-semibold">Merci ! Votre avis a bien été envoyé et sera publié après validation.</span>
         </div>
       )}
 
@@ -293,6 +293,12 @@ export default function ProductReviews({
                       <Stars rating={review.rating} size="sm" />
                     </div>
                     <p className="text-sm text-gray-700 leading-relaxed">{review.content}</p>
+                    {review.reply && (
+                      <div className="mt-3 bg-orange-50 border border-orange-100 rounded-lg p-3">
+                        <p className="text-[11px] font-black text-orange-600 uppercase tracking-wide mb-1">Réponse de ElectroShop-Tech</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">{review.reply}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

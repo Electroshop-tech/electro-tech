@@ -29,10 +29,10 @@ export default function CustomersPage() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">Clients</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900">Clients</h1>
           <p className="text-gray-500 text-sm mt-1">{customers.length} client{customers.length !== 1 ? "s" : ""} enregistré{customers.length !== 1 ? "s" : ""}</p>
         </div>
         <div className="relative">
@@ -59,8 +59,8 @@ export default function CustomersPage() {
           <p className="text-gray-400 text-sm mt-1">Les clients apparaîtront ici une fois qu&apos;ils se seront inscrits.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Client</th>

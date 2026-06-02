@@ -95,36 +95,48 @@ img {
 
 /* ─────────────────────────────────────────────
    Scroll Reveal — controlled by ScrollAnimations.tsx
+   FAIL-OPEN: content is visible by DEFAULT. Only when the reveal JS is
+   confirmed alive (<html class="reveal-js">, set synchronously by an inline
+   script in layout.tsx) do we hide elements to animate them in. This means a
+   JS error, disabled JS, or any hiccup can never leave the page blank.
    ───────────────────────────────────────────── */
 
+/* Default (no JS / JS failed): everything visible, no transforms. */
 [data-reveal] {
-  opacity: 0;
+  opacity: 1;
+  transform: none;
+}
+
+/* JS confirmed alive → hide elements that haven't been revealed yet so they
+   can animate in. */
+html.reveal-js [data-reveal] {
   transition:
     opacity  0.65s cubic-bezier(0.22, 1, 0.36, 1),
     transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
   transition-delay: var(--reveal-delay, 0ms);
-  /* Failsafe: if the reveal JS never runs (hydration failure, JS disabled,
-     slow device), force content visible after a short delay so the page can
-     never get stuck as a blank/white screen. As soon as the reveal JS mounts
-     it adds .reveal-js to <html>, which cancels this failsafe so real scroll
-     animations take over (see ScrollAnimations.tsx). */
-  animation: revealFailsafe 0.01s linear 2.2s forwards;
 }
 
-html.reveal-js [data-reveal] {
-  animation: none;
+html.reveal-js [data-reveal]:not(.in-view) {
+  opacity: 0;
+}
+
+/* Direction variants (only while JS-driven & not yet revealed) */
+html.reveal-js [data-reveal="up"]:not(.in-view)    { transform: translateY(32px); }
+html.reveal-js [data-reveal="left"]:not(.in-view)  { transform: translateX(-40px); }
+html.reveal-js [data-reveal="right"]:not(.in-view) { transform: translateX(40px); }
+html.reveal-js [data-reveal="scale"]:not(.in-view) { transform: scale(0.88) translateY(18px); }
+html.reveal-js [data-reveal="fade"]:not(.in-view)  { transform: none; }
+
+/* Safety net: even with JS alive, if the observer never reveals an element
+   (e.g. scroll restoration on refresh), force it visible after 2.6s so the
+   page can never stay blank. .in-view cancels this per element. */
+html.reveal-js [data-reveal]:not(.in-view) {
+  animation: revealFailsafe 0.01s linear 2.6s forwards;
 }
 
 @keyframes revealFailsafe {
   to { opacity: 1; transform: none; }
 }
-
-/* Direction variants */
-[data-reveal="up"]    { transform: translateY(32px); }
-[data-reveal="left"]  { transform: translateX(-40px); }
-[data-reveal="right"] { transform: translateX(40px); }
-[data-reveal="scale"] { transform: scale(0.88) translateY(18px); }
-[data-reveal="fade"]  { transform: none; }
 
 /* Visible state — added by IntersectionObserver */
 [data-reveal].in-view {

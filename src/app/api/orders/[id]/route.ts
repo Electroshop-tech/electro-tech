@@ -14,6 +14,7 @@ export async function GET(
   // Return limited info (no full customer data for security)
   return NextResponse.json({
     id: order.id,
+    orderNumber: order.orderNumber,
     items: order.items.map(i => ({
       name: i.productName,
       image: i.productImage,

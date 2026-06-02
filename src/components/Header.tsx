@@ -103,6 +103,40 @@ export default function Header() {
     } else if (e.key === "Escape") { setSuggestionsOpen(false); setSelectedIdx(-1); }
   };
 
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const headerScrollY = useRef(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      // Only auto-hide on mobile (< 640px)
+      if (window.innerWidth < 640) {
+        if (y > 80) {
+          setHeaderHidden(true);
+        } else {
+          setHeaderHidden(false);
+        }
+      } else {
+        setHeaderHidden(false);
+      }
+      headerScrollY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Close menu on any scroll (including inside the menu panel itself)
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const close = () => setIsMenuOpen(false);
+    document.addEventListener("touchmove", close, { passive: true });
+    document.addEventListener("wheel", close, { passive: true });
+    return () => {
+      document.removeEventListener("touchmove", close);
+      document.removeEventListener("wheel", close);
+    };
+  }, [isMenuOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = searchQuery.trim();
@@ -113,7 +147,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/70 shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
+    <header className={`sticky top-0 z-50 border-b border-slate-200/70 shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-transform duration-300 ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
       {/* Top bar - hidden on mobile */}
       <div className="hidden sm:block bg-[#0d1836] text-white text-xs border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-9">
@@ -494,17 +528,27 @@ export default function Header() {
       </div>
 
       {/* Mobile search row */}
-      <div className="sm:hidden bg-gradient-to-r from-[#172554] via-[#1d3372] to-[#162456] px-3 pb-3">
-        <form className="flex items-center bg-white rounded-full overflow-hidden shadow-[0_10px_24px_rgba(2,6,23,0.18)]" onSubmit={handleSearch}>
+      <div className="sm:hidden bg-[#172554] px-3 pb-3 pt-0.5">
+        <form
+          className="flex items-center gap-2 bg-white rounded-full px-4 py-0 shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
+          onSubmit={handleSearch}
+        >
+          <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher un produit..."
-            className="flex-1 pl-4 pr-2 py-2.5 text-sm outline-none text-slate-800 placeholder-slate-400"
+            className="flex-1 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none bg-transparent min-w-0"
           />
-          <button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 flex items-center transition-colors flex-shrink-0" aria-label="Rechercher">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button
+            type="submit"
+            className="flex-shrink-0 w-8 h-8 my-1 bg-orange-500 hover:bg-orange-400 rounded-full flex items-center justify-center transition-colors shadow-[0_2px_8px_rgba(249,115,22,0.4)]"
+            aria-label="Rechercher"
+          >
+            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
             </svg>
           </button>
@@ -686,82 +730,124 @@ export default function Header() {
 
       {/* Mobile nav */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 shadow-xl" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+        <div className="md:hidden bg-white border-t border-slate-200/60 shadow-2xl" style={{ maxHeight: "82vh", overflowY: "auto" }}>
+
           {/* Account banner */}
-          <div className="bg-gradient-to-r from-blue-950 to-blue-900 px-4 py-4 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-white font-bold text-sm">Mon Espace</p>
-              <p className="text-white/50 text-xs mt-0.5">
-                {authUser ? `Bonjour, ${authUser.firstName}` : "Connectez-vous à votre compte"}
-              </p>
+          <div className="bg-[#172554] px-4 py-3.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                {authUser ? (
+                  <span className="text-sm font-black text-white">
+                    {authUser.firstName[0]?.toUpperCase()}{authUser.lastName[0]?.toUpperCase()}
+                  </span>
+                ) : (
+                  <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" />
+                  </svg>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-white font-bold text-sm leading-tight truncate">
+                  {authUser ? `Bonjour, ${authUser.firstName}` : "Mon Espace"}
+                </p>
+                <p className="text-white/50 text-xs mt-0.5">
+                  {authUser ? `${authUser.firstName} ${authUser.lastName}` : "Connectez-vous à votre compte"}
+                </p>
+              </div>
             </div>
             <Link
               href="/compte"
               onClick={() => setIsMenuOpen(false)}
-              className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors"
+              className="flex-shrink-0 bg-orange-500 hover:bg-orange-400 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors"
             >
-              {authUser ? `${authUser.firstName[0]}${authUser.lastName[0]}` : "Se connecter"}
+              {authUser ? "Mon compte" : "Se connecter"}
             </Link>
           </div>
 
           {/* Categories */}
           <div className="px-4 pt-4 pb-3">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Catégories</p>
-            <div className="grid grid-cols-3 gap-2.5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Catégories</p>
+            <div className="grid grid-cols-3 gap-2">
               {[
-                { id: 1, slug: "passerelle-multimedia", img: "/Categories images/passerelle multimedia.jpg", name: "Box & TV Stick",  bg: "bg-orange-50", border: "border-orange-100" },
-                { id: 2, slug: "accessoires",           img: "/Categories images/accessoires.jpg",           name: "Accessoires",    bg: "bg-blue-50",   border: "border-blue-100"   },
-                { id: 3, slug: "camera-surveillance",   img: "/Categories images/camera de surveillance.jpg",name: "Caméras",        bg: "bg-violet-50", border: "border-violet-100" },
+                { id: 1, slug: "passerelle-multimedia", img: "/Categories images/passerelle multimedia.jpg", name: "Box & TV Stick", bg: "bg-orange-50", border: "border-orange-200", label: "text-orange-700" },
+                { id: 2, slug: "accessoires",           img: "/Categories images/accessoires.jpg",           name: "Accessoires",    bg: "bg-blue-50",   border: "border-blue-200",  label: "text-blue-700"   },
+                { id: 3, slug: "camera-surveillance",   img: "/Categories images/camera de surveillance.jpg",name: "Caméras",        bg: "bg-violet-50", border: "border-violet-200",label: "text-violet-700" },
               ].map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/categorie/${cat.slug}`}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`flex flex-col items-center gap-1.5 pt-3 pb-2.5 px-1 rounded-2xl border ${cat.bg} ${cat.border} active:scale-95 transition-all overflow-hidden`}
+                  className={`flex flex-col items-center gap-1.5 pt-3 pb-2.5 px-1 rounded-2xl border ${cat.bg} ${cat.border} active:scale-95 transition-transform overflow-hidden`}
                 >
-                  <div className="w-full h-16 flex items-center justify-center">
-                    <Image src={cat.img} alt={cat.name} width={64} height={64} sizes="64px" className="h-full w-full object-contain drop-shadow-sm" />
+                  <div className="w-full h-14 flex items-center justify-center">
+                    <Image src={cat.img} alt={cat.name} width={56} height={56} sizes="56px" className="h-full w-full object-contain drop-shadow-sm" />
                   </div>
-                  <span className="text-[11px] font-bold text-slate-700 text-center leading-tight">{cat.name}</span>
+                  <span className={`text-[11px] font-bold ${cat.label} text-center leading-tight`}>{cat.name}</span>
                 </Link>
               ))}
             </div>
           </div>
 
           {/* Nav links */}
-          <div className="px-4 pb-4 space-y-1.5">
-            <Link
-              href="/produits"
-              onClick={() => setIsMenuOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-2xl active:scale-95 transition-all bg-gray-50 border border-gray-100"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800">Tous les produits</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">Box TV, caméras, accessoires</p>
-              </div>
-              <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+          <div className="px-3 pb-3">
+            <div className="rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
+              {[
+                { href: "/produits",       label: "Tous les produits",  sub: "Box TV, caméras, accessoires",       icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",                                                                                                      iconBg: "bg-slate-100",  iconColor: "text-slate-500",  badge: null },
+                { href: "/promotions",     label: "Promotions",         sub: "Offres et réductions en cours",      icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z",                                        iconBg: "bg-orange-100", iconColor: "text-orange-500", badge: "Actif" },
+                { href: "/nouveautes",     label: "Nouveautés",         sub: "Derniers arrivages",                 icon: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z", iconBg: "bg-yellow-100", iconColor: "text-yellow-500", badge: "New" },
+                { href: "/suivi-commande", label: "Suivi de commande",  sub: "Vérifier l'état de votre commande", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",                                         iconBg: "bg-green-100",  iconColor: "text-green-600",  badge: null },
+              ].map(({ href, label, sub, icon, iconBg, iconColor, badge }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3.5 bg-white active:bg-slate-50 transition-colors"
+                >
+                  <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
+                    <svg className={`w-5 h-5 ${iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={icon} />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-slate-800">{label}</p>
+                      {badge && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 leading-none">{badge}</span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{sub}</p>
+                  </div>
+                  <svg className="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Contact footer */}
-          <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between gap-3 bg-gray-50">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
+          <div className="border-t border-slate-100 mx-3 mb-3 mt-1 rounded-2xl overflow-hidden">
+            <div className="bg-slate-50 px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-[18px] h-[18px] text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-700">(+212) 716-408919</p>
+                  <p className="text-[10px] text-slate-400">Lun–Sam 9h–19h</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-bold text-slate-700">(+212) 716-408919</p>
-                <p className="text-[10px] text-slate-400">Lun–Sam 9h–19h</p>
-              </div>
+              <a
+                href="tel:+212716408919"
+                className="shrink-0 bg-orange-500 text-white text-[11px] font-bold px-4 py-2 rounded-xl active:scale-95 transition-transform"
+              >
+                Appeler
+              </a>
             </div>
-            <a href="tel:+212716408919" className="shrink-0 bg-orange-500 text-white text-[11px] font-bold px-4 py-2 rounded-xl active:scale-95 transition-all">
-              Appeler
-            </a>
           </div>
+
         </div>
       )}
     </header>

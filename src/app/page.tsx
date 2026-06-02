@@ -73,6 +73,7 @@ export default async function Home() {
         products={products}
         viewAllHref="/promotions"
         accentColor="red"
+        mobileScroll
       />
 
       <WhyUsSection />
@@ -109,9 +110,9 @@ export default async function Home() {
               </svg>
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+          <div className="flex gap-3 overflow-x-auto pb-3 sm:pb-0 sm:grid sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {products.slice(0, 8).map((product) => (
-              <div key={product.id}>
+              <div key={product.id} className="shrink-0 w-[260px] sm:w-auto snap-start">
                 <ProductCard product={product} />
               </div>
             ))}

@@ -11,6 +11,10 @@ const BRAND_COLOR = "#f97316";
 const SITE_NAME = "ElectroShop-Tech";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://electroshop-tech.com";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "contact.electrotech@gmail.com";
+// Public-facing contact address shown to customers in emails.
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? "contact@electroshop-tech.com";
+// Verified sending address on the electroshop-tech.com domain (Resend).
+const FROM_EMAIL = process.env.RESEND_FROM ?? `${SITE_NAME} <commandes@electroshop-tech.com>`;
 
 const STATUS_LABELS: Record<Order["status"], string> = {
   pending: "En attente",
@@ -125,12 +129,12 @@ export async function sendOrderConfirmation(order: Order): Promise<void> {
       </a>
     </div>
     <p style="margin:20px 0 0;font-size:12px;color:#94a3b8;text-align:center;">
-      Des questions ? Contactez-nous à <a href="mailto:${ADMIN_EMAIL}" style="color:${BRAND_COLOR};">${ADMIN_EMAIL}</a>
+      Des questions ? Contactez-nous à <a href="mailto:${CONTACT_EMAIL}" style="color:${BRAND_COLOR};">${CONTACT_EMAIL}</a>
     </p>
   `;
 
   const { error } = await resend.emails.send({
-    from: "ElectroShop-Tech <onboarding@resend.dev>",
+    from: FROM_EMAIL,
     to: order.customerEmail,
     subject: `✅ Commande confirmée – ${order.id.slice(-8).toUpperCase()} | ${SITE_NAME}`,
     html: baseLayout(content, "Confirmation de commande"),
@@ -196,7 +200,7 @@ export async function sendAdminOrderNotification(order: Order): Promise<void> {
   `;
 
   const { error } = await resend.emails.send({
-    from: "ElectroShop-Tech <onboarding@resend.dev>",
+    from: FROM_EMAIL,
     to: ADMIN_EMAIL,
     subject: `🛍️ Nouvelle commande ${order.id.slice(-8).toUpperCase()} – ${order.customerName} (${order.total.toFixed(2)}€)`,
     html: baseLayout(content, "Nouvelle commande"),
@@ -213,7 +217,8 @@ export async function sendAdminOrderNotification(order: Order): Promise<void> {
 export async function sendNewsletterBulk(
   subscribers: { email: string; unsubscribeToken: string }[],
   subject: string,
-  body: string
+  body: string,
+  image?: { imageBase64: string; imageMimeType: string }
 ): Promise<{ sent: number; failed: number; errors: string[] }> {
   const resend = getResend();
   if (!resend) {
@@ -232,8 +237,12 @@ export async function sendNewsletterBulk(
     const results = await Promise.allSettled(
       batch.map(sub => {
         const unsubUrl = `${SITE_URL}/api/newsletter/unsubscribe?token=${sub.unsubscribeToken}`;
+        const imageHtml = image
+          ? `<div style="margin:0 0 20px;text-align:center;"><img src="data:${image.imageMimeType};base64,${image.imageBase64}" alt="" style="max-width:100%;max-height:400px;border-radius:12px;display:inline-block;" /></div>`
+          : "";
         const htmlContent = baseLayout(
           `
+          ${imageHtml}
           <div style="font-size:14px;color:#334155;line-height:1.7;">
             ${body.split("\n").map(line => line.trim() ? `<p style="margin:0 0 12px;">${line}</p>` : "").join("")}
           </div>
@@ -250,7 +259,7 @@ export async function sendNewsletterBulk(
           subject
         );
         return resend.emails.send({
-          from: `ElectroShop-Tech <onboarding@resend.dev>`,
+          from: FROM_EMAIL,
           to: sub.email,
           subject,
           html: htmlContent,
@@ -323,7 +332,7 @@ export async function sendContactNotification(data: {
   `;
 
   const { error } = await resend.emails.send({
-    from: "ElectroShop-Tech <onboarding@resend.dev>",
+    from: FROM_EMAIL,
     to: ADMIN_EMAIL,
     subject: `📩 Contact: ${data.subject} — ${data.name}`,
     html: baseLayout(content, "Nouveau message de contact"),
@@ -368,7 +377,7 @@ export async function sendPasswordResetEmail(email: string, firstName: string, t
   `;
 
   const { error } = await resend.emails.send({
-    from: "ElectroShop-Tech <onboarding@resend.dev>",
+    from: FROM_EMAIL,
     to: email,
     subject: `🔐 Réinitialisation de mot de passe | ${SITE_NAME}`,
     html: baseLayout(content, "Réinitialisation de mot de passe"),
@@ -441,12 +450,12 @@ export async function sendOrderStatusEmail(order: Order, trackingNumber?: string
       </a>
     </div>
     <p style="margin:20px 0 0;font-size:12px;color:#94a3b8;text-align:center;">
-      Des questions ? <a href="mailto:${ADMIN_EMAIL}" style="color:${BRAND_COLOR};">${ADMIN_EMAIL}</a>
+      Des questions ? <a href="mailto:${CONTACT_EMAIL}" style="color:${BRAND_COLOR};">${CONTACT_EMAIL}</a>
     </p>
   `;
 
   const { error } = await resend.emails.send({
-    from: "ElectroShop-Tech <onboarding@resend.dev>",
+    from: FROM_EMAIL,
     to: order.customerEmail,
     subject: `${emoji} Commande ${STATUS_LABELS[order.status]} – ${order.id.slice(-8).toUpperCase()} | ${SITE_NAME}`,
     html: baseLayout(content, "Mise à jour de commande"),
@@ -489,7 +498,7 @@ export async function sendWelcomeEmail(email: string, firstName: string): Promis
   `;
 
   const { error } = await resend.emails.send({
-    from: "ElectroShop-Tech <onboarding@resend.dev>",
+    from: FROM_EMAIL,
     to: email,
     subject: `🎉 Bienvenue sur ${SITE_NAME} !`,
     html: baseLayout(content, "Bienvenue"),
@@ -499,5 +508,46 @@ export async function sendWelcomeEmail(email: string, firstName: string): Promis
     console.error("[email] Failed to send welcome email:", error);
   } else {
     console.log(`[email] Welcome email sent to ${email}`);
+  }
+}
+
+// ── Back-in-stock notification ────────────────────────────────────────────────
+
+export async function sendBackInStockEmail(emails: string[], productName: string, productSlug: string): Promise<void> {
+  const resend = getResend();
+  if (!resend) {
+    console.log(`[email] RESEND_API_KEY not configured — skipping back-in-stock email for ${productName}`);
+    return;
+  }
+  if (emails.length === 0) return;
+
+  const content = `
+    <h1 style="margin:0 0 4px;font-size:22px;font-weight:900;color:#1e293b;">C'est de retour ! 🎉</h1>
+    <p style="margin:0 0 24px;color:#64748b;font-size:14px;">Bonne nouvelle — le produit que vous attendiez est de nouveau disponible.</p>
+
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:20px;margin-bottom:24px;text-align:center;">
+      <p style="margin:0;font-size:16px;font-weight:800;color:#9a3412;">${productName}</p>
+      <p style="margin:8px 0 0;font-size:13px;color:#c2410c;">Stock limité — commandez vite avant qu'il ne reparte !</p>
+    </div>
+
+    <div style="margin:28px 0 0;text-align:center;">
+      <a href="${SITE_URL}/produits/${productSlug}" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;padding:12px 32px;border-radius:10px;">
+        Voir le produit →
+      </a>
+    </div>
+  `;
+
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: FROM_EMAIL,
+    bcc: emails,
+    subject: `🔔 ${productName} est de nouveau en stock !`,
+    html: baseLayout(content, "De retour en stock"),
+  });
+
+  if (error) {
+    console.error("[email] Failed to send back-in-stock email:", error);
+  } else {
+    console.log(`[email] Back-in-stock email sent to ${emails.length} subscriber(s) for ${productName}`);
   }
 }

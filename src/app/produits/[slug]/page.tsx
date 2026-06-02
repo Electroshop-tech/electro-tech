@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { getProducts, getProductBySlug } from "@/lib/store";
 import AddToCartWidget from "@/components/AddToCartWidget";
+import BackInStockButton from "@/components/BackInStockButton";
 import ProductCard from "@/components/ProductCard";
 import ProductReviews from "@/components/ProductReviews";
 import NewsletterSection from "@/components/NewsletterSection";
@@ -17,8 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Produit introuvable" };
-  const title = `${product.name} | ElectroShop-Tech`;
-  const description = product.description?.substring(0, 160) || `Achetez ${product.name} au meilleur prix sur ElectroShop-Tech.`;
+  const title = product.metaTitle?.trim() || `${product.name} | ElectroShop-Tech`;
+  const description = product.metaDescription?.trim() || product.description?.substring(0, 160) || `Achetez ${product.name} au meilleur prix sur ElectroShop-Tech.`;
   const image = product.images?.[0] || "/images/3D%20hero%20section/3D%20Hero%20section%201.jpg";
   const canonical = `https://electroshop-tech.com/produits/${slug}`;
   return {
@@ -97,9 +98,12 @@ export default async function ProductPage({
 
   const images = product.images ?? [product.image];
 
+  // Only show approved reviews publicly (legacy reviews without the flag stay visible)
+  const visibleReviews = (product.productReviews ?? []).filter((r) => r.approved !== false);
+
   const avgRating =
-    product.productReviews && product.productReviews.length > 0
-      ? Math.round(product.productReviews.reduce((s: number, r: { rating: number }) => s + r.rating, 0) / product.productReviews.length * 10) / 10
+    visibleReviews.length > 0
+      ? Math.round(visibleReviews.reduce((s: number, r: { rating: number }) => s + r.rating, 0) / visibleReviews.length * 10) / 10
       : null;
 
   const deliveryEst = product.inStock !== false ? getDeliveryEstimate() : null;
@@ -129,12 +133,12 @@ export default async function ProductPage({
         name: "ElectroShop-Tech",
       },
     },
-    ...(avgRating && product.productReviews
+    ...(avgRating && visibleReviews.length > 0
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
             ratingValue: avgRating.toFixed(1),
-            reviewCount: product.productReviews.length,
+            reviewCount: visibleReviews.length,
             bestRating: 5,
             worstRating: 1,
           },
@@ -181,7 +185,7 @@ export default async function ProductPage({
         <h1 className="text-2xl md:text-3xl font-black text-slate-950 mb-1 tracking-tight">{product.name}</h1>
 
         {/* Inline star rating */}
-        {avgRating !== null && product.productReviews && product.productReviews.length > 0 && (
+        {avgRating !== null && visibleReviews.length > 0 && (
           <div className="flex items-center gap-2 mb-2">
             <div className="flex">
               {[1,2,3,4,5].map(i => (
@@ -191,7 +195,7 @@ export default async function ProductPage({
               ))}
             </div>
             <span className="text-amber-500 text-sm font-bold">{avgRating.toFixed(1)}</span>
-            <span className="text-gray-400 text-sm">({product.productReviews.length} avis)</span>
+            <span className="text-gray-400 text-sm">({visibleReviews.length} avis)</span>
             <span className="w-1 h-1 rounded-full bg-gray-300" />
             <span className={`text-xs font-semibold ${product.inStock !== false ? "text-emerald-600" : "text-red-500"}`}>
               {product.inStock !== false ? "En stock" : "Rupture de stock"}
@@ -364,17 +368,21 @@ export default async function ProductPage({
               )}
 
               {/* Qty + Add to cart */}
-              <div className="border-t border-gray-100 pt-4">
-                <AddToCartWidget product={{
-                  id: product.id,
-                  name: product.name,
-                  brand: product.brand,
-                  price: product.currentPrice,
-                  originalPrice: product.originalPrice,
-                  image: product.image,
-                  slug: product.slug,
-                }} />
-              </div>
+              {product.inStock !== false ? (
+                <div className="border-t border-gray-100 pt-4">
+                  <AddToCartWidget product={{
+                    id: product.id,
+                    name: product.name,
+                    brand: product.brand,
+                    price: product.currentPrice,
+                    originalPrice: product.originalPrice,
+                    image: product.image,
+                    slug: product.slug,
+                  }} />
+                </div>
+              ) : (
+                <BackInStockButton slug={product.slug} />
+              )}
 
               {/* Trust badges */}
               <div className="grid grid-cols-2 gap-2 border-t border-gray-100 pt-4">
@@ -474,7 +482,7 @@ export default async function ProductPage({
 
         {/* ── Reviews ── */}
         <ProductReviews
-          initialReviews={product.productReviews ?? []}
+          initialReviews={visibleReviews}
           productName={product.name}
           productSlug={product.slug}
         />

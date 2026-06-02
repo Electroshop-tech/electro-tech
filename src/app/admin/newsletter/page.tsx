@@ -17,6 +17,8 @@ export default function NewsletterPage() {
   const [showCompose, setShowCompose] = useState(false);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState<{
     ok: boolean;
@@ -71,16 +73,35 @@ export default function NewsletterPage() {
     setSending(true);
     setSendResult(null);
     try {
+      // Convert image to base64 if present
+      let imageBase64: string | null = null;
+      let imageMimeType: string | null = null;
+      if (imageFile) {
+        imageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve((reader.result as string).split(",")[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
+        imageMimeType = imageFile.type;
+      }
+
       const res = await fetch("/api/admin/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: subject.trim(), body: body.trim() }),
+        body: JSON.stringify({
+          subject: subject.trim(),
+          body: body.trim(),
+          ...(imageBase64 ? { imageBase64, imageMimeType } : {}),
+        }),
       });
       const data = await res.json();
       if (res.ok) {
         setSendResult(data);
         setSubject("");
         setBody("");
+        setImageFile(null);
+        setImagePreview(null);
       } else {
         alert(data.error ?? "Erreur lors de l'envoi");
       }
@@ -96,11 +117,11 @@ export default function NewsletterPage() {
   );
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl">
+    <div className="space-y-5 sm:space-y-6 max-w-6xl">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">Newsletter</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900">Newsletter</h1>
           <p className="text-gray-500 text-sm mt-1">
             {subscribers.length} abonné{subscribers.length !== 1 ? "s" : ""} au total
           </p>
@@ -226,6 +247,56 @@ export default function NewsletterPage() {
                 ElectroShop-Tech sera appliqué automatiquement.
               </p>
             </div>
+
+            {/* Image upload */}
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5">
+                Image (optionnel)
+              </label>
+              {imagePreview ? (
+                <div className="relative inline-block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imagePreview}
+                    alt="Aperçu"
+                    className="max-h-48 rounded-xl border border-gray-200 object-contain bg-gray-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setImageFile(null); setImagePreview(null); }}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold flex items-center justify-center hover:bg-red-600 transition-colors shadow"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed border-gray-200 rounded-xl py-6 px-4 cursor-pointer hover:border-orange-400 hover:bg-orange-50/40 transition-all">
+                  <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 20.25h18M16.5 3.75a.75.75 0 00-.75.75v.008l.008-.008A.75.75 0 0016.5 3.75z" />
+                  </svg>
+                  <span className="text-xs font-semibold text-gray-400">Cliquer pour ajouter une image</span>
+                  <span className="text-[11px] text-gray-300">PNG, JPG, WebP — max 5 Mo</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert("Image trop grande (max 5 Mo)");
+                        return;
+                      }
+                      setImageFile(file);
+                      const reader = new FileReader();
+                      reader.onload = () => setImagePreview(reader.result as string);
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+
             <button
               type="submit"
               disabled={sending || !subject.trim() || !body.trim()}
@@ -300,8 +371,8 @@ export default function NewsletterPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">

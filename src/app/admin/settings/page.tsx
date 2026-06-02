@@ -84,9 +84,9 @@ export default function SettingsPage() {
   const labelCls = "block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5";
 
   return (
-    <div className="p-6 max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-7 sm:space-y-8">
       <div>
-        <h1 className="text-2xl font-black text-gray-900">Paramètres</h1>
+        <h1 className="text-xl sm:text-2xl font-black text-gray-900">Paramètres</h1>
         <p className="text-gray-500 text-sm mt-1">Configuration générale de la boutique</p>
       </div>
 

@@ -30,6 +30,10 @@ model Product {
   inStock       Boolean  @default(true)
   stockQuantity Int      @default(0)
 
+  // SEO overrides
+  metaTitle       String?
+  metaDescription String?
+
   specs               String[]  // array of spec strings
   images              String[]  // array of image URLs
   descriptionSections Json?     // stored as JSON array
@@ -52,6 +56,10 @@ model Category {
   name String
   slug String @unique
   icon String @default("")
+
+  // SEO overrides
+  metaTitle       String?
+  metaDescription String?
 }
 
 // ── Brands ────────────────────────────────────────────────────────────────────
@@ -116,6 +124,7 @@ model User {
 
 model Order {
   id             String      @id @default(cuid())
+  orderNumber    String?     @unique
   userId         String
   customerName   String
   customerEmail  String
@@ -263,4 +272,51 @@ model PageView {
 
   @@index([timestamp])
   @@index([sessionId])
+}
+
+// ── Returns / Refunds ───────────────────────────────────────────────
+
+model Return {
+  id            String   @id @default(cuid())
+  orderId       String
+  customerName  String
+  customerEmail String
+  customerPhone String?
+  reason        String
+  comment       String?
+  status        String   @default("pending") // pending | approved | rejected | refunded
+  refundAmount  Float    @default(0)
+  adminNote     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([orderId])
+}
+
+// ── Back-in-stock notifications ────────────────────────────────────
+
+model StockNotification {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  email     String
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([productId, email])
+  @@index([productId])
+  @@index([notified])
+}
+
+// ── Admin / Staff accounts ───────────────────────────────────────
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("staff") // owner | manager | staff
+  active       Boolean   @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
 }

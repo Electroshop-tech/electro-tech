@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
   const order = orders.find((o) => {
     const short = o.id.replace(/-/g, "").slice(-6).toUpperCase();
     const input = (id ?? "").replace(/^ET-?/i, "").replace(/-/g, "").toUpperCase();
-    return short === input || o.id.toUpperCase() === id;
+    return short === input || o.id.toUpperCase() === id || o.orderNumber?.toUpperCase() === id;
   });
 
   if (!order) {
@@ -49,6 +49,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     id: order.id,
+    orderNumber: order.orderNumber,
     status: order.status,
     createdAt: order.createdAt,
     total: order.total,

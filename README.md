@@ -20,17 +20,58 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Tech stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Next.js 16** (App Router, Turbopack)
+- **Prisma 7** + **PostgreSQL** (Neon serverless)
+- **Tailwind CSS**
+- **Resend** for transactional email
+- **jose** + **bcryptjs** for auth
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Copy [`.env.example`](./.env.example) to `.env.local` and fill in the values.
+The same variables must be set in the Vercel dashboard for production.
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | ✅ | PostgreSQL (Neon) connection string |
+| `JWT_SECRET` | ✅ | Signs session tokens — use a long random string |
+| `ADMIN_PASSWORD` | ✅ | Password for the `/admin` panel |
+| `NEXT_PUBLIC_SITE_URL` | ✅ (prod) | Public site URL (emails, invoices, SEO) |
+| `NEXT_PUBLIC_BASE_URL` | ✅ (prod) | Base URL for OAuth redirects |
+| `RESEND_API_KEY` | ✅ (email) | Resend API key — emails are skipped if unset |
+| `RESEND_FROM` | ✅ (email) | Verified sender address |
+| `ADMIN_EMAIL` | ✅ (email) | Recipient of new-order notifications |
+| `CONTACT_EMAIL` | ✅ (email) | Recipient of contact-form messages |
+| `PAYMENT_WEBHOOK_SECRET` | ⬜ | Payment webhook verification (not live yet) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | ⬜ | Optional Google sign-in |
+
+## Database
+
+```bash
+# Apply the schema (non-destructive, additive changes)
+npx prisma db push
+
+# Regenerate the Prisma client after any schema change
+npx prisma generate
+
+# Seed initial data
+npx tsx prisma/seed.ts
+```
+
+> ⚠️ Use `prisma db push`, **not** `prisma migrate dev` — the live database was
+> created with `db push` and `migrate dev` would try to reset it (data loss).
+> After a schema change, always regenerate the client **and restart** the dev
+> server, otherwise the running server keeps the stale client.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The project is linked to Vercel and auto-deploys from the connected Git branch.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Set every variable from [`.env.example`](./.env.example) in
+   **Project → Settings → Environment Variables** (Production + Preview).
+2. Verify the `RESEND_FROM` sending domain in the Resend dashboard.
+3. Push to the deployment branch — the build runs `prisma generate && next build`.
+
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

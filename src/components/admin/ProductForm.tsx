@@ -421,6 +421,33 @@ export default function ProductForm({ initial, productId }: Props) {
         <button type="button" onClick={addReview} className="text-xs text-orange-600 font-bold hover:underline">+ Ajouter un avis</button>
       </Section>
 
+      {/* ════════════════ SEO ════════════════ */}
+      <Section title="Référencement (SEO)">
+        <div>
+          <label className={labelCls}>Titre SEO (meta title)</label>
+          <input
+            className={inputCls}
+            value={form.metaTitle ?? ""}
+            onChange={(e) => set("metaTitle", e.target.value)}
+            placeholder={form.name || "Titre affiché dans Google (50-60 caractères)"}
+            maxLength={70}
+          />
+          <p className="text-xs text-slate-400 mt-1">{(form.metaTitle ?? "").length}/70 — laissez vide pour utiliser le nom du produit.</p>
+        </div>
+        <div>
+          <label className={labelCls}>Description SEO (meta description)</label>
+          <textarea
+            className={inputCls}
+            rows={3}
+            value={form.metaDescription ?? ""}
+            onChange={(e) => set("metaDescription", e.target.value)}
+            placeholder={form.description || "Description affichée dans les résultats Google (150-160 caractères)"}
+            maxLength={180}
+          />
+          <p className="text-xs text-slate-400 mt-1">{(form.metaDescription ?? "").length}/180 — laissez vide pour utiliser la description courte.</p>
+        </div>
+      </Section>
+
       {/* ════════════════ SAVE BAR ════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white border border-gray-200 rounded-2xl px-5 py-4 gap-3 sticky bottom-4 shadow-lg shadow-black/5">
         <div>

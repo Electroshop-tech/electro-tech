@@ -128,7 +128,8 @@ export async function POST(req: NextRequest) {
     ]).catch(err => console.error("[email] Failed to send order emails:", err));
 
     return NextResponse.json({ order }, { status: 201 });
-  } catch {
+  } catch (err) {
+    console.error("[orders] POST failed:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }
 }
