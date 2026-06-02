@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cartContext";
@@ -10,10 +10,19 @@ export default function PanierPage() {
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState(0);
 
   const promoDiscount = promoApplied ? Math.round(subtotal * 0.1) : 0;
-  const total = subtotal - promoDiscount;
+  const total = Math.max(0, subtotal - promoDiscount + deliveryFee);
   const cartSavings = cart.reduce((s, i) => s + (i.originalPrice - i.price) * i.qty, 0);
+
+  useEffect(() => {
+    if (subtotal <= 0) { setDeliveryFee(0); return; }
+    fetch(`/api/delivery-zones?subtotal=${subtotal}`)
+      .then(r => r.json())
+      .then(d => setDeliveryFee(Math.max(0, Number(d?.fee) || 0)))
+      .catch(() => setDeliveryFee(0));
+  }, [subtotal]);
 
   const applyPromo = () => {
     if (promoCode.trim().toUpperCase() === "ELECTRO10") {
@@ -78,6 +87,7 @@ export default function PanierPage() {
             <div className="lg:col-span-2 bg-white rounded-lg shadow-[0_1px_2px_rgba(15,23,42,0.04)] border border-slate-200 overflow-hidden">
 
               {/* Free shipping banner */}
+              {deliveryFee <= 0 && (
               <div className="relative overflow-hidden bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100 px-5 py-3.5 flex items-center gap-3">
                 {/* Left accent bar */}
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400 to-emerald-500" />
@@ -98,6 +108,7 @@ export default function PanierPage() {
                   <span className="text-sm text-white font-black leading-tight">{cartSavings > 0 ? `${cartSavings}€` : '0€'}</span>
                 </div>
               </div>
+              )}
 
               {/* Table header - desktop only */}
               <div className="hidden md:grid grid-cols-12 px-6 py-3 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-widest">
@@ -294,17 +305,19 @@ export default function PanierPage() {
                 )}
 
                 {/* Delivery - single option */}
-                <div className="flex items-center justify-between bg-green-50 border border-green-100 rounded-xl px-3 py-2.5">
+                <div className={`flex items-center justify-between border rounded-xl px-3 py-2.5 ${deliveryFee > 0 ? "bg-gray-50 border-gray-100" : "bg-green-50 border-green-100"}`}>
                   <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-4 h-4 shrink-0 ${deliveryFee > 0 ? "text-gray-400" : "text-green-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                     </svg>
                     <div>
-                      <p className="text-sm font-bold text-green-800">Livraison à domicile</p>
-                      <p className="text-[10px] text-green-600">Partout au Maroc · 24–48h</p>
+                      <p className={`text-sm font-bold ${deliveryFee > 0 ? "text-slate-700" : "text-green-800"}`}>Livraison à domicile</p>
+                      <p className={`text-[10px] ${deliveryFee > 0 ? "text-gray-400" : "text-green-600"}`}>Partout au Maroc · 24–48h</p>
                     </div>
                   </div>
-                  <span className="text-sm font-black text-green-600">Gratuite</span>
+                  <span className={`text-sm font-black ${deliveryFee > 0 ? "text-slate-900" : "text-green-600"}`}>
+                    {deliveryFee > 0 ? `${deliveryFee.toLocaleString()}€` : "Gratuite"}
+                  </span>
                 </div>
 
                 {/* Divider + Total */}
@@ -312,7 +325,7 @@ export default function PanierPage() {
                   <span className="text-base font-black text-slate-900">Total</span>
                   <div className="text-right">
                     <p className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString()}€</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">TTC · Livraison gratuite</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{deliveryFee > 0 ? "TTC · Livraison incluse" : "TTC · Livraison gratuite"}</p>
                   </div>
                 </div>
 

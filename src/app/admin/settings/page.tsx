@@ -8,8 +8,8 @@ const DEFAULTS = {
   siteEmail: "contact.electrotetch@gmail.com",
   sitePhone: "(+212) 716-408919",
   currency: "EUR",
-  deliveryFee: "30",
-  freeDeliveryFrom: "500",
+  deliveryFee: "0",
+  freeDeliveryFrom: "0",
   maintenanceMode: "false",
   newOrderEmail: "true",
   lowStockAlert: "true",
@@ -111,7 +111,7 @@ export default function SettingsPage() {
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div><label className={labelCls}>Nom de la boutique</label><input className={inputCls} value={form.siteName} onChange={e => setForm(f => ({ ...f, siteName: e.target.value }))} /></div>
-            <div><label className={labelCls}>Email de contact</label><input type="email" className={inputCls} value={form.siteEmail} onChange={e => setForm(f => ({ ...f, siteEmail: e.target.value }))} /></div>
+            <div><label className={labelCls}>Email de contact</label><input type="email" className={inputCls} value={form.siteEmail} onChange={e => setForm(f => ({ ...f, siteEmail: e.target.value }))} /><p className="text-[11px] text-gray-400 mt-1">Reçoit les notifications de commande et de contact.</p></div>
             <div><label className={labelCls}>Téléphone</label><input className={inputCls} value={form.sitePhone} onChange={e => setForm(f => ({ ...f, sitePhone: e.target.value }))} /></div>
             <div><label className={labelCls}>Devise</label>
               <select className={inputCls} value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}>
@@ -132,9 +132,32 @@ export default function SettingsPage() {
             Livraison
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div><label className={labelCls}>Frais de livraison (€)</label><input type="number" min={0} className={inputCls} value={form.deliveryFee} onChange={e => setForm(f => ({ ...f, deliveryFee: e.target.value }))} /></div>
-            <div><label className={labelCls}>Livraison gratuite à partir de (€)</label><input type="number" min={0} className={inputCls} value={form.freeDeliveryFrom} onChange={e => setForm(f => ({ ...f, freeDeliveryFrom: e.target.value }))} /></div>
+            <div>
+              <label className={labelCls}>Frais de livraison (€)</label>
+              <input type="number" min={0} step="0.01" className={inputCls} value={form.deliveryFee} onChange={e => setForm(f => ({ ...f, deliveryFee: e.target.value }))} />
+              <p className="text-[11px] text-gray-400 mt-1">Mettez 0 pour offrir la livraison gratuite.</p>
+            </div>
+            <div>
+              <label className={labelCls}>Livraison gratuite à partir de (€)</label>
+              <input type="number" min={0} step="0.01" className={inputCls} value={form.freeDeliveryFrom} onChange={e => setForm(f => ({ ...f, freeDeliveryFrom: e.target.value }))} />
+              <p className="text-[11px] text-gray-400 mt-1">0 = pas de seuil. Au-dessus de ce montant, la livraison est offerte.</p>
+            </div>
           </div>
+          {(() => {
+            const fee = parseFloat(form.deliveryFee) || 0;
+            const freeFrom = parseFloat(form.freeDeliveryFrom) || 0;
+            const free = fee <= 0;
+            return (
+              <div className={`flex items-center gap-2.5 rounded-xl px-4 py-3 text-xs font-semibold ${free ? "bg-green-50 border border-green-100 text-green-700" : "bg-orange-50 border border-orange-100 text-orange-700"}`}>
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+                {free
+                  ? "Livraison gratuite sur toutes les commandes."
+                  : freeFrom > 0
+                    ? `Livraison à ${fee.toLocaleString()}€ — offerte à partir de ${freeFrom.toLocaleString()}€ d'achat.`
+                    : `Livraison à ${fee.toLocaleString()}€ sur toutes les commandes.`}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Notifications */}

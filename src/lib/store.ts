@@ -1118,6 +1118,38 @@ export async function getDeliveryFeeForCity(city: string): Promise<number | null
   return null;
 }
 
+export interface DeliveryConfig {
+  /** Default delivery fee in € applied to every order (0 = free). */
+  fee: number;
+  /** Subtotal (€) at/above which delivery becomes free (0 = never automatically free). */
+  freeFrom: number;
+}
+
+/** Reads the owner-configured global delivery fee from site settings. */
+export async function getDeliveryConfig(): Promise<DeliveryConfig> {
+  const settings = await getSiteSettings();
+  const fee = Math.max(0, parseFloat(settings.deliveryFee ?? "0") || 0);
+  const freeFrom = Math.max(0, parseFloat(settings.freeDeliveryFrom ?? "0") || 0);
+  return { fee, freeFrom };
+}
+
+/**
+ * Computes the delivery fee for an order.
+ * Rules (in priority order):
+ *  1. If a free-delivery threshold is set and the subtotal reaches it → free (0).
+ *  2. If the destination city matches an active delivery zone → that zone's fee.
+ *  3. Otherwise → the global delivery fee from settings.
+ */
+export async function computeDeliveryFee(subtotal: number, city?: string): Promise<number> {
+  const { fee, freeFrom } = await getDeliveryConfig();
+  if (freeFrom > 0 && subtotal >= freeFrom) return 0;
+  if (city) {
+    const zoneFee = await getDeliveryFeeForCity(city);
+    if (zoneFee !== null) return Math.max(0, zoneFee);
+  }
+  return fee;
+}
+
 // ── Returns / Refunds ─────────────────────────────────────────────────────────
 
 export interface ReturnData {

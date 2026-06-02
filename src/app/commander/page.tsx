@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -38,9 +38,24 @@ export default function CommanderPage() {
   const [promoApplied, setPromoApplied] = useState<{ code: string; label: string; discount: number } | null>(null);
 
   const discount = promoApplied?.discount ?? 0;
-  const total = Math.max(0, subtotal - discount);
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const total = Math.max(0, subtotal - discount + deliveryFee);
   const [promoError, setPromoError] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
+
+  useEffect(() => {
+    if (subtotal <= 0) { setDeliveryFee(0); return; }
+    const city = form.city.trim();
+    const params = new URLSearchParams({ subtotal: String(subtotal) });
+    if (city) params.set("city", city);
+    const t = setTimeout(() => {
+      fetch(`/api/delivery-zones?${params.toString()}`)
+        .then(r => r.json())
+        .then(d => setDeliveryFee(Math.max(0, Number(d?.fee) || 0)))
+        .catch(() => setDeliveryFee(0));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [subtotal, form.city]);
 
   const set = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -237,7 +252,7 @@ export default function CommanderPage() {
               </svg>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Livraison gratuite</span>
+              {deliveryFee <= 0 && <span className="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Livraison gratuite</span>}
               <span className="text-base font-black text-orange-500">{total.toLocaleString()}&euro;</span>
             </div>
           </button>
@@ -275,7 +290,7 @@ export default function CommanderPage() {
                 )}
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-400">Livraison</span>
-                  <span className="font-black text-green-600">Gratuite</span>
+                  <span className={`font-black ${deliveryFee > 0 ? "text-slate-900" : "text-green-600"}`}>{deliveryFee > 0 ? `${deliveryFee.toLocaleString()}€` : "Gratuite"}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                   <span className="text-sm font-black text-slate-900">Total TTC</span>
@@ -581,20 +596,20 @@ export default function CommanderPage() {
                       <span className="font-bold text-green-600">-{promoApplied.discount.toLocaleString()}€</span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between bg-green-50 border border-green-100 rounded-xl px-3 py-2">
+                  <div className={`flex items-center justify-between border rounded-xl px-3 py-2 ${deliveryFee > 0 ? "bg-gray-50 border-gray-100" : "bg-green-50 border-green-100"}`}>
                     <div className="flex items-center gap-2">
-                      <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-3.5 h-3.5 shrink-0 ${deliveryFee > 0 ? "text-gray-400" : "text-green-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                       </svg>
-                      <p className="text-xs font-bold text-green-800">Livraison à domicile</p>
+                      <p className={`text-xs font-bold ${deliveryFee > 0 ? "text-slate-700" : "text-green-800"}`}>Livraison à domicile</p>
                     </div>
-                    <span className="text-xs font-black text-green-600">Gratuite</span>
+                    <span className={`text-xs font-black ${deliveryFee > 0 ? "text-slate-900" : "text-green-600"}`}>{deliveryFee > 0 ? `${deliveryFee.toLocaleString()}€` : "Gratuite"}</span>
                   </div>
                   <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                     <span className="text-base font-black text-slate-900">Total</span>
                     <div className="text-right">
                       <p className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString()}€</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">TTC · Livraison gratuite</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{deliveryFee > 0 ? "TTC · Livraison incluse" : "TTC · Livraison gratuite"}</p>
                     </div>
                   </div>
                   <button
@@ -648,7 +663,7 @@ export default function CommanderPage() {
               <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Total TTC</p>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString()}€</span>
-                <span className="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Livraison gratuite</span>
+                {deliveryFee <= 0 && <span className="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Livraison gratuite</span>}
               </div>
             </div>
             <div className="text-right">

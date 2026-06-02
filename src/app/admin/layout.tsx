@@ -457,14 +457,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {currentPage?.label ?? "Administration"}
             </h1>
           </div>
-          <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950 border border-slate-800 rounded-lg px-2 sm:px-2.5 py-1.5">
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
             <span className="text-slate-200 text-xs font-bold tracking-wide hidden sm:inline">Admin</span>
             <span className="w-px h-3 bg-slate-700 hidden sm:block" />
-            <span className="text-emerald-400 text-[10px] font-semibold hidden sm:inline">En ligne</span>
+            <span className="text-emerald-400 text-[10px] font-semibold">En ligne</span>
           </div>
         </header>
 

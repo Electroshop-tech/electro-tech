@@ -260,7 +260,7 @@ export default function AdminDashboard() {
       <div className="bg-green-50 border border-green-200 rounded-2xl p-5 text-sm text-green-700">
         <p className="font-bold mb-1">📧 Notifications par e-mail</p>
         <p className="text-green-600 text-xs leading-relaxed">
-          Les notifications de commande et de contact sont envoyées automatiquement à <code className="bg-green-100 px-1 rounded font-bold">contact.electrotetch@gmail.com</code>.
+          Les notifications de commande et de contact sont envoyées automatiquement à l&apos;adresse configurée dans <code className="bg-green-100 px-1 rounded font-bold">Paramètres → Email de contact</code>.
           Configurez <code className="bg-green-100 px-1 rounded">RESEND_API_KEY</code> dans les variables d&apos;environnement pour activer l&apos;envoi.
         </p>
       </div>

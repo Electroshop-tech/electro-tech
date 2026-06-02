@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getOrdersByUserId, createOrder, getUserById, getProductById, validatePromoCode, incrementPromoUses, getDeliveryFeeForCity, markCartRecovered } from "@/lib/store";
+import { getOrdersByUserId, createOrder, getUserById, getProductById, validatePromoCode, incrementPromoUses, computeDeliveryFee, markCartRecovered } from "@/lib/store";
 import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
 import { validate, createOrderSchema } from "@/lib/validation";
@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Calculate delivery fee from zones
-    const deliveryFee = await getDeliveryFeeForCity(address.city) ?? 0;
+    // Calculate delivery fee (free threshold → zone fee → global setting)
+    const deliveryFee = await computeDeliveryFee(subtotal, address.city);
 
     const total = Math.max(0, subtotal - promoDiscount + deliveryFee);
 

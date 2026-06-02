@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import type { Order } from "./types";
+import { getSiteSettings } from "./store";
 
 function getResend(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
@@ -11,6 +12,20 @@ const BRAND_COLOR = "#f97316";
 const SITE_NAME = "ElectroShop-Tech";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://electroshop-tech.com";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "contact.electrotech@gmail.com";
+
+// Resolve the address that should receive order/contact notifications.
+// Priority: the email saved by the owner in admin Settings → env → default.
+async function getAdminRecipient(): Promise<string> {
+  try {
+    const settings = await getSiteSettings();
+    const siteEmail = settings.siteEmail?.trim();
+    if (siteEmail) return siteEmail;
+  } catch (err) {
+    console.error("[email] Failed to load site settings for recipient:", err);
+  }
+  return ADMIN_EMAIL;
+}
+
 // Public-facing contact address shown to customers in emails.
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? "contact@electroshop-tech.com";
 // Verified sending address on the electroshop-tech.com domain (Resend).
@@ -156,6 +171,8 @@ export async function sendAdminOrderNotification(order: Order): Promise<void> {
     return;
   }
 
+  const adminRecipient = await getAdminRecipient();
+
   const content = `
     <h1 style="margin:0 0 4px;font-size:20px;font-weight:900;color:#1e293b;">Nouvelle commande reçue 🛍️</h1>
     <p style="margin:0 0 24px;color:#64748b;font-size:14px;">Une nouvelle commande vient d'être passée sur ${SITE_NAME}.</p>
@@ -201,7 +218,7 @@ export async function sendAdminOrderNotification(order: Order): Promise<void> {
 
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
-    to: ADMIN_EMAIL,
+    to: adminRecipient,
     subject: `🛍️ Nouvelle commande ${order.id.slice(-8).toUpperCase()} – ${order.customerName} (${order.total.toFixed(2)}€)`,
     html: baseLayout(content, "Nouvelle commande"),
   });
@@ -209,7 +226,7 @@ export async function sendAdminOrderNotification(order: Order): Promise<void> {
   if (error) {
     console.error(`[email] Failed to send admin notification:`, error);
   } else {
-    console.log(`[email] Admin notification sent to ${ADMIN_EMAIL}`);
+    console.log(`[email] Admin notification sent to ${adminRecipient}`);
   }
 }
 
@@ -297,6 +314,8 @@ export async function sendContactNotification(data: {
     return;
   }
 
+  const adminRecipient = await getAdminRecipient();
+
   const content = `
     <h1 style="margin:0 0 4px;font-size:20px;font-weight:900;color:#1e293b;">Nouveau message de contact 📩</h1>
     <p style="margin:0 0 24px;color:#64748b;font-size:14px;">Un visiteur a envoyé un message via le formulaire de contact.</p>
@@ -333,7 +352,7 @@ export async function sendContactNotification(data: {
 
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
-    to: ADMIN_EMAIL,
+    to: adminRecipient,
     subject: `📩 Contact: ${data.subject} — ${data.name}`,
     html: baseLayout(content, "Nouveau message de contact"),
   });
@@ -341,7 +360,7 @@ export async function sendContactNotification(data: {
   if (error) {
     console.error("[email] Failed to send contact notification:", error);
   } else {
-    console.log(`[email] Contact notification sent to ${ADMIN_EMAIL}`);
+    console.log(`[email] Contact notification sent to ${adminRecipient}`);
   }
 }
 
