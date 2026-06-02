@@ -39,13 +39,13 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="h-full overflow-hidden bg-white rounded-lg border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-300 hover:shadow-[0_18px_44px_rgba(15,23,42,0.10)] hover:-translate-y-1 transition-all duration-300 flex flex-col group">
+    <div className="h-full overflow-hidden bg-white rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(15,23,42,0.05)] hover:border-orange-200 hover:shadow-[0_24px_55px_-12px_rgba(15,23,42,0.18)] hover:-translate-y-1.5 transition-all duration-300 ease-out flex flex-col group">
 
       {/* Image */}
       <Link
         href={`/produits/${product.slug}`}
-        className="relative block aspect-square overflow-hidden border-b border-slate-100"
-        style={{ background: "linear-gradient(145deg,#f8fafc 0%,#ffffff 72%)" }}
+        className="relative block aspect-square overflow-hidden border-b border-slate-100/80"
+        style={{ background: "radial-gradient(120% 120% at 50% 0%,#ffffff 0%,#f4f6fb 100%)" }}
       >
         <Image
           src={product.image}
@@ -59,17 +59,17 @@ export default function ProductCard({ product }: { product: Product }) {
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {discount > 0 && (
-            <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm">
+            <span className="bg-gradient-to-br from-orange-500 to-orange-600 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-[0_4px_12px_rgba(249,115,22,0.35)] ring-1 ring-white/20">
               -{discount}%
             </span>
           )}
           {product.badge === "Nouveau" && (
-            <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm">
+            <span className="bg-gradient-to-br from-blue-500 to-blue-700 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-[0_4px_12px_rgba(37,99,235,0.35)] ring-1 ring-white/20">
               NOUVEAU
             </span>
           )}
           {product.isRefurbished && (
-            <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm">
+            <span className="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-[0_4px_12px_rgba(16,185,129,0.35)] ring-1 ring-white/20">
               OCCASION
             </span>
           )}
@@ -169,12 +169,12 @@ export default function ProductCard({ product }: { product: Product }) {
               <p className="text-xs text-slate-400 line-through leading-none mb-1">
                 {product.originalPrice.toLocaleString()}€
               </p>
-              <p className="text-base sm:text-xl font-black text-slate-950 leading-tight">
+              <p className="text-base sm:text-xl font-black leading-tight bg-gradient-to-br from-slate-900 to-slate-700 bg-clip-text text-transparent">
                 {product.currentPrice.toLocaleString()}€
               </p>
             </div>
             {discount > 0 && (
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-md shrink-0">
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg shrink-0">
                 −{(product.originalPrice - product.currentPrice).toLocaleString()}€
               </span>
             )}
@@ -215,13 +215,27 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="px-3 pb-3 sm:px-4 sm:pb-4">
         <button
           onClick={handleAdd}
-          className={`w-full py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-lg transition-all ${
+          className={`w-full py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
             added
-              ? "bg-emerald-600 text-white"
-              : "bg-slate-950 hover:bg-orange-600 text-white hover:-translate-y-0.5 shadow-[0_8px_18px_rgba(15,23,42,0.12)]"
+              ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-[0_8px_20px_rgba(16,185,129,0.30)]"
+              : "bg-gradient-to-br from-slate-900 to-slate-950 hover:from-orange-500 hover:to-orange-600 text-white hover:-translate-y-0.5 shadow-[0_8px_18px_rgba(15,23,42,0.14)] hover:shadow-[0_12px_26px_rgba(249,115,22,0.30)]"
           }`}
         >
-          {added ? "✓ Ajouté !" : "Ajouter au panier"}
+          {added ? (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+              Ajouté !
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Ajouter au panier
+            </>
+          )}
         </button>
       </div>
 
