@@ -20,6 +20,9 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [busy, setBusy] = useState<string | null>(null);
+  const [replyingId, setReplyingId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -68,6 +71,38 @@ export default function MessagesPage() {
       setBusy(null);
     }
   }, []);
+
+  const openReply = useCallback((m: Message) => {
+    setReplyingId((prev) => (prev === m.id ? null : m.id));
+    setReplyText("");
+  }, []);
+
+  const sendReply = useCallback(async (m: Message) => {
+    if (!replyText.trim()) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/admin/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: m.id, reply: replyText }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error ?? "Échec de l'envoi de la réponse.");
+        return;
+      }
+      if (data.message) {
+        setMessages((prev) => prev.map((x) => (x.id === m.id ? data.message : x)));
+      }
+      setReplyingId(null);
+      setReplyText("");
+      alert("Réponse envoyée à " + m.email);
+    } catch {
+      alert("Erreur lors de l'envoi de la réponse.");
+    } finally {
+      setSending(false);
+    }
+  }, [replyText]);
 
   const filtered = messages.filter((m) =>
     filter === "all" ? true : filter === "unread" ? !m.read : m.read
@@ -160,11 +195,22 @@ export default function MessagesPage() {
 
               {/* Actions */}
               <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => openReply(m)}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                    replyingId === m.id
+                      ? "bg-orange-600 text-white"
+                      : "bg-orange-500 hover:bg-orange-600 text-white"
+                  }`}
+                >
+                  {replyingId === m.id ? "Fermer" : "Répondre"}
+                </button>
                 <a
                   href={`mailto:${m.email}?subject=${encodeURIComponent("RE: " + (m.subject ?? "Votre message"))}`}
-                  className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 font-bold px-3 py-1.5 rounded-lg transition-colors"
+                  title="Répondre depuis votre application email"
                 >
-                  Répondre
+                  Email externe
                 </a>
                 {m.read ? (
                   <button onClick={() => patch(m, false)} disabled={busy === m.id} className="text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">Marquer non lu</button>
@@ -173,6 +219,47 @@ export default function MessagesPage() {
                 )}
                 <button onClick={() => remove(m)} disabled={busy === m.id} className="text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ml-auto">Supprimer</button>
               </div>
+
+              {/* Inline reply composer */}
+              {replyingId === m.id && (
+                <div className="mt-3 border-t border-gray-100 pt-3">
+                  <label className="block text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1.5">
+                    Réponse à {m.name} ({m.email})
+                  </label>
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    rows={5}
+                    autoFocus
+                    placeholder={`Bonjour ${m.name},\n\nMerci pour votre message...`}
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-300 resize-y"
+                  />
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      onClick={() => sendReply(m)}
+                      disabled={sending || !replyText.trim()}
+                      className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+                    >
+                      {sending ? (
+                        <>
+                          <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Envoi…
+                        </>
+                      ) : (
+                        "Envoyer la réponse"
+                      )}
+                    </button>
+                    <button
+                      onClick={() => { setReplyingId(null); setReplyText(""); }}
+                      disabled={sending}
+                      className="text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 font-bold px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      Annuler
+                    </button>
+                    <span className="ml-auto text-[11px] text-gray-400">Envoyé depuis commandes@electroshop-tech.com</span>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

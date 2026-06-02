@@ -364,6 +364,58 @@ export async function sendContactNotification(data: {
   }
 }
 
+// ── Reply to a contact message ────────────────────────────────────────────────
+export async function sendContactReply(data: {
+  to: string;
+  name: string;
+  subject: string;
+  reply: string;
+  originalMessage?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const resend = getResend();
+  if (!resend) {
+    console.log("[email] RESEND_API_KEY not configured — cannot send reply");
+    return { ok: false, error: "Service d'email non configuré (RESEND_API_KEY manquant)." };
+  }
+
+  const replyHtml = data.reply
+    .split("\n")
+    .map((line) => line.trim() === "" ? "<br/>" : `<p style="margin:0 0 12px;font-size:14px;color:#334155;line-height:1.7;">${line}</p>`)
+    .join("");
+
+  const content = `
+    <h1 style="margin:0 0 4px;font-size:20px;font-weight:900;color:#1e293b;">Bonjour ${data.name},</h1>
+    <p style="margin:0 0 24px;color:#64748b;font-size:14px;">Voici notre réponse à votre message.</p>
+
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+      ${replyHtml}
+    </div>
+
+    ${data.originalMessage ? `
+    <h3 style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">Votre message d'origine</h3>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 18px;margin-bottom:8px;">
+      <p style="margin:0;font-size:13px;color:#64748b;line-height:1.6;white-space:pre-wrap;">${data.originalMessage}</p>
+    </div>` : ""}
+
+    <p style="margin:24px 0 0;font-size:13px;color:#94a3b8;">Pour toute question supplémentaire, répondez simplement à cet email.</p>
+  `;
+
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: data.to,
+    replyTo: CONTACT_EMAIL,
+    subject: `RE: ${data.subject}`,
+    html: baseLayout(content, `Réponse: ${data.subject}`),
+  });
+
+  if (error) {
+    console.error("[email] Failed to send contact reply:", error);
+    return { ok: false, error: "Échec de l'envoi de l'email." };
+  }
+  console.log(`[email] Contact reply sent to ${data.to}`);
+  return { ok: true };
+}
+
 // ── Password reset email ──────────────────────────────────────────────────────
 export async function sendPasswordResetEmail(email: string, firstName: string, token: string): Promise<void> {
   const resend = getResend();
