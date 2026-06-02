@@ -21,6 +21,14 @@ const REGIONS = [
   "Dakhla-Oued Ed-Dahab",
 ];
 
+// Hoisted to module scope so they aren't recreated on every render (prevents
+// label/error remounting & input flicker while typing in the checkout form).
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{children}</label>
+);
+const Err = ({ msg }: { msg?: string }) =>
+  msg ? <p className="flex items-center gap-1 text-[10px] text-red-500 mt-1.5 font-semibold"><span>⚠</span>{msg}</p> : null;
+
 export default function CommanderPage() {
   const router = useRouter();
   const { items: cart, cartTotal: subtotal, clearCart, sessionId } = useCart();
@@ -159,12 +167,6 @@ export default function CommanderPage() {
     `w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-gray-400 outline-none transition-colors focus:bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100 ${
       errors[field] ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100" : "border-gray-200"
     }`;
-
-  const Label = ({ children }: { children: React.ReactNode }) => (
-    <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{children}</label>
-  );
-  const Err = ({ msg }: { msg?: string }) =>
-    msg ? <p className="flex items-center gap-1 text-[10px] text-red-500 mt-1.5 font-semibold"><span>⚠</span>{msg}</p> : null;
 
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
 

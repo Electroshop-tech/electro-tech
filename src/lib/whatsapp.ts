@@ -16,7 +16,7 @@ const STATUS_LABELS: Record<Order["status"], string> = {
  * Moroccan local numbers (0XXXXXXXXX) are converted to +212.
  */
 export function normalizePhone(phone: string, defaultCountryCode = "212"): string {
-  let p = phone.replace(/[^\d+]/g, "");
+  const p = phone.replace(/[^\d+]/g, "");
   if (p.startsWith("+")) return p.slice(1);
   if (p.startsWith("00")) return p.slice(2);
   if (p.startsWith("0")) return defaultCountryCode + p.slice(1);
