@@ -192,12 +192,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
+    // Prefill the last used identifier if the user chose to save it.
+    try {
+      const saved = localStorage.getItem("admin_saved_login");
+      if (saved) setEmail(saved);
+      else setRemember(localStorage.getItem("admin_remember") !== "false");
+    } catch { /* ignore */ }
+
     // Check if admin cookie is valid by making a test API call
     fetch("/api/admin/stats", { credentials: "include" })
       .then(r => {
@@ -214,10 +222,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         const res = await fetch("/api/admin/auth", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password, email }),
+          body: JSON.stringify({ password, email, remember }),
           credentials: "include",
         });
         if (res.ok) {
+          // Persist the identifier so the next login is pre-filled.
+          try {
+            if (remember) {
+              localStorage.setItem("admin_saved_login", email);
+              localStorage.setItem("admin_remember", "true");
+            } else {
+              localStorage.removeItem("admin_saved_login");
+              localStorage.setItem("admin_remember", "false");
+            }
+          } catch { /* ignore */ }
           setAuthenticated(true);
           setError("");
         } else {
@@ -227,7 +245,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setError("Erreur de connexion");
       }
     },
-    [password, email]
+    [password, email, remember]
   );
 
   const handleLogout = useCallback(async () => {
@@ -259,12 +277,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <form onSubmit={handleLogin} className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-5">
             <div>
-              <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">E-mail <span className="text-slate-600 normal-case">(personnel — laissez vide pour l&rsquo;accès principal)</span></label>
+              <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Nom d&rsquo;utilisateur ou e-mail</label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="staff@electroshop-tech.com"
+                placeholder="Entrez votre nom d'utilisateur ou e-mail"
+                autoComplete="username"
                 className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
               />
             </div>
@@ -275,11 +294,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"
                 autoFocus
               />
               {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
             </div>
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-900"
+              />
+              <span className="text-sm text-slate-300">Rester connecté</span>
+            </label>
             <button
               type="submit"
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-3 rounded-xl transition-colors text-sm"
