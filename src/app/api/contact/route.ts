@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendContactNotification } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
 import { validate, contactSchema } from "@/lib/validation";
+import { createMessage } from "@/lib/store";
 
 export async function POST(req: NextRequest) {
   const limited = rateLimit(req, { limit: 3, prefix: "contact" });
@@ -12,6 +13,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
     const { name, email, phone, subject, message } = parsed.data;
+
+    // Store the message so it appears in the admin panel.
+    await createMessage({ name, email, phone, subject, message }).catch((err) =>
+      console.error("[contact] Failed to save message:", err)
+    );
 
     // Send notification to admin (non-blocking)
     sendContactNotification({

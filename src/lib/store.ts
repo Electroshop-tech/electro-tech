@@ -1228,6 +1228,73 @@ export async function deleteReturn(id: string): Promise<boolean> {
   }
 }
 
+// ── Contact Messages ───────────────────────────────────────────────
+
+export interface ContactMessageData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  subject: string | null;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
+function dbMessageToData(m: {
+  id: string; name: string; email: string; phone: string | null;
+  subject: string | null; message: string; read: boolean; createdAt: Date;
+}): ContactMessageData {
+  return {
+    id: m.id,
+    name: m.name,
+    email: m.email,
+    phone: m.phone,
+    subject: m.subject,
+    message: m.message,
+    read: m.read,
+    createdAt: m.createdAt.toISOString(),
+  };
+}
+
+export async function getMessages(): Promise<ContactMessageData[]> {
+  const rows = await prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } });
+  return rows.map(dbMessageToData);
+}
+
+export async function createMessage(data: {
+  name: string; email: string; phone?: string | null; subject?: string | null; message: string;
+}): Promise<ContactMessageData> {
+  const m = await prisma.contactMessage.create({
+    data: {
+      name: data.name.trim(),
+      email: data.email.trim(),
+      phone: data.phone?.trim() || null,
+      subject: data.subject?.trim() || null,
+      message: data.message.trim(),
+    },
+  });
+  return dbMessageToData(m);
+}
+
+export async function updateMessage(id: string, data: Partial<{ read: boolean }>): Promise<ContactMessageData | null> {
+  try {
+    const m = await prisma.contactMessage.update({ where: { id }, data });
+    return dbMessageToData(m);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteMessage(id: string): Promise<boolean> {
+  try {
+    await prisma.contactMessage.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ── Back-in-stock notifications ───────────────────────────────────────────────
 
 export interface StockNotificationData {

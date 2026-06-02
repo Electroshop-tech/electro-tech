@@ -294,6 +294,22 @@ model Return {
   @@index([orderId])
 }
 
+// ── Contact Messages ───────────────────────────────────────────────
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read])
+  @@index([createdAt])
+}
+
 // ── Back-in-stock notifications ────────────────────────────────────
 
 model StockNotification {
