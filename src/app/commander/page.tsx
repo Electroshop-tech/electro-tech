@@ -221,37 +221,34 @@ export default function CommanderPage() {
       <form onSubmit={handleSubmit} noValidate>
 
         {/* Mobile order summary strip */}
-        <div className="lg:hidden shadow-sm">
+        <div className="lg:hidden border-b border-gray-100">
           <button
             type="button"
             onClick={() => setShowMobileSummary(p => !p)}
-            className="w-full bg-white border-b border-gray-100 px-4 py-3.5 flex items-center justify-between active:bg-gray-50 transition-colors"
+            className="w-full bg-white px-4 py-3 flex items-center justify-between active:bg-gray-50 transition-colors"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
-                <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-              </div>
-              <span className="text-xs text-slate-700 font-bold">{totalQty} article{totalQty > 1 ? "s" : ""}</span>
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              <span className="text-xs font-bold text-slate-700">{totalQty} article{totalQty > 1 ? "s" : ""}</span>
               <svg className={`w-3.5 h-3.5 text-orange-500 transition-transform duration-300 ${showMobileSummary ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
-            <div className="flex items-center gap-2.5">
-              <span className="text-[10px] text-gray-400 font-medium">Total</span>
-              <span className="text-lg font-black text-orange-500 leading-none">{total.toLocaleString()}&euro;</span>
-              <span className="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">Livraison gratuite</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Livraison gratuite</span>
+              <span className="text-base font-black text-orange-500">{total.toLocaleString()}&euro;</span>
             </div>
           </button>
           {showMobileSummary && (
-            <div className="bg-white border-b border-gray-100 px-4 pt-1 pb-4">
+            <div className="bg-gray-50/80 border-b border-gray-100 px-4 pt-1 pb-4">
               {/* Items */}
               <div className="space-y-3 max-h-56 overflow-y-auto py-3">
                 {cart.map((item) => (
                   <div key={item.id} className="flex items-center gap-3">
                     <div className="relative shrink-0">
-                      <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+                      <div className="w-12 h-12 rounded-xl bg-white border border-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
                         <Image src={item.image} alt={item.name} width={44} height={44} sizes="44px" className="w-11 h-11 object-contain" />
                       </div>
                       <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm">{item.qty}</span>
@@ -265,7 +262,7 @@ export default function CommanderPage() {
                 ))}
               </div>
               {/* Totals */}
-              <div className="border-t border-gray-100 pt-3 space-y-2">
+              <div className="bg-white rounded-xl border border-gray-100 px-3 py-3 space-y-2 shadow-sm">
                 <div className="flex justify-between text-xs">
                   <span className="text-gray-400">Sous-total</span>
                   <span className="font-bold text-slate-800">{subtotal.toLocaleString()}&euro;</span>
@@ -282,7 +279,7 @@ export default function CommanderPage() {
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                   <span className="text-sm font-black text-slate-900">Total TTC</span>
-                  <span className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString()}&euro;</span>
+                  <span className="text-xl font-black text-orange-500 leading-none">{total.toLocaleString()}&euro;</span>
                 </div>
               </div>
             </div>
@@ -644,31 +641,47 @@ export default function CommanderPage() {
         </div>
 
         {/* ── Mobile sticky bottom bar ── */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-4 pt-3 pb-4 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200/70 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] shadow-[0_-8px_32px_rgba(0,0,0,0.10)]">
           {/* Total row */}
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-gray-400">Total à payer</span>
-              <span className="text-xs font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">Livraison gratuite</span>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Total TTC</p>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString()}€</span>
+                <span className="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Livraison gratuite</span>
+              </div>
             </div>
-            <span className="text-xl font-black text-orange-500">{total.toLocaleString()}€</span>
+            <div className="text-right">
+              <p className="text-[10px] text-gray-400 mb-0.5">{totalQty} article{totalQty > 1 ? "s" : ""}</p>
+              <p className="text-xs text-gray-400 font-semibold">Paiement à la livraison</p>
+            </div>
           </div>
           {/* Full-width button */}
           <button
             type="submit"
             disabled={!isFormReady || submitted}
-            className={`flex items-center justify-center gap-2 w-full font-black py-3.5 rounded-2xl text-sm tracking-wide transition-all ${
+            className={`relative flex items-center justify-center gap-2.5 w-full font-black py-4 rounded-2xl text-sm tracking-wide transition-all overflow-hidden ${
               isFormReady && !submitted
-                ? "bg-orange-500 active:bg-orange-600 text-white shadow-lg shadow-orange-200"
+                ? "bg-gradient-to-r from-orange-500 to-orange-400 active:from-orange-600 active:to-orange-500 text-white shadow-lg shadow-orange-200"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
             }`}
           >
             {submitted ? (
-              <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Traitement...</>
+              <>
+                <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
+                <span>Traitement en cours…</span>
+              </>
             ) : !isFormReady ? (
-              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>Remplissez le formulaire</>
+              <>
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <span>Complétez le formulaire</span>
+              </>
             ) : (
-              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Confirmer la commande</>
+              <>
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>Confirmer la commande</span>
+                <span className="ml-auto text-orange-200 font-black text-base leading-none">{total.toLocaleString()}€</span>
+              </>
             )}
           </button>
           {submitError && (
