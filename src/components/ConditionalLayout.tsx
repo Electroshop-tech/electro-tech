@@ -12,7 +12,8 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const isAdmin = pathname.startsWith("/admin");
   const isProductPage = pathname.startsWith("/produits/");
   const isCheckout = pathname.startsWith("/commander");
-  const hideNav = isProductPage || isCheckout;
+  const hideHeader = isCheckout;
+  const hideMobileNav = isProductPage || isCheckout;
   const [showTop, setShowTop] = useState(false);
 
   useEffect(() => {
@@ -27,11 +28,11 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
 
   return (
     <>
-      {!isAdmin && !hideNav && <Header />}
+      {!isAdmin && !hideHeader && <Header />}
       <main>{children}</main>
       {!isAdmin && <Footer />}
       {!isAdmin && <CookieConsent />}
-      {!isAdmin && !hideNav && <MobileNavBar />}
+      {!isAdmin && !hideMobileNav && <MobileNavBar />}
       {!isAdmin && showTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
