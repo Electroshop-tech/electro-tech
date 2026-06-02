@@ -15,6 +15,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "contact.electrotech@gmail.com";
 const STATUS_LABELS: Record<Order["status"], string> = {
   pending: "En attente",
   confirmed: "Confirmée",
+  preparing: "En préparation",
   shipped: "Expédiée",
   delivered: "Livrée",
   cancelled: "Annulée",
@@ -390,6 +391,7 @@ export async function sendOrderStatusEmail(order: Order, trackingNumber?: string
 
   const statusEmojis: Record<string, string> = {
     confirmed: "✅",
+    preparing: "📦",
     shipped: "🚚",
     delivered: "📦",
     cancelled: "❌",
@@ -397,6 +399,7 @@ export async function sendOrderStatusEmail(order: Order, trackingNumber?: string
 
   const statusMessages: Record<string, string> = {
     confirmed: "Votre commande a été confirmée et sera bientôt préparée pour l'expédition.",
+    preparing: "Votre commande est en cours de préparation dans nos entrepôts.",
     shipped: "Votre commande est en route ! Elle devrait arriver prochainement.",
     delivered: "Votre commande a été livrée avec succès. Merci pour votre confiance !",
     cancelled: "Votre commande a été annulée. Si vous avez des questions, contactez-nous.",

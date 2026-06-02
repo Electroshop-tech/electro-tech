@@ -103,9 +103,11 @@ export interface Order {
   items: OrderItem[];
   subtotal: number;
   total: number;
-  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  status: "pending" | "confirmed" | "preparing" | "shipped" | "delivered" | "cancelled";
   address: Address;
   paymentMethod: string;
+  paymentStatus: "unpaid" | "paid" | "failed" | "refunded";
+  paidAt?: string;
   notes?: string;
   trackingNumber?: string;
   promoCode?: string;

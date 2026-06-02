@@ -1,27 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendContactNotification } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
+import { validate, contactSchema } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   const limited = rateLimit(req, { limit: 3, prefix: "contact" });
   if (limited) return limited;
   try {
-    const { name, email, phone, subject, message } = await req.json();
-
-    if (!name?.trim() || !email?.trim() || !subject?.trim() || !message?.trim()) {
-      return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
+    const parsed = validate(contactSchema, await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "Adresse e-mail invalide." }, { status: 400 });
-    }
+    const { name, email, phone, subject, message } = parsed.data;
 
     // Send notification to admin (non-blocking)
     sendContactNotification({
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone?.trim(),
-      subject: subject.trim(),
-      message: message.trim(),
+      name,
+      email,
+      phone,
+      subject,
+      message,
     }).catch((err) => console.error("[contact] Email send error:", err));
 
     return NextResponse.json({ ok: true });

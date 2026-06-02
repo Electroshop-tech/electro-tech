@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { subscribeNewsletter } from "@/lib/store";
 import { rateLimit } from "@/lib/rateLimit";
+import { validate, newsletterSchema } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   const limited = rateLimit(req, { limit: 5, prefix: "newsletter" });
   if (limited) return limited;
   try {
-    const { email } = await req.json();
-    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json({ error: "Adresse e-mail invalide." }, { status: 400 });
+    const parsed = validate(newsletterSchema, await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
 
-    const result = await subscribeNewsletter(email.trim().toLowerCase());
+    const result = await subscribeNewsletter(parsed.data.email.toLowerCase());
     if (result.alreadyExists) {
       return NextResponse.json({ ok: true, alreadyExists: true });
     }

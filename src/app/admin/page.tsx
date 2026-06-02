@@ -15,6 +15,9 @@ interface Stats {
   pendingOrders: number;
   revenue: number;
   subscribers: number;
+  bestSellers?: { productId: number; productName: string; productImage: string; unitsSold: number; revenue: number }[];
+  lowStock?: { id: number; name: string; slug: string; image: string; stockQuantity: number; inStock: boolean }[];
+  abandonedCarts?: { id: string; itemCount: number; subtotal: number; email?: string; customerName?: string; updatedAt: string }[];
 }
 
 interface Order {
@@ -127,6 +130,68 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Commerce insights: best sellers + low stock */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {/* Best sellers */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h3 className="text-slate-900 font-black text-sm uppercase tracking-widest mb-3">🏆 Meilleures ventes</h3>
+          {!stats?.bestSellers?.length ? (
+            <p className="text-gray-400 text-xs">Aucune vente enregistrée pour le moment.</p>
+          ) : (
+            <ul className="space-y-2">
+              {stats.bestSellers.slice(0, 6).map((p, i) => (
+                <li key={p.productId} className="flex items-center gap-3">
+                  <span className="w-5 text-center font-black text-orange-500 text-sm">{i + 1}</span>
+                  <span className="flex-1 text-sm text-gray-700 truncate">{p.productName}</span>
+                  <span className="text-xs font-bold text-gray-900">{p.unitsSold} vendu{p.unitsSold > 1 ? "s" : ""}</span>
+                  <span className="text-xs text-gray-400 w-20 text-right">{p.revenue.toFixed(0)}€</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Low stock */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h3 className="text-slate-900 font-black text-sm uppercase tracking-widest mb-3">⚠️ Stock faible</h3>
+          {!stats?.lowStock?.length ? (
+            <p className="text-gray-400 text-xs">Aucun produit en stock faible.</p>
+          ) : (
+            <ul className="space-y-2">
+              {stats.lowStock.slice(0, 6).map((p) => (
+                <li key={p.id} className="flex items-center gap-3">
+                  <span className="flex-1 text-sm text-gray-700 truncate">{p.name}</span>
+                  <span className={`text-xs font-black px-2 py-0.5 rounded-full ${p.stockQuantity <= 0 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+                    {p.stockQuantity} en stock
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {/* Abandoned carts */}
+      {stats?.abandonedCarts && stats.abandonedCarts.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <h3 className="text-slate-900 font-black text-sm uppercase tracking-widest mb-3">
+            🛒 Paniers abandonnés <span className="text-gray-400 font-bold">({stats.abandonedCarts.length})</span>
+          </h3>
+          <ul className="space-y-2">
+            {stats.abandonedCarts.slice(0, 6).map((c) => (
+              <li key={c.id} className="flex items-center gap-3 text-sm">
+                <span className="flex-1 text-gray-700 truncate">
+                  {c.customerName || c.email || "Visiteur anonyme"}
+                </span>
+                <span className="text-xs text-gray-400">{c.itemCount} article{c.itemCount > 1 ? "s" : ""}</span>
+                <span className="text-xs font-bold text-gray-900 w-20 text-right">{c.subtotal.toFixed(2)}€</span>
+                <span className="text-[11px] text-gray-400 w-24 text-right">{new Date(c.updatedAt).toLocaleDateString("fr-FR")}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Recent orders */}
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -156,6 +221,7 @@ export default function AdminDashboard() {
                   const statusConfig: Record<string, { label: string; color: string }> = {
                     pending: { label: "En attente", color: "bg-yellow-100 text-yellow-700" },
                     confirmed: { label: "Confirmée", color: "bg-blue-100 text-blue-700" },
+                    preparing: { label: "En préparation", color: "bg-indigo-100 text-indigo-700" },
                     shipped: { label: "Expédiée", color: "bg-purple-100 text-purple-700" },
                     delivered: { label: "Livrée", color: "bg-green-100 text-green-700" },
                     cancelled: { label: "Annulée", color: "bg-red-100 text-red-700" },

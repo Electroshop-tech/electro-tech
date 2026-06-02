@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDBStats, getPageViews } from "@/lib/store";
+import { getDBStats, getPageViews, getBestSellers, getLowStockProducts, getAbandonedCarts } from "@/lib/store";
 import { isAdmin } from "@/lib/adminAuth";
 
 // Detect device type from User-Agent string
@@ -27,6 +27,11 @@ export async function GET(req: NextRequest) {
   }
   const stats = await getDBStats();
   const rawViews = await getPageViews();
+  const [bestSellers, lowStock, abandonedCarts] = await Promise.all([
+    getBestSellers(8),
+    getLowStockProducts(5),
+    getAbandonedCarts(50),
+  ]);
   const views = rawViews.map(v => ({
     url: v.url,
     referrer: v.referrer,
@@ -125,6 +130,10 @@ export async function GET(req: NextRequest) {
     topReferrers,
     devices: { mobile, tablet, desktop },
     dailyViews,
+    // commerce insights
+    bestSellers,
+    lowStock,
+    abandonedCarts,
   });
 }
 

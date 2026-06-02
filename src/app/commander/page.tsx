@@ -22,7 +22,7 @@ const REGIONS = [
 
 export default function CommanderPage() {
   const router = useRouter();
-  const { items: cart, cartTotal: subtotal, clearCart } = useCart();
+  const { items: cart, cartTotal: subtotal, clearCart, sessionId } = useCart();
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phone: "",
@@ -101,6 +101,7 @@ export default function CommanderPage() {
           notes: form.notes || undefined,
           customer: { firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone },
           promoCode: promoApplied?.code,
+          sessionId,
         }),
       });
       const data = await res.json();

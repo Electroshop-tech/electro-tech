@@ -9,13 +9,14 @@ import type {
   Order,
   Address,
 } from "./types";
-import { OrderStatus } from "../generated/prisma/enums";
+import { OrderStatus, PaymentStatus } from "../generated/prisma/enums";
 
 // ── Status mapping ────────────────────────────────────────────────────────────
 
 const STATUS_TO_ENUM: Record<string, OrderStatus> = {
   pending: OrderStatus.PENDING,
   confirmed: OrderStatus.CONFIRMED,
+  preparing: OrderStatus.PREPARING,
   shipped: OrderStatus.SHIPPED,
   delivered: OrderStatus.DELIVERED,
   cancelled: OrderStatus.CANCELLED,
@@ -24,9 +25,24 @@ const STATUS_TO_ENUM: Record<string, OrderStatus> = {
 const ENUM_TO_STATUS: Record<OrderStatus, Order["status"]> = {
   [OrderStatus.PENDING]: "pending",
   [OrderStatus.CONFIRMED]: "confirmed",
+  [OrderStatus.PREPARING]: "preparing",
   [OrderStatus.SHIPPED]: "shipped",
   [OrderStatus.DELIVERED]: "delivered",
   [OrderStatus.CANCELLED]: "cancelled",
+};
+
+const PAYMENT_TO_ENUM: Record<string, PaymentStatus> = {
+  unpaid: PaymentStatus.UNPAID,
+  paid: PaymentStatus.PAID,
+  failed: PaymentStatus.FAILED,
+  refunded: PaymentStatus.REFUNDED,
+};
+
+const ENUM_TO_PAYMENT: Record<PaymentStatus, Order["paymentStatus"]> = {
+  [PaymentStatus.UNPAID]: "unpaid",
+  [PaymentStatus.PAID]: "paid",
+  [PaymentStatus.FAILED]: "failed",
+  [PaymentStatus.REFUNDED]: "refunded",
 };
 
 // ── Converters ────────────────────────────────────────────────────────────────
@@ -89,6 +105,8 @@ function dbOrderToOrder(o: {
   total: number;
   status: OrderStatus;
   paymentMethod: string;
+  paymentStatus: PaymentStatus;
+  paidAt: Date | null;
   notes: string | null;
   trackingNumber: string | null;
   promoCode: string | null;
@@ -130,6 +148,8 @@ function dbOrderToOrder(o: {
       country: o.addressCountry,
     },
     paymentMethod: o.paymentMethod,
+    paymentStatus: ENUM_TO_PAYMENT[o.paymentStatus],
+    paidAt: o.paidAt ? o.paidAt.toISOString() : undefined,
     notes: o.notes ?? undefined,
     trackingNumber: o.trackingNumber ?? undefined,
     promoCode: o.promoCode ?? undefined,
@@ -554,7 +574,11 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
   return o ? dbOrderToOrder(o) : undefined;
 }
 
-export async function createOrder(data: Omit<Order, "id" | "createdAt" | "updatedAt">): Promise<Order> {
+export async function createOrder(
+  data: Omit<Order, "id" | "createdAt" | "updatedAt" | "paymentStatus"> & {
+    paymentStatus?: Order["paymentStatus"];
+  }
+): Promise<Order> {
   const o = await prisma.order.create({
     data: {
       userId: data.userId,
@@ -565,6 +589,7 @@ export async function createOrder(data: Omit<Order, "id" | "createdAt" | "update
       total: data.total,
       status: STATUS_TO_ENUM[data.status] ?? OrderStatus.PENDING,
       paymentMethod: data.paymentMethod,
+      paymentStatus: PAYMENT_TO_ENUM[data.paymentStatus ?? "unpaid"] ?? PaymentStatus.UNPAID,
       notes: data.notes ?? null,
       trackingNumber: null,
       promoCode: data.promoCode ?? null,
@@ -599,6 +624,209 @@ export async function updateOrderStatus(id: string, status: Order["status"]): Pr
   } catch {
     return null;
   }
+}
+
+// Generic partial order update (status / tracking / notes / payment status).
+export async function updateOrder(
+  id: string,
+  data: {
+    status?: Order["status"];
+    trackingNumber?: string | null;
+    notes?: string | null;
+    paymentStatus?: Order["paymentStatus"];
+  }
+): Promise<Order | null> {
+  try {
+    const patch: {
+      status?: OrderStatus;
+      trackingNumber?: string | null;
+      notes?: string | null;
+      paymentStatus?: PaymentStatus;
+      paidAt?: Date | null;
+    } = {};
+    if (data.status !== undefined) patch.status = STATUS_TO_ENUM[data.status] ?? OrderStatus.PENDING;
+    if (data.trackingNumber !== undefined) patch.trackingNumber = data.trackingNumber || null;
+    if (data.notes !== undefined) patch.notes = data.notes || null;
+    if (data.paymentStatus !== undefined) {
+      patch.paymentStatus = PAYMENT_TO_ENUM[data.paymentStatus] ?? PaymentStatus.UNPAID;
+      patch.paidAt = data.paymentStatus === "paid" ? new Date() : null;
+    }
+    const o = await prisma.order.update({
+      where: { id },
+      data: patch,
+      include: { items: true },
+    });
+    return dbOrderToOrder(o);
+  } catch {
+    return null;
+  }
+}
+
+// Update only the payment status (used by the payment webhook).
+export async function updateOrderPaymentStatus(
+  id: string,
+  paymentStatus: Order["paymentStatus"]
+): Promise<Order | null> {
+  try {
+    const o = await prisma.order.update({
+      where: { id },
+      data: {
+        paymentStatus: PAYMENT_TO_ENUM[paymentStatus] ?? PaymentStatus.UNPAID,
+        paidAt: paymentStatus === "paid" ? new Date() : null,
+      },
+      include: { items: true },
+    });
+    return dbOrderToOrder(o);
+  } catch {
+    return null;
+  }
+}
+
+// ── Order analytics ──────────────────────────────────────────────────────
+
+export interface BestSeller {
+  productId: number;
+  productName: string;
+  productImage: string;
+  unitsSold: number;
+  revenue: number;
+}
+
+// Aggregate order items to find best-selling products. Cancelled orders excluded.
+export async function getBestSellers(limit = 8): Promise<BestSeller[]> {
+  const items = await prisma.orderItem.findMany({
+    where: { order: { status: { not: OrderStatus.CANCELLED } } },
+    select: {
+      productId: true,
+      productName: true,
+      productImage: true,
+      quantity: true,
+      price: true,
+    },
+  });
+  const map = new Map<number, BestSeller>();
+  for (const it of items) {
+    const cur = map.get(it.productId) ?? {
+      productId: it.productId,
+      productName: it.productName,
+      productImage: it.productImage,
+      unitsSold: 0,
+      revenue: 0,
+    };
+    cur.unitsSold += it.quantity;
+    cur.revenue += it.price * it.quantity;
+    map.set(it.productId, cur);
+  }
+  return Array.from(map.values())
+    .sort((a, b) => b.unitsSold - a.unitsSold)
+    .slice(0, limit);
+}
+
+export interface LowStockProduct {
+  id: number;
+  name: string;
+  slug: string;
+  image: string;
+  stockQuantity: number;
+  inStock: boolean;
+}
+
+// Products at or below the low-stock threshold (still listed as in stock).
+export async function getLowStockProducts(threshold = 5): Promise<LowStockProduct[]> {
+  const products = await prisma.product.findMany({
+    where: { stockQuantity: { lte: threshold } },
+    select: { id: true, name: true, slug: true, image: true, stockQuantity: true, inStock: true },
+    orderBy: { stockQuantity: "asc" },
+  });
+  return products;
+}
+
+// ── Abandoned carts ─────────────────────────────────────────────────────
+
+export interface AbandonedCartItem {
+  productId: number;
+  productName: string;
+  productImage?: string;
+  quantity: number;
+  price: number;
+}
+
+export interface AbandonedCartData {
+  id: string;
+  sessionId: string;
+  userId?: string;
+  email?: string;
+  customerName?: string;
+  phone?: string;
+  items: AbandonedCartItem[];
+  subtotal: number;
+  itemCount: number;
+  recovered: boolean;
+  reminded: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Upsert a cart snapshot keyed by anonymous session id.
+export async function upsertAbandonedCart(input: {
+  sessionId: string;
+  userId?: string | null;
+  email?: string | null;
+  customerName?: string | null;
+  phone?: string | null;
+  items: AbandonedCartItem[];
+  subtotal: number;
+}): Promise<void> {
+  const itemCount = input.items.reduce((s, i) => s + i.quantity, 0);
+  const base = {
+    userId: input.userId ?? null,
+    email: input.email ?? null,
+    customerName: input.customerName ?? null,
+    phone: input.phone ?? null,
+    items: input.items as unknown as object,
+    subtotal: input.subtotal,
+    itemCount,
+  };
+  await prisma.abandonedCart.upsert({
+    where: { sessionId: input.sessionId },
+    create: { sessionId: input.sessionId, recovered: false, ...base },
+    update: { ...base, recovered: false },
+  });
+}
+
+// Mark a cart as recovered (called when its session completes an order).
+export async function markCartRecovered(sessionId: string): Promise<void> {
+  try {
+    await prisma.abandonedCart.update({
+      where: { sessionId },
+      data: { recovered: true },
+    });
+  } catch {
+    /* no cart for this session — ignore */
+  }
+}
+
+export async function getAbandonedCarts(limit = 50): Promise<AbandonedCartData[]> {
+  const carts = await prisma.abandonedCart.findMany({
+    where: { recovered: false, itemCount: { gt: 0 } },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+  return carts.map((c) => ({
+    id: c.id,
+    sessionId: c.sessionId,
+    userId: c.userId ?? undefined,
+    email: c.email ?? undefined,
+    customerName: c.customerName ?? undefined,
+    phone: c.phone ?? undefined,
+    items: (c.items as unknown as AbandonedCartItem[]) ?? [],
+    subtotal: c.subtotal,
+    itemCount: c.itemCount,
+    recovered: c.recovered,
+    reminded: c.reminded,
+    createdAt: c.createdAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
+  }));
 }
 
 // ── Read DB (for analytics/stats — returns raw counts) ────────────────────────

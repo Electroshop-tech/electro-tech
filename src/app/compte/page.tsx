@@ -12,6 +12,7 @@ function statusLabel(s: Order["status"]) {
   const map: Record<Order["status"], { label: string; color: string }> = {
     pending:   { label: "En attente",  color: "bg-yellow-100 text-yellow-700" },
     confirmed: { label: "Confirmée",   color: "bg-blue-100 text-blue-700" },
+    preparing: { label: "En préparation", color: "bg-indigo-100 text-indigo-700" },
     shipped:   { label: "Expédiée",    color: "bg-purple-100 text-purple-700" },
     delivered: { label: "Livrée",      color: "bg-green-100 text-green-700" },
     cancelled: { label: "Annulée",     color: "bg-red-100 text-red-700" },

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getOrdersByUserId, createOrder, getUserById, getProductById, validatePromoCode, incrementPromoUses, getDeliveryFeeForCity } from "@/lib/store";
+import { getOrdersByUserId, createOrder, getUserById, getProductById, validatePromoCode, incrementPromoUses, getDeliveryFeeForCity, markCartRecovered } from "@/lib/store";
 import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
-import type { OrderItem, Address } from "@/lib/types";
+import { validate, createOrderSchema } from "@/lib/validation";
+import type { OrderItem } from "@/lib/types";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
@@ -18,17 +19,11 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getCurrentUser();
 
-    const { items, address, paymentMethod, notes, customer, promoCode } = await req.json() as {
-      items: OrderItem[];
-      address: Address;
-      paymentMethod: string;
-      notes?: string;
-      customer?: { firstName: string; lastName: string; email: string; phone: string };
-      promoCode?: string;
-    };
-
-    if (!items?.length) return NextResponse.json({ error: "Panier vide." }, { status: 400 });
-    if (!address?.street || !address?.city) return NextResponse.json({ error: "Adresse manquante." }, { status: 400 });
+    const parsed = validate(createOrderSchema, await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+    const { items, address, paymentMethod, notes, customer, promoCode, sessionId } = parsed.data;
 
     let customerName: string;
     let customerEmail: string;
@@ -51,12 +46,18 @@ export async function POST(req: NextRequest) {
       customerPhone = customer.phone;
     }
 
-    // Server-side price validation — don't trust client prices
+    // Server-side price validation — don't trust client prices.
+    // Also resolve the authoritative product name/image from the DB.
     const verifiedItems: OrderItem[] = [];
     for (const item of items) {
       const dbProduct = await getProductById(Number(item.productId));
-      const verifiedPrice = dbProduct ? dbProduct.currentPrice : item.price;
-      verifiedItems.push({ ...item, price: verifiedPrice });
+      verifiedItems.push({
+        productId: item.productId,
+        productName: dbProduct?.name ?? item.productName,
+        productImage: dbProduct?.image ?? item.productImage,
+        quantity: item.quantity,
+        price: dbProduct ? dbProduct.currentPrice : item.price,
+      });
     }
 
     const subtotal = verifiedItems.reduce((s, i) => s + i.price * i.quantity, 0);
@@ -96,6 +97,11 @@ export async function POST(req: NextRequest) {
     // Increment promo uses
     if (appliedPromoCode) {
       incrementPromoUses(appliedPromoCode).catch(() => {});
+    }
+
+    // Mark this session's abandoned cart (if any) as recovered
+    if (sessionId) {
+      markCartRecovered(sessionId).catch(() => {});
     }
 
     // Decrement stock quantities atomically (block overselling)

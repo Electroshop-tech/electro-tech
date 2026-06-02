@@ -86,7 +86,7 @@ function TrackingContent() {
       if (res.ok) {
         const data = await res.json();
         const statusMap: Record<string, "processing" | "shipped" | "delivered"> = {
-          pending: "processing", confirmed: "processing",
+          pending: "processing", confirmed: "processing", preparing: "processing",
           shipped: "shipped", delivered: "delivered", cancelled: "processing",
         };
         setTrackedId(clean);
@@ -128,7 +128,7 @@ function TrackingContent() {
         const firstOrder = data.orders?.[0];
         if (firstOrder) {
           const statusMap: Record<string, "processing" | "shipped" | "delivered"> = {
-            pending: "processing", confirmed: "processing",
+            pending: "processing", confirmed: "processing", preparing: "processing",
             shipped: "shipped", delivered: "delivered", cancelled: "processing",
           };
           setTrackedId(firstOrder.id.slice(-6).toUpperCase());
