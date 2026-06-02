@@ -18,7 +18,9 @@ const PromoBanners = nextDynamic(() => import("@/components/PromoBanners"), { ss
 const ReviewsSection = nextDynamic(() => import("@/components/ReviewsSection"), { ssr: true });
 const NewsletterSection = nextDynamic(() => import("@/components/NewsletterSection"), { ssr: true });
 
-export const dynamic = "force-dynamic";
+// ISR: render once, serve from cache, refresh in the background every 60s
+// (also revalidated instantly on product changes via the "products" cache tag).
+export const revalidate = 60;
 
 export default async function Home() {
   const products = await getProductCards();

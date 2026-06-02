@@ -5,7 +5,7 @@ import { getProducts, getCategories } from "@/lib/store";
 import CategoryProductGrid from "@/components/CategoryProductGrid";
 import NewsletterSection from "@/components/NewsletterSection";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const categoryMeta: Record<string, {
   description: string;

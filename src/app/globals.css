@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 :root {
-  --font-inter: 'Inter', sans-serif;
   --surface: #ffffff;
   --surface-muted: #f5f7fb;
   --border-soft: #e6e9ef;
@@ -12,7 +11,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-inter, 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif);
 }
 
 * {

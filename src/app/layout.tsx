@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import Providers from "@/components/Providers";
 import ScrollAnimations from "@/components/ScrollAnimations";
 import PageTracker from "@/components/PageTracker";
+
+// Self-hosted, preloaded Inter — no external request, no layout shift (FOUT)
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -59,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="reveal-js" suppressHydrationWarning>
+    <html lang="fr" className={`reveal-js ${inter.variable}`} suppressHydrationWarning>
       <head>
         {/* JSON-LD structured data */}
         <script

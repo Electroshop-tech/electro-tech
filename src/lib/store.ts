@@ -1,4 +1,5 @@
 import prisma from "./prisma";
+import { unstable_cache, revalidateTag } from "next/cache";
 import type {
   Product,
   Category,
@@ -258,7 +259,7 @@ export async function removeNewsletterSubscriber(email: string): Promise<boolean
 
 // ── Products ──────────────────────────────────────────────────────────────────
 
-export async function getProducts(): Promise<Product[]> {
+async function _getProducts(): Promise<Product[]> {
   const products = await prisma.product.findMany({
     orderBy: { id: "asc" },
     select: {
@@ -291,7 +292,7 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 /** Lightweight product list — only fields needed for cards */
-export async function getProductCards(): Promise<Product[]> {
+async function _getProductCards(): Promise<Product[]> {
   const products = await prisma.product.findMany({
     orderBy: { id: "asc" },
     select: {
@@ -326,6 +327,27 @@ export async function getProductCards(): Promise<Product[]> {
     descriptionSections: null,
     characteristics: null,
   }));
+}
+
+// Cache DB reads across requests (revalidate every 60s, or on demand via
+// revalidateTag("products")). Eliminates a database round-trip on every page view.
+export const getProducts = unstable_cache(_getProducts, ["all-products"], {
+  revalidate: 60,
+  tags: ["products"],
+});
+
+export const getProductCards = unstable_cache(_getProductCards, ["product-cards"], {
+  revalidate: 60,
+  tags: ["products"],
+});
+
+/** Clear the cached product lists after a mutation. Safe to call outside a request scope. */
+function invalidateProducts() {
+  try {
+    revalidateTag("products", "max");
+  } catch {
+    // revalidateTag is only available within a request/render scope; ignore otherwise.
+  }
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
@@ -365,6 +387,7 @@ export async function createProduct(data: Omit<Product, "id">): Promise<Product>
       metaDescription: data.metaDescription ?? null,
     },
   });
+  invalidateProducts();
   return dbProductToProduct(p);
 }
 
@@ -397,6 +420,7 @@ export async function updateProduct(id: number, data: Partial<Product>): Promise
         ...(data.metaDescription !== undefined && { metaDescription: data.metaDescription ?? null }),
       },
     });
+    invalidateProducts();
     return dbProductToProduct(p);
   } catch {
     return null;
@@ -406,6 +430,7 @@ export async function updateProduct(id: number, data: Partial<Product>): Promise
 export async function deleteProduct(id: number): Promise<boolean> {
   try {
     await prisma.product.delete({ where: { id } });
+    invalidateProducts();
     return true;
   } catch {
     return false;
