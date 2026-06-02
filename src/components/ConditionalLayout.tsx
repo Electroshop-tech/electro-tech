@@ -10,6 +10,7 @@ import MobileNavBar from "./MobileNavBar";
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
+  const isProductPage = pathname.startsWith("/produits/");
   const [showTop, setShowTop] = useState(false);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
 
   return (
     <>
-      {!isAdmin && <Header />}
+      {!isAdmin && !isProductPage && <Header />}
       <main>{children}</main>
       {!isAdmin && <Footer />}
       {!isAdmin && <CookieConsent />}
