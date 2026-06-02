@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "admin1234";
 
 interface Stats {
   products: number;
@@ -12,33 +11,52 @@ interface Stats {
   heroSlides: number;
   inStock: number;
   outOfStock: number;
+  orders: number;
+  pendingOrders: number;
+  revenue: number;
+  subscribers: number;
+}
+
+interface Order {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  total: number;
+  status: string;
+  createdAt: string;
 }
 
 const quickLinks = [
   { href: "/admin/products/new", label: "Ajouter un produit", color: "bg-orange-500 hover:bg-orange-600", icon: "M12 4v16m8-8H4" },
   { href: "/admin/categories", label: "Gérer les catégories", color: "bg-blue-500 hover:bg-blue-600", icon: "M4 6h16M4 10h16M4 14h16M4 18h16" },
-  { href: "/admin/brands", label: "Gérer les marques", color: "bg-violet-500 hover:bg-violet-600", icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" },
-  { href: "/admin/hero", label: "Gérer les bannières", color: "bg-emerald-500 hover:bg-emerald-600", icon: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" },
+  { href: "/admin/newsletter", label: "Envoyer une newsletter", color: "bg-violet-500 hover:bg-violet-600", icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
+  { href: "/admin/orders", label: "Voir les commandes", color: "bg-emerald-500 hover:bg-emerald-600", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
 ];
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/stats", { headers: { "x-admin-key": ADMIN_KEY } })
-      .then((r) => r.json())
-      .then(setStats)
+    Promise.all([
+      fetch("/api/admin/stats", { credentials: "include" })
+        .then((r) => r.json())
+        .then(setStats),
+      fetch("/api/admin/orders")
+        .then((r) => r.json())
+        .then((d) => setRecentOrders((d.orders ?? []).slice(0, 5))),
+    ])
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
   const statCards = stats
     ? [
-        { label: "Produits", value: stats.products, sub: `${stats.inStock} en stock`, color: "text-orange-500", bg: "bg-orange-500/10" },
-        { label: "Catégories", value: stats.categories, sub: "catégories actives", color: "text-blue-500", bg: "bg-blue-500/10" },
-        { label: "Marques", value: stats.brands, sub: "marques référencées", color: "text-violet-500", bg: "bg-violet-500/10" },
-        { label: "Bannières Hero", value: stats.heroSlides, sub: "slides configurés", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+        { label: "Produits", value: stats.products, sub: `${stats.inStock} en stock · ${stats.outOfStock} épuisés`, color: "text-orange-500", bg: "bg-orange-500/10" },
+        { label: "Commandes", value: stats.orders, sub: `${stats.pendingOrders} en attente`, color: "text-blue-500", bg: "bg-blue-500/10" },
+        { label: "Chiffre d'affaires", value: `${stats.revenue.toLocaleString()}€`, sub: "total cumulé", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+        { label: "Abonnés newsletter", value: stats.subscribers, sub: "inscrits confirmés", color: "text-violet-500", bg: "bg-violet-500/10" },
       ]
     : [];
 
@@ -108,6 +126,76 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Recent orders */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-slate-900 font-black text-sm uppercase tracking-widest">Dernières commandes</h3>
+          <Link href="/admin/orders" className="text-orange-500 hover:text-orange-600 text-xs font-bold">
+            Voir tout →
+          </Link>
+        </div>
+        {recentOrders.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center">
+            <p className="text-gray-400 text-sm">Aucune commande pour le moment</p>
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Commande</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Client</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Total</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Statut</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wide">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {recentOrders.map((order) => {
+                  const statusConfig: Record<string, { label: string; color: string }> = {
+                    pending: { label: "En attente", color: "bg-yellow-100 text-yellow-700" },
+                    confirmed: { label: "Confirmée", color: "bg-blue-100 text-blue-700" },
+                    shipped: { label: "Expédiée", color: "bg-purple-100 text-purple-700" },
+                    delivered: { label: "Livrée", color: "bg-green-100 text-green-700" },
+                    cancelled: { label: "Annulée", color: "bg-red-100 text-red-700" },
+                  };
+                  const s = statusConfig[order.status] ?? { label: order.status, color: "bg-gray-100 text-gray-700" };
+                  return (
+                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 font-bold text-gray-800 text-xs">
+                        #{order.id.slice(-8).toUpperCase()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-gray-800 text-xs">{order.customerName}</p>
+                        <p className="text-[11px] text-gray-400">{order.customerEmail}</p>
+                      </td>
+                      <td className="px-4 py-3 font-bold text-gray-900 text-xs">{order.total.toFixed(2)}€</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${s.color}`}>
+                          {s.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-[11px]">
+                        {new Date(order.createdAt).toLocaleDateString("fr-FR")}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Notification email info */}
+      <div className="bg-green-50 border border-green-200 rounded-2xl p-5 text-sm text-green-700">
+        <p className="font-bold mb-1">📧 Notifications par e-mail</p>
+        <p className="text-green-600 text-xs leading-relaxed">
+          Les notifications de commande et de contact sont envoyées automatiquement à <code className="bg-green-100 px-1 rounded font-bold">contact.electrotetch@gmail.com</code>.
+          Configurez <code className="bg-green-100 px-1 rounded">RESEND_API_KEY</code> dans les variables d&apos;environnement pour activer l&apos;envoi.
+        </p>
+      </div>
 
       {/* Info */}
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm text-blue-700">

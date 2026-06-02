@@ -7,12 +7,12 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Bon Plans & Promotions — ElectroShop-Tech.ma",
+  title: "Bon Plans & Promotions — ElectroShop-Tech",
   description: "Profitez de nos meilleures offres et promotions sur les box TV Android, accessoires et caméras de surveillance.",
 };
 
-export default function PromotionsPage() {
-  const allProducts = getProducts();
+export default async function PromotionsPage() {
+  const allProducts = await getProducts();
   const promoProducts = allProducts.filter(
     (p) => p.originalPrice > p.currentPrice
   ).sort((a, b) => {
@@ -65,12 +65,12 @@ export default function PromotionsPage() {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-[#f5f7fb] min-h-screen">
 
       {/* ── Hero ── */}
-      <div className="relative bg-gradient-to-br from-red-600 via-orange-500 to-yellow-500 text-white overflow-hidden">
+      <div className="relative bg-gradient-to-br from-slate-950 via-slate-900 to-orange-700 text-white overflow-hidden">
         {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-[0.055]">
           {Array.from({ length: 20 }).map((_, i) => (
             <div
               key={i}
@@ -86,7 +86,7 @@ export default function PromotionsPage() {
           ))}
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 py-8 sm:py-12">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-white/60 mb-6">
             <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
@@ -96,7 +96,7 @@ export default function PromotionsPage() {
 
           <div className="flex flex-col md:flex-row md:items-center gap-8">
             <div className="flex-1">
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1.5 mb-4">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-4">
                 <span className="text-lg">🔥</span>
                 <span className="text-xs font-bold tracking-wide uppercase">Offres limitées</span>
               </div>
@@ -112,7 +112,7 @@ export default function PromotionsPage() {
             {/* Stats grid */}
             <div className="grid grid-cols-2 gap-3 md:w-80 flex-shrink-0">
               {statsItems.map((s) => (
-                <div key={s.label} className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl p-4 text-center">
+                <div key={s.label} className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-lg p-4 text-center">
                   <div className="text-2xl font-black">{s.value}</div>
                   <div className="text-[11px] text-white/70 font-medium mt-0.5">{s.label}</div>
                 </div>
@@ -123,8 +123,8 @@ export default function PromotionsPage() {
       </div>
 
       {/* ── Trust bar ── */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
           {[
             { icon: "🚚", text: "Livraison 24-48h" },
             { icon: "🔒", text: "Paiement sécurisé" },
@@ -139,7 +139,7 @@ export default function PromotionsPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
         {/* Sort toolbar */}
         <div className="flex items-center justify-between gap-4 mb-6">
@@ -151,7 +151,7 @@ export default function PromotionsPage() {
           </div>
           <div className="flex items-center gap-2">
             <label className="text-xs text-gray-500 font-medium">Trier :</label>
-            <select className="border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-medium text-gray-700 outline-none bg-white focus:border-orange-400 cursor-pointer">
+            <select className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-700 outline-none bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100 cursor-pointer">
               <option value="discount">Meilleures remises</option>
               <option value="price-asc">Prix croissant</option>
               <option value="price-desc">Prix décroissant</option>
@@ -161,7 +161,7 @@ export default function PromotionsPage() {
 
         {/* Product grid */}
         {promoProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5">
             {promoProducts.map((p) => (
               <ProductCard key={p.slug} product={p} />
             ))}
@@ -173,7 +173,7 @@ export default function PromotionsPage() {
         )}
 
         {/* Promo CTA banner */}
-        <div className="mt-12 bg-gradient-to-r from-blue-900 to-blue-700 rounded-3xl p-5 sm:p-8 text-white text-center">
+        <div className="mt-12 bg-gradient-to-r from-slate-950 to-slate-800 rounded-lg p-5 sm:p-8 text-white text-center shadow-[0_18px_44px_rgba(15,23,42,0.16)]">
           <h3 className="text-xl font-black mb-2">Ne ratez aucune offre !</h3>
           <p className="text-white/70 text-sm mb-5">
             Inscrivez-vous à notre newsletter et recevez nos meilleures promotions en avant-première.
@@ -182,11 +182,11 @@ export default function PromotionsPage() {
             <input
               type="email"
               placeholder="Votre adresse e-mail"
-              className="flex-1 px-4 py-2.5 rounded-full text-sm text-slate-800 outline-none placeholder-slate-400"
+              className="flex-1 min-w-0 px-4 py-2.5 rounded-lg text-sm text-slate-800 outline-none placeholder-slate-400"
             />
             <button
               type="submit"
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-5 py-2.5 rounded-full transition-colors whitespace-nowrap flex-shrink-0"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap flex-shrink-0"
             >
               S&apos;inscrire
             </button>

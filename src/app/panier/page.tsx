@@ -4,8 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cartContext";
 
-type Shipping = "domicile";
-
 export default function PanierPage() {
   const { items: cart, removeFromCart: removeItem, updateQty, cartTotal: subtotal } = useCart();
   const [promoCode, setPromoCode] = useState("");
@@ -27,9 +25,9 @@ export default function PanierPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100">
+    <main className="min-h-screen bg-[#f5f7fb]">
       {/* Steps */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-start">
             {/* Step 1 – active */}
@@ -63,7 +61,7 @@ export default function PanierPage() {
 
       <div className="max-w-5xl mx-auto px-4 py-8">
         {cart.length === 0 ? (
-          <div className="bg-white rounded-xl p-16 flex flex-col items-center gap-5 text-center shadow-sm">
+          <div className="bg-white rounded-lg p-16 flex flex-col items-center gap-5 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)] border border-slate-200">
             <svg className="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
@@ -76,7 +74,7 @@ export default function PanierPage() {
           <div className="grid lg:grid-cols-3 gap-6 items-start">
 
             {/* LEFT */}
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="lg:col-span-2 bg-white rounded-lg shadow-[0_1px_2px_rgba(15,23,42,0.04)] border border-slate-200 overflow-hidden">
 
               {/* Free shipping banner */}
               <div className="relative overflow-hidden bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100 px-5 py-3.5 flex items-center gap-3">
@@ -158,9 +156,9 @@ export default function PanierPage() {
                       </div>
                       <div className="text-right">
                         {item.originalPrice > item.price && (
-                          <p className="text-[10px] text-gray-300 line-through leading-none">{(item.originalPrice * item.qty).toLocaleString("fr-FR")}€</p>
+                          <p className="text-[10px] text-gray-300 line-through leading-none">{(item.originalPrice * item.qty).toLocaleString()}€</p>
                         )}
-                        <p className="text-lg font-black text-orange-500 leading-tight">{(item.price * item.qty).toLocaleString("fr-FR")}€</p>
+                        <p className="text-lg font-black text-orange-500 leading-tight">{(item.price * item.qty).toLocaleString()}€</p>
                       </div>
                     </div>
                   </div>
@@ -196,9 +194,9 @@ export default function PanierPage() {
 
                   {/* Price */}
                   <div className="col-span-2 text-center">
-                    <p className="text-sm font-bold text-slate-900">{item.price.toLocaleString("fr-FR")}€</p>
+                    <p className="text-sm font-bold text-slate-900">{item.price.toLocaleString()}€</p>
                     {item.originalPrice > item.price && (
-                      <p className="text-xs text-gray-300 line-through">{item.originalPrice.toLocaleString("fr-FR")},00</p>
+                      <p className="text-xs text-gray-300 line-through">{item.originalPrice.toLocaleString()}€</p>
                     )}
                   </div>
 
@@ -225,7 +223,7 @@ export default function PanierPage() {
 
                   {/* Subtotal */}
                   <div className="col-span-2 text-right">
-                    <p className="text-sm font-black text-orange-500">{(item.price * item.qty).toLocaleString("fr-FR")}€</p>
+                    <p className="text-sm font-black text-orange-500">{(item.price * item.qty).toLocaleString()}€</p>
                   </div>
                   </div>
 
@@ -269,7 +267,7 @@ export default function PanierPage() {
             </div>
 
             {/* RIGHT — Summary */}
-            <div className="lg:col-span-1 bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="lg:col-span-1 bg-white rounded-lg shadow-[0_18px_44px_rgba(15,23,42,0.08)] border border-slate-200 overflow-hidden">
               <div className="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center gap-2">
                 <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -281,7 +279,7 @@ export default function PanierPage() {
                 {/* Subtotal */}
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Sous-total ({cart.reduce((s, i) => s + i.qty, 0)} article{cart.reduce((s, i) => s + i.qty, 0) > 1 ? 's' : ''})</span>
-                  <span className="font-bold text-slate-900">{subtotal.toLocaleString("fr-FR")}€</span>
+                  <span className="font-bold text-slate-900">{subtotal.toLocaleString()}€</span>
                 </div>
 
                 {promoDiscount > 0 && (
@@ -292,7 +290,7 @@ export default function PanierPage() {
                       </svg>
                       Réduction (10%)
                     </span>
-                    <span className="font-bold text-green-600">−{promoDiscount.toLocaleString("fr-FR")}€</span>
+                    <span className="font-bold text-green-600">−{promoDiscount.toLocaleString()}€</span>
                   </div>
                 )}
 
@@ -314,7 +312,7 @@ export default function PanierPage() {
                 <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                   <span className="text-base font-black text-slate-900">Total</span>
                   <div className="text-right">
-                    <p className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString("fr-FR")}€</p>
+                    <p className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString()}€</p>
                     <p className="text-[10px] text-gray-400 mt-0.5">TTC · Livraison gratuite</p>
                   </div>
                 </div>
@@ -322,7 +320,7 @@ export default function PanierPage() {
                 {/* Checkout */}
                 <Link
                   href="/commander"
-                  className="flex items-center justify-center gap-2 w-full bg-orange-500 active:bg-orange-600 text-white font-black py-4 rounded-2xl text-center transition-all text-sm tracking-wide shadow-lg shadow-orange-200"
+                  className="flex items-center justify-center gap-2 w-full bg-slate-950 active:bg-orange-600 text-white font-black py-4 rounded-lg text-center transition-all text-sm tracking-wide shadow-[0_10px_22px_rgba(15,23,42,0.12)]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />

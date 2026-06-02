@@ -7,9 +7,17 @@ export async function PUT(req: NextRequest) {
     const session = await getCurrentUser();
     if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
-    const { firstName, lastName, phone, address } = await req.json();
+    const { firstName, lastName, phone, address, avatar } = await req.json();
 
-    const updated = updateUser(session.userId, { firstName, lastName, phone, address });
+    // Validate avatar size if provided (max ~2MB base64)
+    if (avatar !== undefined && avatar !== null && typeof avatar === "string" && avatar.length > 2_800_000) {
+      return NextResponse.json({ error: "Image trop volumineuse (max 2 Mo)." }, { status: 413 });
+    }
+
+    const updated = await updateUser(session.userId, {
+      firstName, lastName, phone, address,
+      ...(avatar !== undefined ? { avatar: avatar ?? undefined } : {}),
+    });
     if (!updated) return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
 
     return NextResponse.json({ user: toSafeUser(updated) });
@@ -23,7 +31,7 @@ export async function GET() {
     const session = await getCurrentUser();
     if (!session) return NextResponse.json({ user: null }, { status: 401 });
 
-    const user = getUserById(session.userId);
+    const user = await getUserById(session.userId);
     if (!user) return NextResponse.json({ user: null }, { status: 404 });
 
     return NextResponse.json({ user: toSafeUser(user) });

@@ -38,6 +38,7 @@ export interface Product {
   specs?: string[];
   images?: string[];
   inStock?: boolean;
+  stockQuantity?: number;
   descriptionSections?: DescriptionSection[];
   characteristics?: Characteristic[];
   productReviews?: ProductReview[];
@@ -96,12 +97,19 @@ export interface OrderItem {
 export interface Order {
   id: string;
   userId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
   items: OrderItem[];
   subtotal: number;
   total: number;
   status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
   address: Address;
   paymentMethod: string;
+  notes?: string;
+  trackingNumber?: string;
+  promoCode?: string;
+  promoDiscount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -114,6 +122,7 @@ export interface User {
   lastName: string;
   phone?: string;
   address?: Address;
+  avatar?: string;
   createdAt: string;
 }
 

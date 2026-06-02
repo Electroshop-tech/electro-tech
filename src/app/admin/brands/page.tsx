@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Brand } from "@/lib/types";
 
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "admin1234";
 const EMPTY = { name: "", slug: "" };
 
 export default function BrandsPage() {
@@ -16,7 +15,7 @@ export default function BrandsPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch("/api/admin/brands", { headers: { "x-admin-key": ADMIN_KEY } })
+    fetch("/api/admin/brands", { credentials: "include" })
       .then((r) => r.json()).then(setBrands).finally(() => setLoading(false));
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -30,14 +29,14 @@ export default function BrandsPage() {
     if (editing) {
       await fetch("/api/admin/brands", {
         method: "PUT",
-        headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ ...form, id: editing.id }),
       });
       setEditing(null);
     } else {
       await fetch("/api/admin/brands", {
         method: "POST",
-        headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify(form),
       });
     }
@@ -54,7 +53,7 @@ export default function BrandsPage() {
     setDeleting(id);
     await fetch("/api/admin/brands", {
       method: "DELETE",
-      headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }, credentials: "include",
       body: JSON.stringify({ id }),
     });
     setDeleting(null);

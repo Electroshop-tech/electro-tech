@@ -6,7 +6,6 @@ import Link from "next/link";
 import ProductForm from "@/components/admin/ProductForm";
 import type { Product } from "@/lib/types";
 
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "admin1234";
 
 export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +14,7 @@ export default function EditProductPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`/api/admin/products/${id}`, { headers: { "x-admin-key": ADMIN_KEY } })
+    fetch(`/api/admin/products/${id}`, { credentials: "include" })
       .then((r) => {
         if (!r.ok) throw new Error("Produit introuvable");
         return r.json();

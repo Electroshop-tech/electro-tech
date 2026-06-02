@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 const zones = [
   { zone: "Casablanca & Grand Casablanca", delay: "24h", price: "Gratuit" },
@@ -35,10 +35,41 @@ export default function LivraisonPage() {
                 partout au Maroc
               </h1>
               <p className="text-slate-400 text-base leading-relaxed max-w-md">
-                Toutes nos commandes sont expediees gratuitement en 24-48h. Suivi en temps reel inclus.
+                Toutes nos commandes sont expédiées gratuitement en 24–48h. Suivi en temps réel inclus.
               </p>
             </div>
 
+            {/* Right — stats */}
+            <div className="hidden lg:flex flex-col gap-4 pb-16">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                  <p className="text-3xl font-black text-orange-400">0€</p>
+                  <p className="text-slate-400 text-xs mt-1">Frais de livraison</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                  <p className="text-3xl font-black text-orange-400">24h</p>
+                  <p className="text-slate-400 text-xs mt-1">Délai Casablanca</p>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Suivi en temps réel</p>
+                  <p className="text-slate-400 text-xs">SMS + email dès l'expédition</p>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Partout au Maroc</p>
+                  <p className="text-slate-400 text-xs">Toutes les villes desservies</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="relative h-16 overflow-hidden">

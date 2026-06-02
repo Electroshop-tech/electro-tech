@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /api/
+Disallow: /compte/
+Disallow: /commander/
+Disallow: /panier/
+Disallow: /suivi-commande/
+Disallow: /recherche/
+
+Sitemap: https://electroshop-tech.com/sitemap.xml

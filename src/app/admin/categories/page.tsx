@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Category } from "@/lib/types";
 
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "admin1234";
 
 const EMPTY = { name: "", slug: "", icon: "📦" };
 
@@ -17,7 +16,7 @@ export default function CategoriesPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch("/api/admin/categories", { headers: { "x-admin-key": ADMIN_KEY } })
+    fetch("/api/admin/categories", { credentials: "include" })
       .then((r) => r.json()).then(setCategories).finally(() => setLoading(false));
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -28,14 +27,14 @@ export default function CategoriesPage() {
     if (editing) {
       await fetch("/api/admin/categories", {
         method: "PUT",
-        headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ ...form, id: editing.id }),
       });
       setEditing(null);
     } else {
       await fetch("/api/admin/categories", {
         method: "POST",
-        headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify(form),
       });
     }
@@ -52,7 +51,7 @@ export default function CategoriesPage() {
     setDeleting(id);
     await fetch("/api/admin/categories", {
       method: "DELETE",
-      headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }, credentials: "include",
       body: JSON.stringify({ id }),
     });
     setDeleting(null);

@@ -65,10 +65,26 @@ export default function FaqPage() {
                 <span className="text-orange-400">frequentes</span>
               </h1>
               <p className="text-slate-400 text-base leading-relaxed max-w-md">
-                Trouvez rapidement les reponses sur nos produits, livraisons, retours et garanties.
+                Trouvez rapidement les réponses sur nos produits, livraisons, retours et garanties.
               </p>
             </div>
 
+            {/* Right — category quick nav */}
+            <div className="hidden lg:flex flex-col gap-3 pb-16">
+              {faqs.map((cat) => (
+                <div key={cat.category} className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4 backdrop-blur-sm flex items-center gap-4 hover:bg-white/10 transition-colors">
+                  <div className="w-9 h-9 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d={cat.icon} />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-xs">{cat.category}</p>
+                    <p className="text-slate-500 text-xs">{cat.items.length} question{cat.items.length > 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         <div className="relative h-16 overflow-hidden">

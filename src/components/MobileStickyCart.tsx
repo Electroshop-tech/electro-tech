@@ -27,19 +27,19 @@ export default function MobileStickyCart({ product }: { product: CartProduct }) 
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-[0_-12px_36px_rgba(15,23,42,0.12)]">
       {/* Top info row */}
       <div className="flex items-center gap-3 px-4 pt-3 pb-1">
         <div className="flex-1 min-w-0">
           <p className="text-[11px] text-gray-400 truncate font-medium">{product.name}</p>
           <div className="flex items-center gap-2">
             <p className="text-xl font-black text-orange-500 leading-tight">
-              {product.price.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}€
+              {product.price.toLocaleString()}€
             </p>
             {discount > 0 && (
               <>
                 <p className="text-xs text-gray-400 line-through">
-                  {product.originalPrice.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}€
+                  {product.originalPrice.toLocaleString()}€
                 </p>
                 <span className="text-[10px] font-black text-green-700 bg-green-100 px-1.5 py-0.5 rounded-md">
                   −{savings.toFixed(0)}€
@@ -59,10 +59,10 @@ export default function MobileStickyCart({ product }: { product: CartProduct }) 
       <div className="px-4 pb-4">
         <button
           onClick={handleAdd}
-          className={`w-full py-3.5 rounded-2xl font-black text-sm transition-all ${
+          className={`w-full py-3.5 rounded-lg font-black text-sm transition-all ${
             added
-              ? "bg-green-500 text-white"
-              : "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-200"
+              ? "bg-emerald-600 text-white"
+              : "bg-slate-950 hover:bg-orange-600 text-white shadow-[0_10px_22px_rgba(15,23,42,0.12)]"
           }`}
         >
           {added ? (

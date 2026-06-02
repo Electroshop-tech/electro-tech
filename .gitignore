@@ -44,3 +44,7 @@ next-env.d.ts
 public/*.png
 public/*.jpg
 public/images/For mobile version.png
+
+.vercel
+
+/src/generated/prisma

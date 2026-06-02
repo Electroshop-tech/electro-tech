@@ -6,9 +6,11 @@ export default function CategorySection() {
     <section className="py-8 bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-center gap-6 md:gap-4 flex-wrap">
-          {categories.map((cat) => (
+          {categories.map((cat, i) => (
             <Link
               key={cat.id}
+              data-reveal="scale"
+              data-reveal-delay={String(i * 55)}
               href={`/categorie/${cat.slug}`}
               className="group flex flex-col items-center gap-2.5 w-20 md:w-24"
             >

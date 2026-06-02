@@ -1,10 +1,10 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 const articles = [
   {
     num: "01",
     title: "Objet",
-    content: "Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre ElectroShop-Tech (ci-après « le Vendeur ») et tout acheteur (ci-après « le Client ») effectuant un achat sur le site electroshop-tech.ma ou en boutique physique.",
+    content: "Les présentes Conditions Générales de Vente (CGV) régissent les relations contractuelles entre ElectroShop-Tech (ci-après « le Vendeur ») et tout acheteur (ci-après « le Client ») effectuant un achat sur le site electroshop-tech.com ou en boutique physique.",
   },
   {
     num: "02",
@@ -14,7 +14,7 @@ const articles = [
   {
     num: "03",
     title: "Prix",
-    content: "Les prix sont indiqués en Dirhams marocains (MAD) TTC. Le Vendeur se réserve le droit de modifier ses prix à tout moment, sans préavis. Les commandes sont facturées au prix en vigueur au moment de la validation.",
+    content: "Les prix sont indiqués en Dirhams marocains (€) TTC. Le Vendeur se réserve le droit de modifier ses prix à tout moment, sans préavis. Les commandes sont facturées au prix en vigueur au moment de la validation.",
   },
   {
     num: "04",
@@ -62,7 +62,7 @@ export default function CGVPage() {
   return (
     <main className="min-h-screen bg-white">
 
-      {/* ── HERO ── */}
+      {/* -- HERO -- */}
       <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 pt-10 sm:pt-20 pb-0 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-72 h-72 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
@@ -85,6 +85,25 @@ export default function CGVPage() {
               </p>
             </div>
 
+            {/* Right — stat cards */}
+            <div className="hidden lg:flex flex-col gap-4 pb-16">
+              {[
+                { icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", value: "11 articles", label: "Conditions complètes" },
+                { icon: "M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3", value: "Droit marocain", label: "Loi applicable" },
+                { icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z", value: "Garantie 1 an", label: "Tous produits couverts" },
+                { icon: "M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z", value: "14 jours", label: "Droit de rétractation" },
+              ].map((s) => (
+                <div key={s.value} className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d={s.icon} /></svg>
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-sm">{s.value}</p>
+                    <p className="text-slate-400 text-xs">{s.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
 
           </div>
         </div>
@@ -97,7 +116,7 @@ export default function CGVPage() {
         </div>
       </section>
 
-      {/* ── ARTICLES ── */}
+      {/* -- ARTICLES -- */}
       <section className="py-16 max-w-7xl mx-auto px-4">
         <div className="grid lg:grid-cols-3 gap-8">
 
@@ -138,7 +157,7 @@ export default function CGVPage() {
               <p className="text-white font-black text-sm mb-1">Une question ?</p>
               <p className="text-orange-100 text-xs mb-4 leading-relaxed">Notre équipe répond à toutes vos questions juridiques et commerciales.</p>
               <Link href="/contact" className="block text-center bg-white text-orange-500 font-black text-xs px-4 py-2.5 rounded-xl hover:bg-orange-50 transition-colors">
-                Nous contacter →
+                Nous contacter ?
               </Link>
             </div>
           </div>

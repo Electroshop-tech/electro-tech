@@ -36,10 +36,41 @@ export default function RetoursPage() {
                 <span className="text-orange-400">Remboursements</span>
               </h1>
               <p className="text-slate-400 text-base leading-relaxed max-w-md">
-                Satisfait ou rembourse sous 14 jours. Aucune question posee, aucune justification requise.
+                Satisfait ou remboursé sous 14 jours. Aucune question posée, aucune justification requise.
               </p>
             </div>
 
+            {/* Right — stats */}
+            <div className="hidden lg:flex flex-col gap-4 pb-16">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                  <p className="text-3xl font-black text-orange-400">14j</p>
+                  <p className="text-slate-400 text-xs mt-1">Pour changer d'avis</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                  <p className="text-3xl font-black text-orange-400">5-7j</p>
+                  <p className="text-slate-400 text-xs mt-1">Délai de remboursement</p>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Sans justification</p>
+                  <p className="text-slate-400 text-xs">Aucune question posée</p>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Remboursement garanti</p>
+                  <p className="text-slate-400 text-xs">Via le moyen de paiement original</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="relative h-16 overflow-hidden">

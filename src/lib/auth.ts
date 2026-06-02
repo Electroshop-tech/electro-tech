@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import type { User } from "./types";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "electro-tech-secret-key-change-in-production"
+  process.env.JWT_SECRET ?? "set-jwt-secret-in-env"
 );
 const COOKIE_NAME = "auth_token";
 const TOKEN_EXPIRY = "7d";

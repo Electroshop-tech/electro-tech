@@ -80,12 +80,12 @@ export async function GET(req: NextRequest) {
   }
 
   // Find existing user or create a new one
-  let user = getUserByEmail(googleUser.email);
+  let user = await getUserByEmail(googleUser.email);
   if (!user) {
     const firstName = googleUser.given_name ?? googleUser.name?.split(" ")[0] ?? "";
     const lastName =
       googleUser.family_name ?? googleUser.name?.split(" ").slice(1).join(" ") ?? "";
-    user = createUser({
+    user = await createUser({
       email: googleUser.email,
       firstName,
       lastName,

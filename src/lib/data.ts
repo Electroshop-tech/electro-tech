@@ -113,7 +113,7 @@ const x96qBox: Product = {
     { label: "Alimentation", value: "5V / 2A" },
   ],
   productReviews: [
-    { id: 1, author: "Yassine M.", rating: 5, date: "12 mai 2026", content: "Excellente box ! Installation rapide, image 4K parfaite et Android 10 fluide. Je regarde l'IPTV sans aucune coupure.", verified: true },
+    { id: 1, author: "Yassine M.", rating: 5, date: "12 mai 2026", content: "Excellente box ! Installation rapide, image 4K parfaite et Android 10 fluide. Je regarde mes contenus sans aucune coupure.", verified: true },
     { id: 2, author: "Fatima B.", rating: 4, date: "8 mai 2026", content: "Très bon rapport qualité/prix. Wi-Fi stable, démarrage rapide. J'enlève une étoile car la télécommande incluse est basique.", verified: true },
     { id: 3, author: "Karim T.", rating: 5, date: "2 mai 2026", content: "Produit conforme à la description. Livraison en 48h comme promis. L'Ethernet 100 Mbps est un vrai plus pour le streaming HD.", verified: false },
   ],
@@ -192,7 +192,7 @@ const x96qPro: Product = {
   ],
   productReviews: [
     { id: 1, author: "Samira O.", rating: 5, date: "14 mai 2026", content: "L'affichage LED de l'heure sur la face avant est vraiment pratique. La qualité 4K est impressionnante, et l'audio optique fait la différence.", verified: true },
-    { id: 2, author: "Hassan R.", rating: 5, date: "10 mai 2026", content: "Parfaite pour l'IPTV et Netflix. Le format compact et l'affichage LED la distinguent vraiment de la concurrence. Livraison très rapide.", verified: true },
+    { id: 2, author: "Hassan R.", rating: 5, date: "10 mai 2026", content: "Parfaite pour le streaming et Netflix. Le format compact et l'affichage LED la distinguent vraiment de la concurrence. Livraison très rapide.", verified: true },
     { id: 3, author: "Nadia K.", rating: 4, date: "5 mai 2026", content: "Très satisfaite. Le slot Micro SD est un plus appréciable pour étendre le stockage. Seul bémol : le Wi-Fi 2.4 GHz uniquement.", verified: false },
   ],
 };
@@ -257,7 +257,7 @@ const mortalQ8: Product = {
     { label: "Contenu boîte",value: "TV Stick + câble USB + adaptateur secteur" },
   ],
   productReviews: [
-    { id: 1, author: "Omar L.", rating: 5, date: "13 mai 2026", content: "Parfait pour transformer ma vieille TV en Smart TV. Branchez et c'est parti ! L'IPTV fonctionne sans aucun problème.", verified: true },
+    { id: 1, author: "Omar L.", rating: 5, date: "13 mai 2026", content: "Parfait pour transformer ma vieille TV en Smart TV. Branchez et c'est parti ! Tout fonctionne sans aucun problème.", verified: true },
     { id: 2, author: "Zineb A.", rating: 4, date: "7 mai 2026", content: "Très compact et discret. Je l'emporte en déplacement. Installation en 2 minutes chrono. Bon rapport qualité/prix.", verified: true },
   ],
 };
@@ -355,7 +355,7 @@ export const reviews: Review[] = [
     author: "Karim Tahiri",
     role: "Client régulier",
     content:
-      "Le TV Stick Mortal Q8 est parfait pour ma chambre : compact, discret et ça marche du tonnerre pour l'IPTV. Livré en 48h, service très pro.",
+      "Le TV Stick Mortal Q8 est parfait pour ma chambre : compact, discret et ça marche du tonnerre pour le streaming. Livré en 48h, service très pro.",
     rating: 5,
   },
   {

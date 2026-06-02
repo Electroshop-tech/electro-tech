@@ -2,6 +2,13 @@
 
 :root {
   --font-inter: 'Inter', sans-serif;
+  --surface: #ffffff;
+  --surface-muted: #f5f7fb;
+  --border-soft: #e6e9ef;
+  --ink: #101828;
+  --ink-muted: #667085;
+  --brand: #f97316;
+  --brand-dark: #ea580c;
 }
 
 @theme inline {
@@ -14,11 +21,62 @@
 
 html {
   scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: #f8fafc;
-  color: #0f172a;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.06), transparent 30rem),
+    linear-gradient(180deg, #f8fafc 0%, var(--surface-muted) 42%, #f7f8fb 100%);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(249, 115, 22, 0.18);
+  color: #111827;
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  outline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(249, 115, 22, 0.75);
+  outline-offset: 3px;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: auto; /* keep clicks working */
+}
+
+/* Block print to prevent screenshots-via-print */
+@media print {
+  body { display: none !important; }
+}
+
+/* Tighten the existing visual language without changing markup or content. */
+.rounded-xl,
+.rounded-2xl {
+  border-radius: 0.625rem;
+}
+
+.rounded-3xl {
+  border-radius: 0.75rem;
 }
 
 .line-clamp-2 {
@@ -34,3 +92,68 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ─────────────────────────────────────────────
+   Scroll Reveal — controlled by ScrollAnimations.tsx
+   ───────────────────────────────────────────── */
+
+[data-reveal] {
+  opacity: 0;
+  transition:
+    opacity  0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* Direction variants */
+[data-reveal="up"]    { transform: translateY(32px); }
+[data-reveal="left"]  { transform: translateX(-40px); }
+[data-reveal="right"] { transform: translateX(40px); }
+[data-reveal="scale"] { transform: scale(0.88) translateY(18px); }
+[data-reveal="fade"]  { transform: none; }
+
+/* Visible state — added by IntersectionObserver */
+[data-reveal].in-view {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Immediately show everything if user prefers no motion */
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
+}
+
+/* ─────────────────────────────────────────────
+   Custom Scrollbar
+   ───────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1623;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f97316 0%, #ea580c 100%);
+  border-radius: 99px;
+  border: 2px solid #0f1623;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #fb923c 0%, #f97316 100%);
+}
+
+/* ─────────────────────────────────────────────
+   Smooth image rendering
+   ───────────────────────────────────────────── */
+img {
+  image-rendering: -webkit-optimize-contrast;
+}
+

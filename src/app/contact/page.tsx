@@ -32,7 +32,7 @@ const contactInfo = [
       </svg>
     ),
     title: "Adresse",
-    lines: ["123 Avenue Mohamed V", "Casablanca, Maroc"],
+    lines: ["Boulevard Zerktouni, Maarif", "Casablanca 20100, Maroc"],
     color: "bg-green-50 text-green-600",
   },
   {
@@ -42,7 +42,7 @@ const contactInfo = [
       </svg>
     ),
     title: "Horaires",
-    lines: ["Lun – Sam : 9h00 – 19h00", "Dim : 10h00 – 14h00"],
+    lines: ["Lun – Ven : 9h00 – 19h00", "Sam : 9h00 – 18h00", "Dim : 10h00 – 15h00"],
     color: "bg-purple-50 text-purple-600",
   },
 ];
@@ -73,43 +73,95 @@ const faqs = [
 export default function ContactPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState("");
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSending(true);
+    setSendError("");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setSendError(d.error ?? "Erreur lors de l'envoi.");
+      } else {
+        setSubmitted(true);
+      }
+    } catch {
+      setSendError("Impossible d'envoyer le message. Réessayez.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <div className="bg-gray-50 min-h-screen">
 
       {/* ── Hero ── */}
-      <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-blue-950 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <nav className="flex items-center gap-2 text-xs text-white/50 mb-5">
+      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 pt-10 pb-16">
+          <nav className="flex items-center gap-2 text-xs text-white/40 mb-6">
             <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
             <span>/</span>
-            <span className="text-white/80">Contact</span>
+            <span className="text-white/70">Contact</span>
           </nav>
-          <h1 className="text-3xl md:text-4xl font-black mb-3">Contactez-nous</h1>
-          <p className="text-white/70 text-sm max-w-xl">
-            Une question, un conseil ou un problème avec votre commande ?
-            Notre équipe est disponible et vous répond rapidement.
-          </p>
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <div>
+              <div className="inline-flex items-center gap-2 border border-orange-500/30 bg-orange-500/10 text-orange-400 text-xs font-black px-4 py-1.5 rounded-full mb-5 uppercase tracking-widest">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                Contactez-nous
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black mb-3 leading-tight">
+                On est là<br /><span className="text-orange-400">pour vous aider</span>
+              </h1>
+              <p className="text-slate-400 text-sm max-w-lg leading-relaxed">
+                Une question, un conseil ou un problème avec votre commande ? Notre équipe vous répond sous 24h ouvrées.
+              </p>
+            </div>
+            <div className="hidden lg:flex items-center gap-6 shrink-0">
+              <a href="tel:+212716408919" className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 hover:bg-white/10 transition-colors">
+                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                <div>
+                  <p className="text-white font-bold text-sm">(+212) 716-408919</p>
+                  <p className="text-slate-400 text-xs">Appel direct</p>
+                </div>
+              </a>
+              <a href="mailto:contact@electroshop-tech.com" className="flex items-center gap-3 bg-orange-500 hover:bg-orange-600 rounded-2xl px-5 py-3 transition-colors">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                <div>
+                  <p className="text-white font-bold text-sm">Envoyer un e-mail</p>
+                  <p className="text-orange-200 text-xs">contact@electroshop-tech.com</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="relative h-10 overflow-hidden">
+          <svg viewBox="0 0 1440 40" className="absolute bottom-0 w-full" fill="#f9fafb" preserveAspectRatio="none">
+            <path d="M0,40 C360,0 1080,40 1440,0 L1440,40 Z" />
+          </svg>
         </div>
       </div>
 
       {/* ── Info cards ── */}
-      <div className="max-w-7xl mx-auto px-4 -mt-6 mb-10">
+      <div className="max-w-7xl mx-auto px-4 mb-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {contactInfo.map((info) => (
-            <div key={info.title} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+            <div key={info.title} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md hover:border-orange-100 transition-all">
               <div className={`w-10 h-10 ${info.color} rounded-xl flex items-center justify-center mb-3`}>
                 {info.icon}
               </div>
-              <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{info.title}</p>
+              <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5">{info.title}</p>
               {info.lines.map((line) => (
-                <p key={line} className="text-sm font-semibold text-gray-800">{line}</p>
+                <p key={line} className="text-sm font-semibold text-gray-800 leading-snug">{line}</p>
               ))}
             </div>
           ))}
@@ -214,13 +266,24 @@ export default function ContactPage() {
 
                   <button
                     type="submit"
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
+                    disabled={sending}
+                    className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                    Envoyer le message
+                    {sending ? (
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      </svg>
+                    )}
+                    {sending ? "Envoi en cours…" : "Envoyer le message"}
                   </button>
+                  {sendError && (
+                    <p className="text-xs text-red-500 font-semibold text-center mt-1">{sendError}</p>
+                  )}
                 </form>
               )}
             </div>
@@ -229,33 +292,32 @@ export default function ContactPage() {
           {/* Right column: Map + FAQ */}
           <div className="lg:col-span-2 flex flex-col gap-6">
 
-            {/* Map placeholder */}
+            {/* Map */}
             <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-              <div className="h-48 bg-gradient-to-br from-blue-50 to-slate-100 relative flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <p className="text-xs font-semibold text-gray-500">123 Avenue Mohamed V</p>
-                  <p className="text-xs text-gray-400">Casablanca, Maroc</p>
-                </div>
-                <div className="absolute inset-0 grid grid-cols-8 grid-rows-6 opacity-10">
-                  {Array.from({ length: 48 }).map((_, i) => (
-                    <div key={i} className="border border-blue-300" />
-                  ))}
-                </div>
+              <div className="h-52 overflow-hidden">
+                <iframe
+                  src="https://maps.google.com/maps?q=Boulevard+Zerktouni,Maarif,Casablanca,Morocco&output=embed&z=15"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="ElectroShop-Tech localisation"
+                />
               </div>
-              <div className="p-4">
+              <div className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-gray-800">Boulevard Zerktouni, Maarif</p>
+                  <p className="text-xs text-gray-400">Casablanca 20100, Maroc</p>
+                </div>
                 <a
-                  href="https://maps.google.com"
+                  href="https://maps.google.com/?q=Boulevard+Zerktouni+Maarif+Casablanca"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-orange-500 hover:text-orange-600 transition-colors shrink-0"
                 >
-                  Voir sur Google Maps
+                  Ouvrir
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>

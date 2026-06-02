@@ -2,10 +2,28 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-function generateOrderId() {
-  const num = Math.floor(100000 + Math.random() * 900000);
-  return `ET-${num}`;
+interface CartItem {
+  id: number;
+  name: string;
+  image: string;
+  price: number;
+  qty: number;
+  brand?: string;
+}
+
+interface OrderData {
+  id: string;
+  items: CartItem[];
+  subtotal: number;
+  discount: number;
+  promoLabel: string | null;
+  total: number;
+  customer: { firstName: string; lastName: string; city: string; phone: string };
+  payment: string;
+  date: string;
 }
 
 const today = new Date();
@@ -22,20 +40,47 @@ const STEPS = [
   { key: "delivered", label: "Livrée", sub: "Livraison à domicile · Paiement à la réception", done: false, date: `Prévu ${fmt(2)}` },
 ];
 
-export default function ConfirmationPage() {
-  const [orderId, setOrderId] = useState("");
+function ConfirmationContent() {
+  const searchParams = useSearchParams();
+  const [order, setOrder] = useState<OrderData | null>(null);
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("last-order-id");
-    if (stored) {
-      setOrderId(stored);
+    const orderId = searchParams.get("id");
+
+    // Try loading from DB first
+    if (orderId) {
+      fetch(`/api/orders/${encodeURIComponent(orderId)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data) {
+            setOrder({
+              id: data.id,
+              items: data.items.map((i: { name: string; image: string; price: number; qty: number; brand?: string }, idx: number) => ({ id: idx, ...i })),
+              subtotal: data.subtotal,
+              discount: data.promoDiscount ?? 0,
+              promoLabel: data.promoCode ?? null,
+              total: data.total,
+              customer: { firstName: data.customerFirstName, lastName: data.customerLastName, city: data.city ?? "", phone: data.phone ?? "" },
+              payment: data.paymentMethod === "cash_on_delivery" ? "cod" : "cmi",
+              date: data.createdAt ?? new Date().toISOString(),
+            });
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
     } else {
-      const id = generateOrderId();
-      localStorage.setItem("last-order-id", id);
-      setOrderId(id);
+      // Fallback to localStorage for backward compatibility
+      const raw = localStorage.getItem("last-order-data");
+      if (raw) {
+        try { setOrder(JSON.parse(raw)); } catch { /* ignore */ }
+      }
+      setLoading(false);
     }
-  }, []);
+  }, [searchParams]);
+
+  const orderId = order?.id ?? "";
 
   const copy = () => {
     if (!orderId) return;
@@ -44,6 +89,14 @@ export default function ConfirmationPage() {
       setTimeout(() => setCopied(false), 2000);
     });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -86,8 +139,10 @@ export default function ConfirmationPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-xl font-black text-white">Commande confirmée !</h1>
-            <p className="text-sm text-white/80 mt-1">Merci pour votre achat sur ElectroShop-Tech</p>
+            <h1 className="text-xl font-black text-white">
+              Merci{order ? `, ${order.customer.firstName}` : ""}&nbsp;! 🎉
+            </h1>
+            <p className="text-sm text-white/80 mt-1">Votre commande a été confirmée avec succès</p>
           </div>
 
           {/* Order number */}
@@ -111,6 +166,60 @@ export default function ConfirmationPage() {
             <p className="text-[10px] text-gray-400 mt-2">Conservez ce numéro pour suivre votre commande</p>
           </div>
         </div>
+
+        {/* Order summary (shown only when data available) */}
+        {order && (
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-50">
+              <p className="text-sm font-black text-slate-900">Récapitulatif de commande</p>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex items-center gap-3">
+                  <div className="relative shrink-0">
+                    <img src={item.image} alt={item.name} className="w-11 h-11 object-contain rounded-lg bg-gray-50 border border-gray-100" />
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{item.qty}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{item.name}</p>
+                    {item.brand && <p className="text-[10px] text-gray-400">{item.brand}</p>}
+                  </div>
+                  <p className="text-sm font-black text-slate-900 shrink-0">{(item.price * item.qty).toLocaleString()}€</p>
+                </div>
+              ))}
+              <div className="border-t border-gray-100 pt-3 space-y-1.5 text-xs">
+                <div className="flex justify-between text-gray-500">
+                  <span>Sous-total</span>
+                  <span className="font-semibold text-slate-700">{order.subtotal.toLocaleString()}€</span>
+                </div>
+                {order.discount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-green-600 font-semibold">{order.promoLabel ?? "Code promo"}</span>
+                    <span className="font-bold text-green-600">-{order.discount.toLocaleString()}€</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-gray-500">
+                  <span>Livraison</span>
+                  <span className="font-bold text-green-600">Gratuite</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-gray-100">
+                  <span className="font-black text-slate-900">Total</span>
+                  <span className="text-base font-black text-orange-500">{order.total.toLocaleString()}€</span>
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3 space-y-1 text-xs text-gray-600 mt-2">
+                <div className="flex items-center gap-2">
+                  <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                  <span>{order.customer.firstName} {order.customer.lastName} · {order.customer.city}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                  <span>{order.customer.phone} · {order.payment === "cod" ? "Paiement à la livraison" : "Carte bancaire"}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Order timeline */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -266,5 +375,13 @@ export default function ConfirmationPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function ConfirmationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center"><div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" /></div>}>
+      <ConfirmationContent />
+    </Suspense>
   );
 }

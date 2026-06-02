@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import type { HeroSlide } from "@/lib/types";
 
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "admin1234";
 
 const EMPTY: Omit<HeroSlide, "id"> = {
   title: "", subtitle: "", badge: "", discount: "", price: "",
@@ -20,7 +19,7 @@ export default function HeroPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch("/api/admin/hero", { headers: { "x-admin-key": ADMIN_KEY } })
+    fetch("/api/admin/hero", { credentials: "include" })
       .then((r) => r.json()).then(setSlides).finally(() => setLoading(false));
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -31,14 +30,14 @@ export default function HeroPage() {
     if (editing) {
       await fetch("/api/admin/hero", {
         method: "PUT",
-        headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ ...form, id: editing.id }),
       });
       setEditing(null);
     } else {
       await fetch("/api/admin/hero", {
         method: "POST",
-        headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify(form),
       });
     }
@@ -58,7 +57,7 @@ export default function HeroPage() {
     setDeleting(id);
     await fetch("/api/admin/hero", {
       method: "DELETE",
-      headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }, credentials: "include",
       body: JSON.stringify({ id }),
     });
     setDeleting(null);

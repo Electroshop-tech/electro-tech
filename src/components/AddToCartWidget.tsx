@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/lib/cartContext";
+import { useWishlist } from "@/lib/wishlistContext";
 
 type CartProduct = {
   id: number;
@@ -16,7 +17,8 @@ type CartProduct = {
 export default function AddToCartWidget({ product }: { product: CartProduct }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-  const [wishlist, setWishlist] = useState(false);
+  const { toggle: toggleWishlist, isWished } = useWishlist();
+  const wishlist = isWished(product.slug);
   const { addToCart } = useCart();
 
   const handleAdd = () => {
@@ -30,7 +32,7 @@ export default function AddToCartWidget({ product }: { product: CartProduct }) {
       {/* Quantity */}
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold text-gray-500">Qté :</span>
-        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+        <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             className="w-9 h-9 text-gray-600 hover:bg-gray-100 flex items-center justify-center font-bold transition-colors"
@@ -46,7 +48,7 @@ export default function AddToCartWidget({ product }: { product: CartProduct }) {
           </button>
         </div>
         <span className="ml-auto text-sm font-black text-gray-800">
-          {(product.price * qty).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
+          {(product.price * qty).toLocaleString()}€
         </span>
       </div>
 
@@ -54,18 +56,18 @@ export default function AddToCartWidget({ product }: { product: CartProduct }) {
       <div className="flex gap-2">
         <button
           onClick={handleAdd}
-          className={`flex-1 py-3.5 rounded-xl font-black text-sm tracking-wide transition-all ${
+          className={`flex-1 py-3.5 rounded-lg font-black text-sm tracking-wide transition-all ${
             added
-              ? "bg-green-600 text-white"
-              : "bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-200 hover:-translate-y-0.5"
+              ? "bg-emerald-600 text-white"
+              : "bg-slate-950 hover:bg-orange-600 text-white shadow-[0_10px_22px_rgba(15,23,42,0.12)] hover:-translate-y-0.5"
           }`}
         >
           {added ? "✓ Ajouté au panier !" : "Ajouter au panier"}
         </button>
         <button
-          onClick={() => setWishlist((w) => !w)}
+          onClick={() => toggleWishlist(product.slug)}
           title={wishlist ? "Retirer des favoris" : "Ajouter aux favoris"}
-          className={`w-12 rounded-xl border-2 flex items-center justify-center transition-all ${
+          className={`w-12 rounded-lg border-2 flex items-center justify-center transition-all ${
             wishlist
               ? "border-red-300 bg-red-50 text-red-500"
               : "border-gray-200 text-gray-400 hover:border-red-200 hover:text-red-400"

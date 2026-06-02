@@ -1,5 +1,3 @@
-"use client";
-
 const platforms = [
   { name: "Netflix",       color: "#E50914", bg: "#1a0000", icon: "N" },
   { name: "YouTube",       color: "#FF0000", bg: "#1a0000", icon: "▶" },

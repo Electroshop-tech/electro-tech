@@ -1,5 +1,41 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+
+function useCountdown() {
+  const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      const diff = Math.floor((midnight.getTime() - now.getTime()) / 1000);
+      setTime({
+        h: Math.floor(diff / 3600),
+        m: Math.floor((diff % 3600) / 60),
+        s: diff % 60,
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return time;
+}
+
+function CountUnit({ value, label }: { value: number; label: string }) {
+  const display = String(value).padStart(2, "0");
+  return (
+    <div className="flex flex-col items-center">
+      <span className="bg-black/30 text-white font-black text-base sm:text-lg leading-none px-2 py-1 rounded-md min-w-[2.2rem] text-center tabular-nums">{display}</span>
+      <span className="text-white/40 text-[9px] uppercase tracking-wider mt-1">{label}</span>
+    </div>
+  );
+}
 
 const promoBanners = [
   {
@@ -31,7 +67,7 @@ const promoBanners = [
     currency: "€",
     discountPct: "-24%",
     href: "/produits/android-tv-stick-mortal-q8",
-    image: "/products/Android TV Stick Mortal Q8/transparent photo.png",
+    image: "/products/Android TV Stick Mortal Q8/transparent photo.jpg",
     gradient: "from-[#020b18] via-[#041832] to-[#071a3e]",
     gradientEnd: "#020b18",
     accentColor: "text-blue-400",
@@ -41,6 +77,7 @@ const promoBanners = [
 ];
 
 export default function PromoBanners() {
+  const { h, m, s } = useCountdown();
   return (
     <>
       <style>{`
@@ -49,12 +86,12 @@ export default function PromoBanners() {
           100% { transform: translateX(350%) skewX(-15deg); }
         }
         @keyframes productFloat {
-          0%, 100% { transform: translateY(0px) rotate(-1deg); }
-          50% { transform: translateY(-10px) rotate(1deg); }
+          0%, 100% { transform: translateY(0px) rotate(-0.5deg); }
+          50% { transform: translateY(-6px) rotate(0.5deg); }
         }
         @keyframes glowPulse {
-          0%, 100% { opacity: 0.5; transform: scale(1); }
-          50% { opacity: 0.85; transform: scale(1.12); }
+          0%, 100% { opacity: 0.32; transform: scale(1); }
+          50% { opacity: 0.52; transform: scale(1.06); }
         }
         @keyframes sparkle {
           0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
@@ -64,8 +101,8 @@ export default function PromoBanners() {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.07) 50%, transparent 62%);
-          animation: cardShimmer 4s ease-in-out infinite;
+          background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.045) 50%, transparent 60%);
+          animation: cardShimmer 5.5s ease-in-out infinite;
           pointer-events: none;
           z-index: 5;
         }
@@ -76,17 +113,19 @@ export default function PromoBanners() {
         .sparkle-3 { animation: sparkle 2.5s ease-in-out infinite 1.6s; }
       `}</style>
 
-      <section className="py-7 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {promoBanners.map((b) => (
+      <section className="py-8 sm:py-10 bg-[#f5f7fb]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+            {promoBanners.map((b, i) => (
               <Link
                 key={b.id}
                 href={b.href}
-                className={`promo-card relative flex flex-col sm:flex-row sm:items-center bg-gradient-to-br ${b.gradient} rounded-3xl overflow-hidden sm:p-7 min-h-0 sm:min-h-[230px] group hover:scale-[1.015] hover:shadow-2xl transition-all duration-400`}
+                data-reveal={i === 0 ? "left" : "right"}
+                data-reveal-delay={i === 1 ? "120" : "0"}
+                className={`promo-card relative flex flex-col sm:flex-row sm:items-center bg-gradient-to-br ${b.gradient} rounded-lg overflow-hidden sm:p-7 min-h-0 sm:min-h-[230px] group hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.24)] transition-all duration-300`}
               >
                 {/* ── Mobile: image stage ── */}
-                <div className="sm:hidden relative h-56 flex items-center justify-center overflow-hidden">
+                <div className="sm:hidden relative h-48 flex items-center justify-center overflow-hidden">
                   {/* Dot grid */}
                   <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
                   {/* Deep glow */}
@@ -104,8 +143,8 @@ export default function PromoBanners() {
                     alt={b.productName}
                     width={210}
                     height={210}
-                    className="product-float relative z-10 h-44 w-auto object-contain"
-                    style={{ filter: `brightness(1.35) drop-shadow(0 0 32px rgba(${b.glowRgb},0.7)) drop-shadow(0 20px 40px rgba(0,0,0,0.95))` }}
+                    className="product-float relative z-10 h-40 w-auto object-contain"
+                    style={{ filter: `brightness(1.18) drop-shadow(0 16px 34px rgba(0,0,0,0.72))` }}
                   />
                   {/* Seamless fade into card background */}
                   <div
@@ -116,10 +155,26 @@ export default function PromoBanners() {
 
                 {/* ── Content (mobile: below image | desktop: left) ── */}
                 <div className="relative z-10 flex flex-col gap-3 flex-1 px-5 pb-5 pt-2 sm:p-0 sm:pr-4">
-                  {/* Tag */}
-                  <span className={`self-start text-[10px] font-black tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-gradient-to-r ${b.tagGradient} text-white shadow-lg shadow-black/40`}>
-                    {b.tag}
-                  </span>
+                  {/* Tag + countdown */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`text-[10px] font-black tracking-[0.18em] uppercase px-3 py-1.5 rounded-full bg-gradient-to-r ${b.tagGradient} text-white shadow-sm shadow-black/30`}>
+                      {b.tag}
+                    </span>
+                    {b.id === 1 && (
+                      <div className="flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div className="flex items-center gap-1">
+                          <CountUnit value={h} label="h" />
+                          <span className="text-white/50 font-black text-sm -mt-2">:</span>
+                          <CountUnit value={m} label="m" />
+                          <span className="text-white/50 font-black text-sm -mt-2">:</span>
+                          <CountUnit value={s} label="s" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   {/* Name + specs */}
                   <div>
                     <p className="text-white text-[1.2rem] sm:text-[22px] font-black leading-tight tracking-tight">{b.productName}</p>
@@ -133,7 +188,7 @@ export default function PromoBanners() {
                         {b.currentPrice}<span className="text-base font-bold ml-1">{b.currency}</span>
                       </p>
                     </div>
-                    <div className={`bg-gradient-to-br ${b.discountGradient} text-white font-black rounded-2xl shadow-xl shadow-black/40 px-3.5 py-2.5 text-center leading-none`}>
+                    <div className={`bg-gradient-to-br ${b.discountGradient} text-white font-black rounded-lg shadow-lg shadow-black/30 px-3.5 py-2.5 text-center leading-none`}>
                       <span className="text-xl font-black">{b.discountPct}</span><br />
                       <span className="text-[9px] tracking-[0.15em] font-semibold opacity-80 uppercase">remise</span>
                     </div>
@@ -150,15 +205,15 @@ export default function PromoBanners() {
                 {/* ── Desktop: floating image right ── */}
                 <div className="hidden sm:flex relative z-10 flex-shrink-0 w-52 h-52">
                   <div className="product-float w-full h-full relative flex items-center justify-center">
-                    <div className="glow-pulse absolute inset-0 rounded-full blur-2xl" style={{ background: `radial-gradient(circle, rgba(${b.glowRgb},0.7) 0%, rgba(${b.glowRgb},0.2) 50%, transparent 75%)` }} />
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-4 rounded-full blur-xl opacity-60" style={{ background: `rgba(${b.glowRgb}, 0.5)` }} />
+                    <div className="glow-pulse absolute inset-0 rounded-full blur-2xl" style={{ background: `radial-gradient(circle, rgba(${b.glowRgb},0.48) 0%, rgba(${b.glowRgb},0.14) 50%, transparent 75%)` }} />
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-4 rounded-full blur-xl opacity-40" style={{ background: `rgba(${b.glowRgb}, 0.42)` }} />
                     <Image
                       src={b.image}
                       alt={b.productName}
                       width={210}
                       height={210}
                       className="relative object-contain w-full h-full group-hover:scale-105 transition-transform duration-500"
-                      style={{ filter: "brightness(1.25) drop-shadow(0 16px 48px rgba(0,0,0,0.8))" }}
+                      style={{ filter: "brightness(1.14) drop-shadow(0 16px 34px rgba(0,0,0,0.68))" }}
                     />
                   </div>
                 </div>

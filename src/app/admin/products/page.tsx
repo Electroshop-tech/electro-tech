@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "@/lib/types";
 
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "admin1234";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,7 +16,7 @@ export default function ProductsPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch("/api/admin/products", { headers: { "x-admin-key": ADMIN_KEY } })
+    fetch("/api/admin/products", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => setProducts(Array.isArray(data) ? data : []))
       .catch(console.error)
@@ -31,7 +30,7 @@ export default function ProductsPage() {
     setDeleting(id);
     await fetch(`/api/admin/products/${id}`, {
       method: "DELETE",
-      headers: { "x-admin-key": ADMIN_KEY },
+      credentials: "include",
     });
     setDeleting(null);
     load();
@@ -40,7 +39,7 @@ export default function ProductsPage() {
   const toggleStock = async (p: Product) => {
     await fetch(`/api/admin/products/${p.id}`, {
       method: "PUT",
-      headers: { "x-admin-key": ADMIN_KEY, "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }, credentials: "include",
       body: JSON.stringify({ ...p, inStock: !p.inStock }),
     });
     load();

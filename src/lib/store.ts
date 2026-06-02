@@ -1,271 +1,815 @@
-import fs from "fs";
-import path from "path";
-import type { Product, Category, Brand, HeroSlide, Review, User, Order } from "./types";
+import prisma from "./prisma";
+import type {
+  Product,
+  Category,
+  Brand,
+  HeroSlide,
+  Review,
+  User,
+  Order,
+  Address,
+} from "./types";
+import { OrderStatus } from "../generated/prisma/enums";
 
-const DB_PATH = path.join(process.cwd(), "data", "db.json");
+// ── Status mapping ────────────────────────────────────────────────────────────
 
-export interface DB {
-  products: Product[];
-  categories: Category[];
-  brands: Brand[];
-  heroSlides: HeroSlide[];
-  reviews: Review[];
-  nextProductId: number;
-  users: User[];
-  orders: Order[];
-}
+const STATUS_TO_ENUM: Record<string, OrderStatus> = {
+  pending: OrderStatus.PENDING,
+  confirmed: OrderStatus.CONFIRMED,
+  shipped: OrderStatus.SHIPPED,
+  delivered: OrderStatus.DELIVERED,
+  cancelled: OrderStatus.CANCELLED,
+};
 
-function getDefaultDB(): DB {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const staticData = require("./data");
-  const all: Product[] = staticData.bestDeals ?? [];
-  const products = [...new Map(all.map((p: Product) => [p.id, p])).values()] as Product[];
+const ENUM_TO_STATUS: Record<OrderStatus, Order["status"]> = {
+  [OrderStatus.PENDING]: "pending",
+  [OrderStatus.CONFIRMED]: "confirmed",
+  [OrderStatus.SHIPPED]: "shipped",
+  [OrderStatus.DELIVERED]: "delivered",
+  [OrderStatus.CANCELLED]: "cancelled",
+};
+
+// ── Converters ────────────────────────────────────────────────────────────────
+
+function dbProductToProduct(p: {
+  id: number;
+  name: string;
+  description: string;
+  originalPrice: number;
+  currentPrice: number;
+  image: string;
+  badge: string | null;
+  isRefurbished: boolean;
+  category: string;
+  brand: string;
+  slug: string;
+  sku: string | null;
+  condition: string | null;
+  guarantee: string | null;
+  inStock: boolean;
+  stockQuantity: number;
+  specs: string[];
+  images: string[];
+  descriptionSections: unknown;
+  characteristics: unknown;
+  productReviews: unknown;
+}): Product {
   return {
-    products,
-    categories: staticData.categories ?? [],
-    brands: staticData.brands ?? [],
-    heroSlides: staticData.heroSlides ?? [],
-    reviews: staticData.reviews ?? [],
-    nextProductId: products.length > 0 ? Math.max(...products.map((p: Product) => p.id)) + 1 : 1,
-    users: [],
-    orders: [],
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    originalPrice: p.originalPrice,
+    currentPrice: p.currentPrice,
+    image: p.image,
+    badge: p.badge ?? undefined,
+    isRefurbished: p.isRefurbished,
+    category: p.category,
+    brand: p.brand,
+    slug: p.slug,
+    sku: p.sku ?? undefined,
+    condition: p.condition ?? undefined,
+    guarantee: p.guarantee ?? undefined,
+    inStock: p.inStock,
+    stockQuantity: p.stockQuantity,
+    specs: p.specs,
+    images: p.images,
+    descriptionSections: (p.descriptionSections as Product["descriptionSections"]) ?? undefined,
+    characteristics: (p.characteristics as Product["characteristics"]) ?? undefined,
+    productReviews: (p.productReviews as Product["productReviews"]) ?? undefined,
   };
 }
 
-export function readDB(): DB {
-  try {
-    if (fs.existsSync(DB_PATH)) {
-      const raw = fs.readFileSync(DB_PATH, "utf-8");
-      const parsed = JSON.parse(raw) as Partial<DB>;
-      const defaults = getDefaultDB();
-      return {
-        products: parsed.products ?? defaults.products,
-        categories: parsed.categories ?? defaults.categories,
-        brands: parsed.brands ?? defaults.brands,
-        heroSlides: parsed.heroSlides ?? defaults.heroSlides,
-        reviews: parsed.reviews ?? defaults.reviews,
-        nextProductId: parsed.nextProductId ?? defaults.nextProductId,
-        users: parsed.users ?? [],
-        orders: parsed.orders ?? [],
-      };
-    }
-  } catch (err) {
-    console.error("[store] Error reading db.json:", err);
-  }
-  return getDefaultDB();
+function dbOrderToOrder(o: {
+  id: string;
+  userId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string | null;
+  subtotal: number;
+  total: number;
+  status: OrderStatus;
+  paymentMethod: string;
+  notes: string | null;
+  trackingNumber: string | null;
+  promoCode: string | null;
+  promoDiscount: number;
+  addressStreet: string;
+  addressCity: string;
+  addressPostalCode: string;
+  addressCountry: string;
+  createdAt: Date;
+  updatedAt: Date;
+  items: {
+    productId: number;
+    productName: string;
+    productImage: string;
+    quantity: number;
+    price: number;
+  }[];
+}): Order {
+  return {
+    id: o.id,
+    userId: o.userId,
+    customerName: o.customerName,
+    customerEmail: o.customerEmail,
+    customerPhone: o.customerPhone ?? undefined,
+    items: o.items.map((item) => ({
+      productId: item.productId,
+      productName: item.productName,
+      productImage: item.productImage,
+      quantity: item.quantity,
+      price: item.price,
+    })),
+    subtotal: o.subtotal,
+    total: o.total,
+    status: ENUM_TO_STATUS[o.status],
+    address: {
+      street: o.addressStreet,
+      city: o.addressCity,
+      postalCode: o.addressPostalCode,
+      country: o.addressCountry,
+    },
+    paymentMethod: o.paymentMethod,
+    notes: o.notes ?? undefined,
+    trackingNumber: o.trackingNumber ?? undefined,
+    promoCode: o.promoCode ?? undefined,
+    promoDiscount: o.promoDiscount,
+    createdAt: o.createdAt.toISOString(),
+    updatedAt: o.updatedAt.toISOString(),
+  };
 }
 
-export function writeDB(db: DB): void {
-  const dir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
+function dbUserToUser(u: {
+  id: string;
+  email: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  avatar: string | null;
+  addressStreet: string | null;
+  addressCity: string | null;
+  addressPostalCode: string | null;
+  addressCountry: string | null;
+  createdAt: Date;
+}): User {
+  const address: Address | undefined =
+    u.addressStreet && u.addressCity
+      ? {
+          street: u.addressStreet,
+          city: u.addressCity,
+          postalCode: u.addressPostalCode ?? "",
+          country: u.addressCountry ?? "Maroc",
+        }
+      : undefined;
+  return {
+    id: u.id,
+    email: u.email,
+    passwordHash: u.passwordHash,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    phone: u.phone ?? undefined,
+    avatar: u.avatar ?? undefined,
+    address,
+    createdAt: u.createdAt.toISOString(),
+  };
+}
+
+// ── Page View Tracking ────────────────────────────────────────────────────────
+
+export interface PageView {
+  id: string;
+  url: string;
+  referrer: string;
+  ua: string;
+  sessionId: string;
+  timestamp: string;
+}
+
+export async function appendPageView(pv: PageView): Promise<void> {
+  await prisma.pageView.create({
+    data: {
+      id: pv.id,
+      url: pv.url,
+      referrer: pv.referrer,
+      ua: pv.ua,
+      sessionId: pv.sessionId,
+      timestamp: new Date(pv.timestamp),
+    },
+  });
+}
+
+// ── Newsletter ────────────────────────────────────────────────────────────────
+
+export async function getNewsletterSubscribers(): Promise<{ email: string; subscribedAt: string }[]> {
+  const subs = await prisma.newsletterSubscriber.findMany({
+    orderBy: { subscribedAt: "desc" },
+  });
+  return subs.map((s) => ({ email: s.email, subscribedAt: s.subscribedAt.toISOString() }));
+}
+
+export async function subscribeNewsletter(email: string): Promise<{ ok: boolean; alreadyExists: boolean }> {
+  const existing = await prisma.newsletterSubscriber.findUnique({
+    where: { email: email.toLowerCase() },
+  });
+  if (existing) return { ok: false, alreadyExists: true };
+  await prisma.newsletterSubscriber.create({
+    data: { email: email.toLowerCase() },
+  });
+  return { ok: true, alreadyExists: false };
+}
+
+export async function removeNewsletterSubscriber(email: string): Promise<boolean> {
+  try {
+    await prisma.newsletterSubscriber.delete({
+      where: { email: email.toLowerCase() },
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ── Products ──────────────────────────────────────────────────────────────────
-export function getProducts(): Product[] {
-  return readDB().products;
+
+export async function getProducts(): Promise<Product[]> {
+  const products = await prisma.product.findMany({
+    orderBy: { id: "asc" },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      originalPrice: true,
+      currentPrice: true,
+      image: true,
+      badge: true,
+      isRefurbished: true,
+      category: true,
+      brand: true,
+      slug: true,
+      sku: true,
+      condition: true,
+      guarantee: true,
+      inStock: true,
+      stockQuantity: true,
+      specs: true,
+      images: true,
+      descriptionSections: true,
+      characteristics: true,
+      productReviews: true,
+    },
+  });
+  return products.map(dbProductToProduct);
 }
 
-export function getProductBySlug(slug: string): Product | undefined {
-  return readDB().products.find((p) => p.slug === slug);
+/** Lightweight product list — only fields needed for cards */
+export async function getProductCards(): Promise<Product[]> {
+  const products = await prisma.product.findMany({
+    orderBy: { id: "asc" },
+    select: {
+      id: true,
+      name: true,
+      description: false,
+      originalPrice: true,
+      currentPrice: true,
+      image: true,
+      badge: true,
+      isRefurbished: true,
+      category: true,
+      brand: true,
+      slug: true,
+      sku: true,
+      condition: true,
+      guarantee: true,
+      inStock: true,
+      stockQuantity: true,
+      specs: false,
+      images: false,
+      descriptionSections: false,
+      characteristics: false,
+      productReviews: true,
+    },
+  });
+  return products.map((p) => dbProductToProduct({
+    ...p,
+    description: "",
+    specs: [],
+    images: [],
+    descriptionSections: null,
+    characteristics: null,
+  }));
 }
 
-export function getProductById(id: number): Product | undefined {
-  return readDB().products.find((p) => p.id === id);
+export async function getProductBySlug(slug: string): Promise<Product | undefined> {
+  const p = await prisma.product.findUnique({ where: { slug } });
+  return p ? dbProductToProduct(p) : undefined;
 }
 
-export function createProduct(data: Omit<Product, "id">): Product {
-  const db = readDB();
-  const product: Product = { ...(data as object), id: db.nextProductId } as Product;
-  db.products.push(product);
-  db.nextProductId += 1;
-  writeDB(db);
-  return product;
+export async function getProductById(id: number): Promise<Product | undefined> {
+  const p = await prisma.product.findUnique({ where: { id } });
+  return p ? dbProductToProduct(p) : undefined;
 }
 
-export function updateProduct(id: number, data: Partial<Product>): Product | null {
-  const db = readDB();
-  const idx = db.products.findIndex((p) => p.id === id);
-  if (idx === -1) return null;
-  db.products[idx] = { ...db.products[idx], ...data };
-  writeDB(db);
-  return db.products[idx];
+export async function createProduct(data: Omit<Product, "id">): Promise<Product> {
+  const p = await prisma.product.create({
+    data: {
+      name: data.name,
+      description: data.description,
+      originalPrice: data.originalPrice,
+      currentPrice: data.currentPrice,
+      image: data.image,
+      badge: data.badge ?? null,
+      isRefurbished: data.isRefurbished ?? false,
+      category: data.category,
+      brand: data.brand,
+      slug: data.slug,
+      sku: data.sku ?? null,
+      condition: data.condition ?? null,
+      guarantee: data.guarantee ?? null,
+      inStock: data.inStock ?? true,
+      stockQuantity: data.stockQuantity ?? 0,
+      specs: data.specs ?? [],
+      images: data.images ?? [],
+      descriptionSections: (data.descriptionSections as unknown as undefined) ?? undefined,
+      characteristics: (data.characteristics as unknown as undefined) ?? undefined,
+      productReviews: (data.productReviews as unknown as undefined) ?? undefined,
+    },
+  });
+  return dbProductToProduct(p);
 }
 
-export function deleteProduct(id: number): boolean {
-  const db = readDB();
-  const idx = db.products.findIndex((p) => p.id === id);
-  if (idx === -1) return false;
-  db.products.splice(idx, 1);
-  writeDB(db);
-  return true;
+export async function updateProduct(id: number, data: Partial<Product>): Promise<Product | null> {
+  try {
+    const p = await prisma.product.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.originalPrice !== undefined && { originalPrice: data.originalPrice }),
+        ...(data.currentPrice !== undefined && { currentPrice: data.currentPrice }),
+        ...(data.image !== undefined && { image: data.image }),
+        ...(data.badge !== undefined && { badge: data.badge ?? null }),
+        ...(data.isRefurbished !== undefined && { isRefurbished: data.isRefurbished }),
+        ...(data.category !== undefined && { category: data.category }),
+        ...(data.brand !== undefined && { brand: data.brand }),
+        ...(data.slug !== undefined && { slug: data.slug }),
+        ...(data.sku !== undefined && { sku: data.sku ?? null }),
+        ...(data.condition !== undefined && { condition: data.condition ?? null }),
+        ...(data.guarantee !== undefined && { guarantee: data.guarantee ?? null }),
+        ...(data.inStock !== undefined && { inStock: data.inStock }),
+        ...(data.stockQuantity !== undefined && { stockQuantity: data.stockQuantity }),
+        ...(data.specs !== undefined && { specs: data.specs }),
+        ...(data.images !== undefined && { images: data.images }),
+        ...(data.descriptionSections !== undefined && { descriptionSections: data.descriptionSections as unknown as undefined }),
+        ...(data.characteristics !== undefined && { characteristics: data.characteristics as unknown as undefined }),
+        ...(data.productReviews !== undefined && { productReviews: data.productReviews as unknown as undefined }),
+      },
+    });
+    return dbProductToProduct(p);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteProduct(id: number): Promise<boolean> {
+  try {
+    await prisma.product.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ── Categories ────────────────────────────────────────────────────────────────
-export function getCategories(): Category[] {
-  return readDB().categories;
+
+export async function getCategories(): Promise<Category[]> {
+  return prisma.category.findMany({ orderBy: { id: "asc" } });
 }
 
-export function createCategory(data: Omit<Category, "id">): Category {
-  const db = readDB();
-  const cat: Category = { ...data, id: Date.now() };
-  db.categories.push(cat);
-  writeDB(db);
-  return cat;
+export async function createCategory(data: Omit<Category, "id">): Promise<Category> {
+  return prisma.category.create({ data });
 }
 
-export function updateCategory(id: number, data: Partial<Category>): Category | null {
-  const db = readDB();
-  const idx = db.categories.findIndex((c) => c.id === id);
-  if (idx === -1) return null;
-  db.categories[idx] = { ...db.categories[idx], ...data };
-  writeDB(db);
-  return db.categories[idx];
+export async function updateCategory(id: number, data: Partial<Category>): Promise<Category | null> {
+  try {
+    return await prisma.category.update({ where: { id }, data });
+  } catch {
+    return null;
+  }
 }
 
-export function deleteCategory(id: number): boolean {
-  const db = readDB();
-  const idx = db.categories.findIndex((c) => c.id === id);
-  if (idx === -1) return false;
-  db.categories.splice(idx, 1);
-  writeDB(db);
-  return true;
+export async function deleteCategory(id: number): Promise<boolean> {
+  try {
+    await prisma.category.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ── Brands ────────────────────────────────────────────────────────────────────
-export function getBrands(): Brand[] {
-  return readDB().brands;
+
+export async function getBrands(): Promise<Brand[]> {
+  return prisma.brand.findMany({ orderBy: { id: "asc" } });
 }
 
-export function createBrand(data: Omit<Brand, "id">): Brand {
-  const db = readDB();
-  const brand: Brand = { ...data, id: Date.now() };
-  db.brands.push(brand);
-  writeDB(db);
-  return brand;
+export async function createBrand(data: Omit<Brand, "id">): Promise<Brand> {
+  return prisma.brand.create({ data });
 }
 
-export function updateBrand(id: number, data: Partial<Brand>): Brand | null {
-  const db = readDB();
-  const idx = db.brands.findIndex((b) => b.id === id);
-  if (idx === -1) return null;
-  db.brands[idx] = { ...db.brands[idx], ...data };
-  writeDB(db);
-  return db.brands[idx];
+export async function updateBrand(id: number, data: Partial<Brand>): Promise<Brand | null> {
+  try {
+    return await prisma.brand.update({ where: { id }, data });
+  } catch {
+    return null;
+  }
 }
 
-export function deleteBrand(id: number): boolean {
-  const db = readDB();
-  const idx = db.brands.findIndex((b) => b.id === id);
-  if (idx === -1) return false;
-  db.brands.splice(idx, 1);
-  writeDB(db);
-  return true;
+export async function deleteBrand(id: number): Promise<boolean> {
+  try {
+    await prisma.brand.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ── Hero Slides ───────────────────────────────────────────────────────────────
-export function getHeroSlides(): HeroSlide[] {
-  return readDB().heroSlides;
+
+export async function getHeroSlides(): Promise<HeroSlide[]> {
+  return prisma.heroSlide.findMany({ orderBy: { id: "asc" } });
 }
 
-export function createHeroSlide(data: Omit<HeroSlide, "id">): HeroSlide {
-  const db = readDB();
-  const slide: HeroSlide = { ...data, id: Date.now() };
-  db.heroSlides.push(slide);
-  writeDB(db);
-  return slide;
+export async function createHeroSlide(data: Omit<HeroSlide, "id">): Promise<HeroSlide> {
+  return prisma.heroSlide.create({ data });
 }
 
-export function updateHeroSlide(id: number, data: Partial<HeroSlide>): HeroSlide | null {
-  const db = readDB();
-  const idx = db.heroSlides.findIndex((h) => h.id === id);
-  if (idx === -1) return null;
-  db.heroSlides[idx] = { ...db.heroSlides[idx], ...data };
-  writeDB(db);
-  return db.heroSlides[idx];
+export async function updateHeroSlide(id: number, data: Partial<HeroSlide>): Promise<HeroSlide | null> {
+  try {
+    return await prisma.heroSlide.update({ where: { id }, data });
+  } catch {
+    return null;
+  }
 }
 
-export function deleteHeroSlide(id: number): boolean {
-  const db = readDB();
-  const idx = db.heroSlides.findIndex((h) => h.id === id);
-  if (idx === -1) return false;
-  db.heroSlides.splice(idx, 1);
-  writeDB(db);
-  return true;
+export async function deleteHeroSlide(id: number): Promise<boolean> {
+  try {
+    await prisma.heroSlide.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ── Reviews ───────────────────────────────────────────────────────────────────
-export function getReviews(): Review[] {
-  return readDB().reviews;
+
+export async function getReviews(): Promise<Review[]> {
+  return prisma.review.findMany({ orderBy: { id: "asc" } });
 }
 
 // ── Users ─────────────────────────────────────────────────────────────────────
-export function getUsers(): User[] {
-  return readDB().users ?? [];
+
+export async function getUsers(): Promise<User[]> {
+  const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
+  return users.map(dbUserToUser);
 }
 
-export function getUserById(id: string): User | undefined {
-  return (readDB().users ?? []).find((u) => u.id === id);
+export async function getUserById(id: string): Promise<User | undefined> {
+  const u = await prisma.user.findUnique({ where: { id } });
+  return u ? dbUserToUser(u) : undefined;
 }
 
-export function getUserByEmail(email: string): User | undefined {
-  return (readDB().users ?? []).find((u) => u.email.toLowerCase() === email.toLowerCase());
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  const u = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+  return u ? dbUserToUser(u) : undefined;
 }
 
-export function createUser(data: Omit<User, "id" | "createdAt">): User {
-  const db = readDB();
-  if (!db.users) db.users = [];
-  const user: User = {
-    ...data,
-    id: `u_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    createdAt: new Date().toISOString(),
-  };
-  db.users.push(user);
-  writeDB(db);
-  return user;
+export async function createUser(data: Omit<User, "id" | "createdAt">): Promise<User> {
+  const u = await prisma.user.create({
+    data: {
+      email: data.email.toLowerCase(),
+      passwordHash: data.passwordHash,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone ?? null,
+      avatar: data.avatar ?? null,
+      addressStreet: data.address?.street ?? null,
+      addressCity: data.address?.city ?? null,
+      addressPostalCode: data.address?.postalCode ?? null,
+      addressCountry: data.address?.country ?? null,
+    },
+  });
+  return dbUserToUser(u);
 }
 
-export function updateUser(id: string, data: Partial<Omit<User, "id" | "createdAt">>): User | null {
-  const db = readDB();
-  if (!db.users) db.users = [];
-  const idx = db.users.findIndex((u) => u.id === id);
-  if (idx === -1) return null;
-  db.users[idx] = { ...db.users[idx], ...data };
-  writeDB(db);
-  return db.users[idx];
+export async function updateUser(id: string, data: Partial<Omit<User, "id" | "createdAt">>): Promise<User | null> {
+  try {
+    const u = await prisma.user.update({
+      where: { id },
+      data: {
+        ...(data.email !== undefined && { email: data.email.toLowerCase() }),
+        ...(data.passwordHash !== undefined && { passwordHash: data.passwordHash }),
+        ...(data.firstName !== undefined && { firstName: data.firstName }),
+        ...(data.lastName !== undefined && { lastName: data.lastName }),
+        ...(data.phone !== undefined && { phone: data.phone ?? null }),
+        ...(data.avatar !== undefined && { avatar: data.avatar ?? null }),
+        ...(data.address !== undefined && {
+          addressStreet: data.address?.street ?? null,
+          addressCity: data.address?.city ?? null,
+          addressPostalCode: data.address?.postalCode ?? null,
+          addressCountry: data.address?.country ?? null,
+        }),
+      },
+    });
+    return dbUserToUser(u);
+  } catch {
+    return null;
+  }
 }
 
 // ── Orders ────────────────────────────────────────────────────────────────────
-export function getOrdersByUserId(userId: string): Order[] {
-  return (readDB().orders ?? []).filter((o) => o.userId === userId);
+
+export async function getOrders(): Promise<Order[]> {
+  const orders = await prisma.order.findMany({
+    include: { items: true },
+    orderBy: { createdAt: "desc" },
+  });
+  return orders.map(dbOrderToOrder);
 }
 
-export function getOrderById(id: string): Order | undefined {
-  return (readDB().orders ?? []).find((o) => o.id === id);
+export async function getOrdersByUserId(userId: string): Promise<Order[]> {
+  const orders = await prisma.order.findMany({
+    where: { userId },
+    include: { items: true },
+    orderBy: { createdAt: "desc" },
+  });
+  return orders.map(dbOrderToOrder);
 }
 
-export function createOrder(data: Omit<Order, "id" | "createdAt" | "updatedAt">): Order {
-  const db = readDB();
-  if (!db.orders) db.orders = [];
-  const now = new Date().toISOString();
-  const order: Order = {
-    ...data,
-    id: `ord_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    createdAt: now,
-    updatedAt: now,
+export async function getOrderById(id: string): Promise<Order | undefined> {
+  const o = await prisma.order.findUnique({
+    where: { id },
+    include: { items: true },
+  });
+  return o ? dbOrderToOrder(o) : undefined;
+}
+
+export async function createOrder(data: Omit<Order, "id" | "createdAt" | "updatedAt">): Promise<Order> {
+  const o = await prisma.order.create({
+    data: {
+      userId: data.userId,
+      customerName: data.customerName,
+      customerEmail: data.customerEmail,
+      customerPhone: data.customerPhone ?? null,
+      subtotal: data.subtotal,
+      total: data.total,
+      status: STATUS_TO_ENUM[data.status] ?? OrderStatus.PENDING,
+      paymentMethod: data.paymentMethod,
+      notes: data.notes ?? null,
+      trackingNumber: null,
+      promoCode: data.promoCode ?? null,
+      promoDiscount: data.promoDiscount ?? 0,
+      addressStreet: data.address.street,
+      addressCity: data.address.city,
+      addressPostalCode: data.address.postalCode,
+      addressCountry: data.address.country,
+      items: {
+        create: data.items.map((item) => ({
+          productId: item.productId,
+          productName: item.productName,
+          productImage: item.productImage,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      },
+    },
+    include: { items: true },
+  });
+  return dbOrderToOrder(o);
+}
+
+export async function updateOrderStatus(id: string, status: Order["status"]): Promise<Order | null> {
+  try {
+    const o = await prisma.order.update({
+      where: { id },
+      data: { status: STATUS_TO_ENUM[status] ?? OrderStatus.PENDING },
+      include: { items: true },
+    });
+    return dbOrderToOrder(o);
+  } catch {
+    return null;
+  }
+}
+
+// ── Read DB (for analytics/stats — returns raw counts) ────────────────────────
+
+export async function getDBStats() {
+  const [
+    products,
+    categories,
+    brands,
+    heroSlides,
+    orders,
+    subscribers,
+    users,
+  ] = await Promise.all([
+    prisma.product.findMany(),
+    prisma.category.count(),
+    prisma.brand.count(),
+    prisma.heroSlide.count(),
+    prisma.order.findMany({ select: { status: true, total: true } }),
+    prisma.newsletterSubscriber.count(),
+    prisma.user.count(),
+  ]);
+
+  return {
+    products: products.length,
+    categories,
+    brands,
+    heroSlides,
+    inStock: products.filter((p) => p.inStock).length,
+    outOfStock: products.filter((p) => !p.inStock).length,
+    orders: orders.length,
+    pendingOrders: orders.filter((o) => o.status === OrderStatus.PENDING).length,
+    revenue: orders.reduce((s, o) => s + o.total, 0),
+    subscribers,
+    users,
   };
-  db.orders.push(order);
-  writeDB(db);
-  return order;
 }
 
-export function updateOrderStatus(id: string, status: Order["status"]): Order | null {
-  const db = readDB();
-  if (!db.orders) db.orders = [];
-  const idx = db.orders.findIndex((o) => o.id === id);
-  if (idx === -1) return null;
-  db.orders[idx].status = status;
-  db.orders[idx].updatedAt = new Date().toISOString();
-  writeDB(db);
-  return db.orders[idx];
+export async function getPageViews() {
+  return prisma.pageView.findMany({
+    orderBy: { timestamp: "desc" },
+    take: 50000,
+  });
+}
+
+// ── Promos ─────────────────────────────────────────────────────────────────────
+
+export interface PromoData {
+  id: number;
+  code: string;
+  type: "percent" | "fixed";
+  value: number;
+  minOrder: number;
+  uses: number;
+  maxUses: number;
+  active: boolean;
+  expires: string;
+}
+
+export async function getPromos(): Promise<PromoData[]> {
+  const promos = await prisma.promo.findMany({ orderBy: { createdAt: "desc" } });
+  return promos.map((p) => ({
+    id: p.id,
+    code: p.code,
+    type: p.type as "percent" | "fixed",
+    value: p.value,
+    minOrder: p.minOrder,
+    uses: p.uses,
+    maxUses: p.maxUses,
+    active: p.active,
+    expires: p.expires.toISOString().split("T")[0],
+  }));
+}
+
+export async function createPromo(data: Omit<PromoData, "id" | "uses">): Promise<PromoData> {
+  const p = await prisma.promo.create({
+    data: {
+      code: data.code.toUpperCase(),
+      type: data.type,
+      value: data.value,
+      minOrder: data.minOrder,
+      maxUses: data.maxUses,
+      active: data.active,
+      expires: new Date(data.expires),
+    },
+  });
+  return { id: p.id, code: p.code, type: p.type as "percent" | "fixed", value: p.value, minOrder: p.minOrder, uses: p.uses, maxUses: p.maxUses, active: p.active, expires: p.expires.toISOString().split("T")[0] };
+}
+
+export async function updatePromo(id: number, data: Partial<PromoData>): Promise<PromoData | null> {
+  try {
+    const p = await prisma.promo.update({
+      where: { id },
+      data: {
+        ...(data.code !== undefined && { code: data.code.toUpperCase() }),
+        ...(data.type !== undefined && { type: data.type }),
+        ...(data.value !== undefined && { value: data.value }),
+        ...(data.minOrder !== undefined && { minOrder: data.minOrder }),
+        ...(data.maxUses !== undefined && { maxUses: data.maxUses }),
+        ...(data.active !== undefined && { active: data.active }),
+        ...(data.uses !== undefined && { uses: data.uses }),
+        ...(data.expires !== undefined && { expires: new Date(data.expires) }),
+      },
+    });
+    return { id: p.id, code: p.code, type: p.type as "percent" | "fixed", value: p.value, minOrder: p.minOrder, uses: p.uses, maxUses: p.maxUses, active: p.active, expires: p.expires.toISOString().split("T")[0] };
+  } catch {
+    return null;
+  }
+}
+
+export async function deletePromo(id: number): Promise<boolean> {
+  try {
+    await prisma.promo.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function validatePromoCode(code: string, subtotal: number): Promise<{ ok: boolean; code?: string; label?: string; discount?: number; error?: string }> {
+  const promo = await prisma.promo.findUnique({ where: { code: code.toUpperCase() } });
+  if (!promo) return { ok: false, error: "Code promo invalide" };
+  if (!promo.active) return { ok: false, error: "Ce code promo n'est plus actif" };
+  if (new Date() > promo.expires) return { ok: false, error: "Ce code promo a expiré" };
+  if (promo.uses >= promo.maxUses) return { ok: false, error: "Ce code promo a atteint sa limite d'utilisation" };
+  if (subtotal < promo.minOrder) return { ok: false, error: `Commande minimum de ${promo.minOrder}€ requise` };
+
+  const discount = promo.type === "percent"
+    ? Math.round((subtotal * promo.value) / 100)
+    : Math.min(promo.value, subtotal);
+  const label = promo.type === "percent" ? `-${promo.value}%` : `-${promo.value}€`;
+
+  return { ok: true, code: promo.code, label, discount };
+}
+
+export async function incrementPromoUses(code: string): Promise<void> {
+  await prisma.promo.update({ where: { code: code.toUpperCase() }, data: { uses: { increment: 1 } } }).catch(() => {});
+}
+
+// ── Site Settings ─────────────────────────────────────────────────────────────
+
+export async function getSiteSettings(): Promise<Record<string, string>> {
+  const settings = await prisma.siteSetting.findMany();
+  const result: Record<string, string> = {};
+  for (const s of settings) result[s.key] = s.value;
+  return result;
+}
+
+export async function saveSiteSettings(data: Record<string, string>): Promise<void> {
+  const ops = Object.entries(data).map(([key, value]) =>
+    prisma.siteSetting.upsert({ where: { key }, create: { key, value }, update: { value } })
+  );
+  await Promise.all(ops);
+}
+
+// ── Admin Activity Log ────────────────────────────────────────────────────────
+
+export async function addAdminLog(action: string, detail: string): Promise<void> {
+  await prisma.adminLog.create({ data: { action, detail } });
+}
+
+export async function getAdminLogs(limit = 50): Promise<{ id: number; action: string; detail: string; createdAt: string }[]> {
+  const logs = await prisma.adminLog.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+  return logs.map(l => ({ id: l.id, action: l.action, detail: l.detail, createdAt: l.createdAt.toISOString() }));
+}
+
+// ── Delivery Zones ────────────────────────────────────────────────────────────
+
+export interface DeliveryZoneData {
+  id: number;
+  name: string;
+  cities: string[];
+  fee: number;
+  active: boolean;
+}
+
+export async function getDeliveryZones(): Promise<DeliveryZoneData[]> {
+  return prisma.deliveryZone.findMany({ orderBy: { id: "asc" } });
+}
+
+export async function createDeliveryZone(data: Omit<DeliveryZoneData, "id">): Promise<DeliveryZoneData> {
+  return prisma.deliveryZone.create({ data });
+}
+
+export async function updateDeliveryZone(id: number, data: Partial<DeliveryZoneData>): Promise<DeliveryZoneData | null> {
+  try {
+    return await prisma.deliveryZone.update({ where: { id }, data });
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteDeliveryZone(id: number): Promise<boolean> {
+  try {
+    await prisma.deliveryZone.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getDeliveryFeeForCity(city: string): Promise<number | null> {
+  const zones = await prisma.deliveryZone.findMany({ where: { active: true } });
+  const normalized = city.toLowerCase().trim();
+  for (const zone of zones) {
+    if (zone.cities.some(c => c.toLowerCase().trim() === normalized)) {
+      return zone.fee;
+    }
+  }
+  return null;
 }

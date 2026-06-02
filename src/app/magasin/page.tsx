@@ -33,19 +33,50 @@ export default function MagasinPage() {
                 <span className="text-orange-400">rendre visite</span>
               </h1>
               <p className="text-slate-400 text-base leading-relaxed max-w-md">
-                Retrouvez-nous en boutique a Casablanca. Notre equipe vous accueille 7j/7 pour vous conseiller et tester nos produits.
+                Retrouvez-nous en boutique à Casablanca. Notre équipe vous accueille 7j/7 pour vous conseiller et tester nos produits.
               </p>
               <div className="mt-8 flex gap-3">
                 <a href="https://maps.google.com/?q=Boulevard+Zerktouni+Maarif+Casablanca" target="_blank" rel="noopener noreferrer"
                   className="bg-orange-500 hover:bg-orange-600 text-white font-black px-6 py-3 rounded-xl transition-all text-sm shadow-lg shadow-orange-500/30">
-                  Itineraire &rarr;
+                  Itinéraire &rarr;
                 </a>
-                <Link href="/contact" className="border border-slate-700 hover:border-orange-400 text-slate-400 hover:text-orange-400 font-bold px-6 py-3 rounded-xl transition-all text-sm">
+                <a href="tel:+212716408919" className="border border-slate-700 hover:border-orange-400 text-slate-400 hover:text-orange-400 font-bold px-6 py-3 rounded-xl transition-all text-sm">
                   Nous appeler
-                </Link>
+                </a>
               </div>
             </div>
 
+            {/* Hero right — quick stats */}
+            <div className="hidden lg:flex flex-col gap-4 pb-16">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                  <p className="text-3xl font-black text-orange-400">7j/7</p>
+                  <p className="text-slate-400 text-xs mt-1">Ouvert toute la semaine</p>
+                </div>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
+                  <p className="text-3xl font-black text-orange-400">09h</p>
+                  <p className="text-slate-400 text-xs mt-1">Ouverture dès 09h00</p>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Boulevard Zerktouni, Maarif</p>
+                  <p className="text-slate-400 text-xs">Casablanca 20100, Maroc</p>
+                </div>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">(+212) 716-408919</p>
+                  <p className="text-slate-400 text-xs">contact@electroshop-tech.com</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="relative h-16 overflow-hidden">
@@ -110,18 +141,17 @@ export default function MagasinPage() {
           {/* Right side */}
           <div className="space-y-5">
             {/* Map */}
-            <div className="bg-slate-950 rounded-3xl overflow-hidden h-64 flex items-center justify-center border border-slate-800 relative">
-              <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-7 h-7 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                </div>
-                <p className="text-slate-300 font-bold text-sm mb-1">Boulevard Zerktouni</p>
-                <p className="text-slate-500 text-xs mb-4">Maarif, Casablanca</p>
-                <a href="https://maps.google.com/?q=Boulevard+Zerktouni+Maarif+Casablanca" target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all">
-                  Ouvrir dans Google Maps &rarr;
-                </a>
-              </div>
+            <div className="rounded-3xl overflow-hidden h-72 border border-slate-200 shadow-lg">
+              <iframe
+                src="https://maps.google.com/maps?q=Boulevard+Zerktouni,Maarif,Casablanca,Morocco&output=embed&z=15"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="ElectroShop-Tech localisation"
+              />
             </div>
 
             {/* Services */}

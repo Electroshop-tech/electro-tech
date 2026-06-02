@@ -1,0 +1,19 @@
+{
+  "name": "ElectroShop-Tech",
+  "short_name": "ElectroShop",
+  "description": "Passerelle Multimédia, Accessoires & Caméras au Maroc",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050814",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/images/fav icon.jpg",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["shopping", "electronics"],
+  "lang": "fr"
+}
