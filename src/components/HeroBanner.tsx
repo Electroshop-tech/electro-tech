@@ -23,6 +23,8 @@ const SLIDES = [
     href: "/produits/android-tv-box-x96q",
     glow: "rgba(249,115,22,0.38)",
     glow2: "rgba(234,88,12,0.2)",
+    glowImg: "rgba(249,115,22,0.24)",
+    chips: [{ label: "Android", value: "10" }, { label: "RAM", value: "2 Go", accent: true }],
     rating: 4.8,
     reviews: 47,
   },
@@ -44,6 +46,8 @@ const SLIDES = [
     href: "/produits/android-tv-stick-mortal-q8",
     glow: "rgba(99,102,241,0.38)",
     glow2: "rgba(139,92,246,0.2)",
+    glowImg: "rgba(99,102,241,0.24)",
+    chips: [{ label: "Android", value: "10" }, { label: "Ultra", value: "4K", accent: true }],
     rating: 4.6,
     reviews: 28,
   },
@@ -159,7 +163,7 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
           </div>
 
           {/* Dot grid */}
-          <div className="absolute inset-0 opacity-[0.018] pointer-events-none" style={{ backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.9) 1px,transparent 1px)", backgroundSize:"44px 44px" }} />
+          <div className="absolute inset-0 opacity-[0.030] pointer-events-none" style={{ backgroundImage:"radial-gradient(circle,rgba(255,255,255,0.9) 1px,transparent 1px)", backgroundSize:"44px 44px" }} />
 
           {/* Two-column layout */}
           <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-8 lg:px-14 grid lg:grid-cols-2 items-center gap-4 sm:gap-6 lg:gap-10 pt-5 pb-16 sm:pt-10 sm:pb-24 lg:pt-0 lg:pb-16">
@@ -273,20 +277,25 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
 
             {/* ── Right: 3D image ── */}
             <div className="relative h-64 sm:h-72 lg:h-full flex items-center justify-center order-1 lg:order-2" style={{ transformStyle:"preserve-3d" }}>
-              {/* Warm ambient glow behind image so screen blend-mode dissolves the JPEG black background */}
+              {/* Ambient light — warm centre bleeds into slide accent for stronger screen-blend transparency */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
-                <div style={{ width: '85%', height: '85%', borderRadius: '50%', background: 'radial-gradient(ellipse at 50% 55%, rgba(255,210,140,0.32) 0%, rgba(249,115,22,0.18) 38%, rgba(234,88,12,0.06) 60%, transparent 75%)' }} />
+                <div style={{ width: '95%', height: '95%', borderRadius: '50%', background: `radial-gradient(ellipse 62% 62% at 50% 52%, rgba(255,242,200,0.72) 0%, rgba(255,205,100,0.42) 20%, ${slide.glowImg} 50%, transparent 72%)` }} />
               </div>
-              {/* Floating spec chips */}
+              {/* Left & bottom edge fades — image dissolves seamlessly into hero background */}
+              <div className="absolute inset-y-0 left-0 w-2/5 pointer-events-none z-[5] hidden lg:block" style={{ background: 'linear-gradient(to right, #050814 0%, rgba(5,8,20,0.55) 50%, transparent 100%)' }} />
+              <div className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none z-[5]" style={{ background: 'linear-gradient(to top, #050814 0%, rgba(5,8,20,0.4) 60%, transparent 100%)' }} />
+              {/* Floating spec chips — driven by slide data */}
               <div className="absolute top-2 right-2 sm:top-4 sm:right-0 hidden sm:flex flex-col gap-2 z-10">
-                <div className="bg-white/[0.06] backdrop-blur-sm border border-white/[0.10] rounded-2xl px-3.5 py-2 text-center shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
-                  <div className="text-[9px] text-white/40 font-semibold uppercase tracking-widest">Android</div>
-                  <div className="text-xl font-black text-white leading-none mt-0.5">10</div>
-                </div>
-                <div className="bg-orange-500/10 backdrop-blur-sm border border-orange-500/20 rounded-2xl px-3.5 py-2 text-center shadow-[0_4px_16px_rgba(249,115,22,0.15)]">
-                  <div className="text-[9px] text-orange-300/60 font-semibold uppercase tracking-widest">Ultra</div>
-                  <div className="text-xl font-black text-orange-400 leading-none mt-0.5">4K</div>
-                </div>
+                {slide.chips.map((chip) => (
+                  <div key={chip.value} className={`backdrop-blur-sm rounded-2xl px-3.5 py-2 text-center ${
+                    chip.accent
+                      ? "bg-orange-500/10 border border-orange-500/20 shadow-[0_4px_16px_rgba(249,115,22,0.15)]"
+                      : "bg-white/[0.06] border border-white/[0.10] shadow-[0_4px_16px_rgba(0,0,0,0.3)]"
+                  }`}>
+                    <div className={`text-[9px] font-semibold uppercase tracking-widest ${chip.accent ? "text-orange-300/60" : "text-white/40"}`}>{chip.label}</div>
+                    <div className={`text-xl font-black leading-none mt-0.5 ${chip.accent ? "text-orange-400" : "text-white"}`}>{chip.value}</div>
+                  </div>
+                ))}
               </div>
               {exiting !== null && (
                 <div
@@ -294,7 +303,7 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
                   className={`absolute inset-0 flex items-center justify-center ${dir === "right" ? "hero-exit-left" : "hero-exit-right"}`}
                   style={{ transformStyle:"preserve-3d" }}
                 >
-                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" style={{ mixBlendMode: 'screen', WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)', maskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)' }} />
+                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" style={{ mixBlendMode: 'screen', filter: 'brightness(1.18) contrast(1.04) saturate(1.1)', WebkitMaskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 14%, rgba(0,0,0,0.9) 36%, rgba(0,0,0,0.42) 60%, transparent 76%)', maskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 14%, rgba(0,0,0,0.9) 36%, rgba(0,0,0,0.42) 60%, transparent 76%)' }} />
                 </div>
               )}
               <div
@@ -302,7 +311,7 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
                 className={busy ? (dir === "right" ? "hero-enter-right" : "hero-enter-left") : "hero-float"}
                 style={{ transformStyle:"preserve-3d" }}
               >
-                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" style={{ mixBlendMode: 'screen', WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)', maskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)' }} priority={current === 0} />
+                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" style={{ mixBlendMode: 'screen', filter: 'brightness(1.18) contrast(1.04) saturate(1.1)', WebkitMaskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 14%, rgba(0,0,0,0.9) 36%, rgba(0,0,0,0.42) 60%, transparent 76%)', maskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 14%, rgba(0,0,0,0.9) 36%, rgba(0,0,0,0.42) 60%, transparent 76%)' }} priority={current === 0} />
               </div>
             </div>
 
