@@ -30,6 +30,7 @@ export default function CommanderPage() {
     address: "", city: "", wilaya: "", zip: "", notes: "",
   });
   const [payment, setPayment] = useState<"cod" | "cmi">("cod");
+  const [showMobileSummary, setShowMobileSummary] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [errors, setErrors] = useState<Partial<typeof form>>({});
@@ -220,18 +221,64 @@ export default function CommanderPage() {
       <form onSubmit={handleSubmit} noValidate>
 
         {/* Mobile order summary strip */}
-        <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-            <span className="text-xs text-gray-500 font-semibold">{totalQty} article{totalQty > 1 ? "s" : ""}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-gray-400">Total</span>
-            <span className="text-base font-black text-orange-500">{total.toLocaleString()}€</span>
-            <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">Livraison gratuite</span>
-          </div>
+        <div className="lg:hidden">
+          <button
+            type="button"
+            onClick={() => setShowMobileSummary(p => !p)}
+            className="w-full bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between active:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              <span className="text-xs text-gray-500 font-semibold">{totalQty} article{totalQty > 1 ? "s" : ""}</span>
+              <svg className={`w-3.5 h-3.5 text-orange-500 transition-transform duration-200 ${showMobileSummary ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-400">Total</span>
+              <span className="text-base font-black text-orange-500">{total.toLocaleString()}€</span>
+              <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">Livraison gratuite</span>
+            </div>
+          </button>
+          {showMobileSummary && (
+            <div className="bg-white border-b border-gray-100 px-4 py-4 space-y-3">
+              <div className="space-y-3 max-h-56 overflow-y-auto">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex items-center gap-3">
+                    <div className="relative shrink-0">
+                      <Image src={item.image} alt={item.name} width={44} height={44} sizes="44px" className="w-11 h-11 object-contain rounded-lg bg-gray-50 border border-gray-100" />
+                      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{item.qty}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{item.name}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{item.brand}</p>
+                    </div>
+                    <p className="text-sm font-black text-slate-900 shrink-0">{(item.price * item.qty).toLocaleString()}€</p>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-gray-100 pt-3 space-y-1.5">
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Sous-total</span><span className="font-bold text-slate-900">{subtotal.toLocaleString()}€</span>
+                </div>
+                {promoApplied && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-green-600 font-semibold">{promoApplied.code}</span>
+                    <span className="font-bold text-green-600">-{promoApplied.discount.toLocaleString()}€</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-xs text-green-600">
+                  <span className="font-semibold">Livraison</span><span className="font-black">Gratuite</span>
+                </div>
+                <div className="flex justify-between items-center pt-1 border-t border-gray-100">
+                  <span className="text-sm font-black text-slate-900">Total</span>
+                  <span className="text-xl font-black text-orange-500">{total.toLocaleString()}€</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="max-w-5xl mx-auto px-4 py-6 pb-36 lg:pb-6">
