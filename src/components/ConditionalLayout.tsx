@@ -21,7 +21,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
 
   return (
     <>
-      {!isAdmin && !isProductPage && <Header />}
+      {!isAdmin && <Header />}
       <main>{children}</main>
       {!isAdmin && <Footer />}
       {!isAdmin && <CookieConsent />}
