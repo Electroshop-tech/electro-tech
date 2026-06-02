@@ -24,6 +24,10 @@ export default function ScrollAnimations() {
   useEffect(() => {
     const root = document;
 
+    // Signal to CSS that the reveal JS is alive — cancels the CSS failsafe
+    // animation so the IntersectionObserver fully controls the reveal timing.
+    root.documentElement.classList.add("reveal-js");
+
     // Set CSS custom property for any element with a numeric reveal-delay
     const setDelays = () => {
       (root.querySelectorAll("[data-reveal-delay]") as NodeListOf<HTMLElement>).forEach((el) => {
@@ -36,6 +40,14 @@ export default function ScrollAnimations() {
     });
 
     setDelays();
+
+    // Failsafe: if IntersectionObserver is unavailable, reveal everything now.
+    if (typeof IntersectionObserver === "undefined") {
+      (root.querySelectorAll("[data-reveal]") as NodeListOf<HTMLElement>).forEach((el) => {
+        el.classList.add("in-view");
+      });
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
