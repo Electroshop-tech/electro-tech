@@ -147,7 +147,7 @@ export default function Header() {
   };
 
   return (
-    <header className={`sticky top-0 z-50 border-b border-slate-200/70 shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-transform duration-300 ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
+    <header className={`sticky top-0 z-50 isolate bg-[#162456] border-b border-slate-200/70 shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition-transform duration-300 will-change-transform [backface-visibility:hidden] [-webkit-backface-visibility:hidden] ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
       {/* Top bar - hidden on mobile */}
       <div className="hidden sm:block bg-[#0d1836] text-white text-xs border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-9">

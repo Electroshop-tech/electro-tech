@@ -19,7 +19,9 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* Native (instant) scrolling for a snappy, responsive feel on mobile.
+     Smooth scrolling is opt-in per-action instead of forced globally. */
+  scroll-behavior: auto;
 }
 
 /* Fixed background — never repaints on scroll, runs entirely on the compositor */
