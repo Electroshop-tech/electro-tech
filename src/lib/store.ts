@@ -1295,6 +1295,26 @@ export async function deleteMessage(id: string): Promise<boolean> {
   }
 }
 
+// ── Admin badge counts (lightweight) ──────────────────────────────────────────
+// Returns the small set of "needs attention" counts used by the sidebar badges
+// and the dashboard "À traiter" widget. Uses cheap COUNT queries.
+export interface AdminCounts {
+  unreadMessages: number;
+  pendingOrders: number;
+  pendingReturns: number;
+  outOfStock: number;
+}
+
+export async function getAdminCounts(): Promise<AdminCounts> {
+  const [unreadMessages, pendingOrders, pendingReturns, outOfStock] = await Promise.all([
+    prisma.contactMessage.count({ where: { read: false } }),
+    prisma.order.count({ where: { status: OrderStatus.PENDING } }),
+    prisma.return.count({ where: { status: "pending" } }),
+    prisma.product.count({ where: { inStock: false } }),
+  ]);
+  return { unreadMessages, pendingOrders, pendingReturns, outOfStock };
+}
+
 // ── Back-in-stock notifications ───────────────────────────────────────────────
 
 export interface StockNotificationData {

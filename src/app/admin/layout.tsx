@@ -204,6 +204,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [counts, setCounts] = useState<{ unreadMessages: number; pendingOrders: number; pendingReturns: number; outOfStock: number } | null>(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -221,6 +222,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       })
       .catch(() => setLoading(false));
   }, []);
+
+  // Load the "needs attention" counts for the sidebar badges. Refreshes when the
+  // route changes (e.g. after reading a message) and every 60s while open.
+  useEffect(() => {
+    if (!authenticated) return;
+    let cancelled = false;
+    const load = () => {
+      fetch("/api/admin/counts", { credentials: "include" })
+        .then(r => (r.ok ? r.json() : null))
+        .then(data => { if (!cancelled && data) setCounts(data); })
+        .catch(() => { /* ignore */ });
+    };
+    load();
+    const id = setInterval(load, 60000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [authenticated, pathname]);
 
   const handleLogin = useCallback(
     async (e: React.FormEvent) => {
@@ -392,6 +409,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     item.href === "/admin"
                       ? pathname === "/admin"
                       : pathname === item.href || pathname.startsWith(item.href + "/");
+                  // Dynamic "needs attention" count for specific items.
+                  const countBadge =
+                    item.href === "/admin/messages" ? counts?.unreadMessages :
+                    item.href === "/admin/orders" ? counts?.pendingOrders :
+                    item.href === "/admin/returns" ? counts?.pendingReturns :
+                    item.href === "/admin/inventory" ? counts?.outOfStock :
+                    undefined;
                   return (
                     <Link
                       key={item.href}
@@ -410,11 +434,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         {item.icon}
                       </span>
                       <span className="flex-1">{item.label}</span>
-                      {"badge" in item && item.badge && (
+                      {countBadge ? (
+                        <span className="min-w-[18px] text-center text-[10px] font-black px-1.5 py-0.5 rounded-full bg-orange-500 text-white">
+                          {countBadge > 99 ? "99+" : countBadge}
+                        </span>
+                      ) : "badge" in item && item.badge ? (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
                           {item.badge}
                         </span>
-                      )}
+                      ) : null}
                     </Link>
                   );
                 })}

@@ -39,6 +39,7 @@ const quickLinks = [
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [counts, setCounts] = useState<{ unreadMessages: number; pendingOrders: number; pendingReturns: number; outOfStock: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,6 +50,9 @@ export default function AdminDashboard() {
       fetch("/api/admin/orders")
         .then((r) => r.json())
         .then((d) => setRecentOrders((d.orders ?? []).slice(0, 5))),
+      fetch("/api/admin/counts", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => { if (d) setCounts(d); }),
     ])
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -70,6 +74,37 @@ export default function AdminDashboard() {
         <h2 className="text-xl font-black mb-1">Bienvenue dans l&apos;administration 👋</h2>
         <p className="text-slate-400 text-sm">Gérez vos produits, catégories, marques et bannières depuis ce tableau de bord.</p>
       </div>
+
+      {/* À traiter — needs action */}
+      {counts && (counts.unreadMessages + counts.pendingOrders + counts.pendingReturns + counts.outOfStock > 0) && (
+        <div>
+          <h3 className="text-slate-900 font-black text-sm uppercase tracking-widest mb-3">À traiter</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { show: counts.pendingOrders > 0, href: "/admin/orders", value: counts.pendingOrders, label: counts.pendingOrders > 1 ? "Commandes en attente" : "Commande en attente", color: "text-blue-600", bg: "bg-blue-50", ring: "border-blue-200", icon: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" },
+              { show: counts.unreadMessages > 0, href: "/admin/messages", value: counts.unreadMessages, label: counts.unreadMessages > 1 ? "Messages non lus" : "Message non lu", color: "text-orange-600", bg: "bg-orange-50", ring: "border-orange-200", icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
+              { show: counts.pendingReturns > 0, href: "/admin/returns", value: counts.pendingReturns, label: counts.pendingReturns > 1 ? "Retours à valider" : "Retour à valider", color: "text-violet-600", bg: "bg-violet-50", ring: "border-violet-200", icon: "M3 10h10a4 4 0 014 4v0a4 4 0 01-4 4H9m-6-8l4-4m-4 4l4 4" },
+              { show: counts.outOfStock > 0, href: "/admin/inventory", value: counts.outOfStock, label: counts.outOfStock > 1 ? "Produits épuisés" : "Produit épuisé", color: "text-red-600", bg: "bg-red-50", ring: "border-red-200", icon: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+            ].filter((c) => c.show).map((c) => (
+              <Link
+                key={c.href}
+                href={c.href}
+                className={`${c.bg} border ${c.ring} rounded-2xl p-4 flex items-center gap-3 hover:shadow-md transition-shadow`}
+              >
+                <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <svg className={`w-5 h-5 ${c.color}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d={c.icon} />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <div className={`text-2xl font-black ${c.color} leading-none`}>{c.value}</div>
+                  <div className="text-slate-600 text-xs mt-1 font-semibold truncate">{c.label}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
