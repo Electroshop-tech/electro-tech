@@ -1,0 +1,44 @@
+# ElectroShop-Tech
+
+> ElectroShop-Tech est une boutique e-commerce marocaine spécialisée dans les box multimédias Android TV, les systèmes de vidéosurveillance (caméras IP) et les accessoires high-tech. Tous les produits sont 100% authentiques, garantis, avec paiement à la livraison et expédition rapide partout au Maroc.
+
+## À propos
+
+- **Nom** : ElectroShop-Tech
+- **Pays** : Maroc (livraison nationale)
+- **Ville** : Casablanca
+- **Langues** : Français, Arabe
+- **Téléphone** : +212 716 408919
+- **Paiement** : Paiement à la livraison (Cash on Delivery)
+- **Devise** : Dirham marocain (MAD)
+- **Site** : https://electroshop-tech.com
+
+## Catégories de produits
+
+- **Passerelles multimédias / Box Android TV** : box et clés Android TV pour streaming (ex. X96Q, X96Q Pro, Mortal Q8).
+- **Caméras de surveillance** : caméras IP et systèmes de vidéosurveillance pour maison et entreprise.
+- **Accessoires high-tech** : télécommandes, câbles, supports et accessoires compatibles.
+
+## Pages principales
+
+- [Accueil](https://electroshop-tech.com)
+- [Tous les produits](https://electroshop-tech.com/produits)
+- [Promotions](https://electroshop-tech.com/promotions)
+- [Nouveautés](https://electroshop-tech.com/nouveautes)
+- [À propos](https://electroshop-tech.com/a-propos)
+- [Contact](https://electroshop-tech.com/contact)
+- [FAQ](https://electroshop-tech.com/faq)
+- [Livraison](https://electroshop-tech.com/livraison)
+- [Garanties](https://electroshop-tech.com/garanties)
+- [Retours](https://electroshop-tech.com/retours)
+
+## Avantages
+
+- Produits 100% authentiques et garantis
+- Livraison rapide partout au Maroc
+- Paiement à la livraison
+- Service client en français et en arabe
+
+## Ressources
+
+- [Plan du site (sitemap)](https://electroshop-tech.com/sitemap.xml)

@@ -16,6 +16,11 @@ export const metadata: Metadata = {
   keywords: "android tv box maroc, box multimedia maroc, camera surveillance maroc, accessoires tv maroc, electroshop tech, electroshop-tech",
   metadataBase: new URL("https://electroshop-tech.com"),
   other: { "theme-color": "#f97316" },
+  verification: {
+    // Paste the token from Google Search Console > Settings > Ownership verification
+    // > "HTML tag" method (the content="..." value). Or set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION.
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+  },
   openGraph: {
     type: "website",
     locale: "fr_MA",
