@@ -59,6 +59,7 @@ export default function Header() {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/auth/me").then(r => r.json()).then(d => setAuthUser(d.user ?? null)).catch(() => {});
@@ -84,9 +85,9 @@ export default function Header() {
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSuggestionsOpen(false); setSelectedIdx(-1);
-      }
+      const inDesktop = searchRef.current?.contains(e.target as Node);
+      const inMobile = mobileSearchRef.current?.contains(e.target as Node);
+      if (!inDesktop && !inMobile) { setSuggestionsOpen(false); setSelectedIdx(-1); }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -527,24 +528,46 @@ export default function Header() {
       </div>
 
       {/* Mobile search row */}
-      <div className="sm:hidden bg-[#172554] px-3 pb-3 pt-0.5">
+      <div className="sm:hidden bg-[#172554] px-3 pb-3 pt-0.5" ref={mobileSearchRef}>
         <form
-          className="flex items-center gap-2 bg-white rounded-full px-4 py-0 shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
+          className="flex items-center gap-2 bg-white rounded-2xl px-4 py-0 shadow-[0_2px_16px_rgba(0,0,0,0.25)] ring-1 ring-white/10 focus-within:ring-2 focus-within:ring-orange-400/70 transition-all"
           onSubmit={handleSearch}
         >
-          <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
-          </svg>
+          {suggestionsLoading ? (
+            <svg className="w-4 h-4 text-orange-400 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+          )}
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setSelectedIdx(-1); }}
+            onFocus={() => searchQuery.trim().length >= 2 && setSuggestionsOpen(true)}
+            onKeyDown={handleSuggestKeyDown}
             placeholder="Rechercher un produit..."
             className="flex-1 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none bg-transparent min-w-0"
+            autoComplete="off"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => { setSearchQuery(""); setSuggestions([]); setSuggestionsOpen(false); }}
+              className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-slate-300 hover:text-slate-500 transition-colors"
+              aria-label="Effacer"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
           <button
             type="submit"
-            className="flex-shrink-0 w-8 h-8 my-1 bg-orange-500 hover:bg-orange-400 rounded-full flex items-center justify-center transition-colors shadow-[0_2px_8px_rgba(249,115,22,0.4)]"
+            className="flex-shrink-0 w-8 h-8 my-1 bg-orange-500 hover:bg-orange-600 rounded-xl flex items-center justify-center transition-colors shadow-[0_2px_8px_rgba(249,115,22,0.4)]"
             aria-label="Rechercher"
           >
             <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -552,6 +575,75 @@ export default function Header() {
             </svg>
           </button>
         </form>
+
+        {/* Mobile suggestions dropdown */}
+        {suggestionsOpen && (
+          <div
+            className="mt-2 bg-white rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.25)] border border-slate-100 overflow-hidden"
+            style={{ animation: "dropdownEnter 0.18s ease-out" }}
+          >
+            {suggestionsLoading ? (
+              <div className="flex items-center justify-center gap-2 py-5 text-slate-400 text-sm">
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Recherche en cours…
+              </div>
+            ) : suggestions.length === 0 ? (
+              <div className="py-7 text-center">
+                <p className="text-slate-400 text-sm">Aucun résultat pour «&nbsp;<span className="font-semibold text-slate-700">{searchQuery}</span>&nbsp;»</p>
+                <Link href="/produits" className="text-orange-500 text-xs font-bold mt-2 inline-block">
+                  Voir tous nos produits →
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div className="px-4 pt-2.5 pb-1 flex items-center justify-between">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{suggestions.length} résultat{suggestions.length > 1 ? "s" : ""}</span>
+                </div>
+                <ul>
+                  {suggestions.slice(0, 5).map((product, i) => {
+                    const disc = Math.round((1 - product.currentPrice / product.originalPrice) * 100);
+                    return (
+                      <li key={product.slug} style={{ animation: `rowSlideIn 0.15s ease-out ${i * 35}ms both` }}>
+                        <Link
+                          href={`/produits/${product.slug}`}
+                          onClick={() => { setSuggestionsOpen(false); setSearchQuery(""); setSelectedIdx(-1); }}
+                          className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${selectedIdx === i ? "bg-orange-50" : "hover:bg-slate-50"}`}
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 overflow-hidden">
+                            <Image src={product.image} alt={product.name} width={40} height={40} className="object-contain w-full h-full p-1" style={{ mixBlendMode: "multiply" }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-bold text-slate-800 line-clamp-1">{product.name}</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">{product.brand}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-black text-orange-500">{product.currentPrice.toLocaleString()}€</p>
+                            {disc > 0 && <p className="text-[10px] text-slate-400 line-through">{product.originalPrice.toLocaleString()}€</p>}
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <div className="border-t border-slate-100 p-2.5">
+                  <Link
+                    href={`/recherche?q=${encodeURIComponent(searchQuery.trim())}`}
+                    onClick={() => setSuggestionsOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-950 hover:bg-orange-500 text-white text-xs font-bold rounded-xl transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                    </svg>
+                    Voir tous les résultats
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Navigation bar */}
