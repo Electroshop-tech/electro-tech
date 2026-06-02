@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import nextDynamic from "next/dynamic";
 import HeroBanner from "@/components/HeroBanner";
 import ProductSection from "@/components/ProductSection";
 import ProductCard from "@/components/ProductCard";
 import { getProductCards } from "@/lib/store";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Box Android TV, Caméras de Surveillance & Accessoires au Maroc",
+  description:
+    "Achetez vos box Android TV 4K, TV Sticks, caméras de surveillance IP et accessoires high-tech au meilleur prix. Produits 100% authentiques, garantis, paiement à la livraison partout au Maroc.",
+  alternates: { canonical: "https://electroshop-tech.com" },
+};
 
 const WhyUsSection = nextDynamic(() => import("@/components/RefurbishedSection"), { ssr: true });
 const PromoBanners = nextDynamic(() => import("@/components/PromoBanners"), { ssr: true });

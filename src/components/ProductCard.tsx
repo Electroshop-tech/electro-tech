@@ -103,6 +103,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 window.location.href = "/comparer";
               }
             }}
+            aria-label={`Comparer ${product.name}`}
             className="flex items-center gap-1.5 text-white/70 hover:text-orange-400 text-[11px] font-semibold transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,6 +114,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <span className="w-px h-3.5 bg-white/20" />
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push(`/produits/${product.slug}`); }}
+            aria-label={`Voir les détails de ${product.name}`}
             className="flex items-center gap-1.5 text-white/70 hover:text-orange-400 text-[11px] font-semibold transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,6 +129,7 @@ export default function ProductCard({ product }: { product: Product }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
+            aria-label={`Contacter via WhatsApp à propos de ${product.name}`}
             className="flex items-center gap-1.5 text-white/70 hover:text-[#25D366] text-[11px] font-semibold transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -186,13 +189,23 @@ export default function ProductCard({ product }: { product: Product }) {
               <span className="text-[10px] font-bold text-emerald-700">Livraison gratuite</span>
             </div>
             {product.inStock !== false && (
-              <div className="inline-flex items-center gap-1 px-2 py-1">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                </span>
-                <span className="text-[10px] font-semibold text-emerald-600">En stock</span>
-              </div>
+              typeof product.stockQuantity === "number" && product.stockQuantity > 0 && product.stockQuantity <= 5 ? (
+                <div className="inline-flex items-center gap-1 px-2 py-1">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
+                  </span>
+                  <span className="text-[10px] font-bold text-orange-600">Plus que {product.stockQuantity} en stock</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-1 px-2 py-1">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                  </span>
+                  <span className="text-[10px] font-semibold text-emerald-600">En stock</span>
+                </div>
+              )
             )}
           </div>
         </div>

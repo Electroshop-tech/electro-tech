@@ -53,9 +53,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const cat = (await getCategories()).find((c) => c.slug === slug);
   const meta = categoryMeta[slug];
   if (!cat) return {};
+  const title = `${cat.name} — ElectroShop-Tech`;
+  const description = meta?.description ?? `Découvrez notre gamme ${cat.name}`;
+  const canonical = `https://electroshop-tech.com/categorie/${slug}`;
+  const image = meta?.heroImg ?? "/images/3D%20hero%20section/3D%20Hero%20section%201.jpg";
   return {
-    title: `${cat.name} — ElectroShop-Tech`,
-    description: meta?.description ?? `Découvrez notre gamme ${cat.name}`,
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: { title, description, type: "website", url: canonical, images: [{ url: image, width: 1200, height: 630, alt: cat.name }] },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }
 

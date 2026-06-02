@@ -20,10 +20,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `${product.name} | ElectroShop-Tech`;
   const description = product.description?.substring(0, 160) || `Achetez ${product.name} au meilleur prix sur ElectroShop-Tech.`;
   const image = product.images?.[0] || "/images/3D%20hero%20section/3D%20Hero%20section%201.jpg";
+  const canonical = `https://electroshop-tech.com/produits/${slug}`;
   return {
     title,
     description,
-    openGraph: { title, description, images: [image], type: "website" },
+    alternates: { canonical },
+    openGraph: { title, description, images: [image], type: "website", url: canonical },
     twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }

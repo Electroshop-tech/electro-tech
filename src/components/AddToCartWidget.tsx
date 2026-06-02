@@ -35,6 +35,7 @@ export default function AddToCartWidget({ product }: { product: CartProduct }) {
         <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
+            aria-label="Réduire la quantité"
             className="w-9 h-9 text-gray-600 hover:bg-gray-100 flex items-center justify-center font-bold transition-colors"
           >
             −
@@ -42,6 +43,7 @@ export default function AddToCartWidget({ product }: { product: CartProduct }) {
           <span className="w-10 text-center font-black text-gray-900 text-sm">{qty}</span>
           <button
             onClick={() => setQty((q) => q + 1)}
+            aria-label="Augmenter la quantité"
             className="w-9 h-9 text-gray-600 hover:bg-gray-100 flex items-center justify-center font-bold transition-colors"
           >
             +
@@ -67,6 +69,7 @@ export default function AddToCartWidget({ product }: { product: CartProduct }) {
         <button
           onClick={() => toggleWishlist(product.slug)}
           title={wishlist ? "Retirer des favoris" : "Ajouter aux favoris"}
+          aria-label={wishlist ? "Retirer des favoris" : "Ajouter aux favoris"}
           className={`w-12 rounded-lg border-2 flex items-center justify-center transition-all ${
             wishlist
               ? "border-red-300 bg-red-50 text-red-500"
