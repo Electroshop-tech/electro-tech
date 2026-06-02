@@ -17,9 +17,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://electroshop-tech.com"),
   other: { "theme-color": "#f97316" },
   verification: {
-    // Paste the token from Google Search Console > Settings > Ownership verification
-    // > "HTML tag" method (the content="..." value). Or set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION.
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    // Google Search Console (HTML tag method). Also verified via /googlee9f1b8f1792cb05d.html
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "gjVPBMvfiuOJ9BXKUP2UNsi-o3XbmeTrgRBD2xaupTY",
   },
   openGraph: {
     type: "website",
