@@ -530,7 +530,7 @@ export default function Header() {
       {/* Mobile search row */}
       <div className="sm:hidden bg-[#172554] px-3 pb-3 pt-0.5" ref={mobileSearchRef}>
         <form
-          className="flex items-center gap-2 bg-white rounded-2xl px-4 py-0 shadow-[0_2px_16px_rgba(0,0,0,0.25)] transition-all focus-within:shadow-[0_0_0_2px_rgba(249,115,22,0.5),0_4px_20px_rgba(249,115,22,0.2)]"
+          className="flex items-center gap-2 bg-white rounded-2xl px-4 py-0 shadow-[0_2px_16px_rgba(0,0,0,0.25)] transition-shadow focus-within:shadow-[0_4px_24px_rgba(249,115,22,0.35),0_2px_16px_rgba(0,0,0,0.15)]"
           onSubmit={handleSearch}
         >
           {suggestionsLoading ? (

@@ -68,6 +68,12 @@ a {
   outline-offset: 3px;
 }
 
+/* No outline on search inputs — styled via parent container */
+input[type="text"]:focus-visible,
+input[type="search"]:focus-visible {
+  outline: none;
+}
+
 img {
   -webkit-user-drag: none;
   user-select: none;
