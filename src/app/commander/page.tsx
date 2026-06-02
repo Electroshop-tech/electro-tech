@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cartContext";
 
@@ -494,7 +495,7 @@ export default function CommanderPage() {
                   {cart.map((item) => (
                     <div key={item.id} className="flex items-center gap-3">
                       <div className="relative shrink-0">
-                        <img src={item.image} alt={item.name} className="w-12 h-12 object-contain rounded-lg bg-gray-50 border border-gray-100" />
+                        <Image src={item.image} alt={item.name} width={48} height={48} sizes="48px" className="w-12 h-12 object-contain rounded-lg bg-gray-50 border border-gray-100" />
                         <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{item.qty}</span>
                       </div>
                       <div className="flex-1 min-w-0">

@@ -215,7 +215,7 @@ export default function ComparerClient({ products }: { products: Product[] }) {
                     onClick={() => addProduct(p.slug)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors text-left"
                   >
-                    <img src={p.image} alt={p.name} className="w-10 h-10 object-contain rounded-lg bg-gray-50 border border-gray-100 shrink-0" />
+                    <Image src={p.image} alt={p.name} width={40} height={40} sizes="40px" className="w-10 h-10 object-contain rounded-lg bg-gray-50 border border-gray-100 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-slate-900 line-clamp-1">{p.name}</p>
                       <p className="text-[10px] text-gray-400">{p.brand} · {p.currentPrice.toLocaleString()}€</p>

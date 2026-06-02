@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/lib/cartContext";
 
 export default function PanierPage() {
@@ -116,8 +117,7 @@ export default function PanierPage() {
                     <div className="flex gap-3">
                       {/* Image */}
                       <div className="w-20 h-20 flex-shrink-0 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={decodeURIComponent(item.image)} alt={item.name} className="object-contain p-2 w-full h-full" />
+                        <Image src={decodeURIComponent(item.image)} alt={item.name} width={80} height={80} sizes="80px" className="object-contain p-2 w-full h-full" />
                       </div>
                       {/* Info */}
                       <div className="flex-1 min-w-0">
@@ -181,8 +181,7 @@ export default function PanierPage() {
                   {/* Product */}
                   <div className="col-span-5 flex items-center gap-3">
                     <div className="w-16 h-16 rounded-lg border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={decodeURIComponent(item.image)} alt={item.name} className="object-contain p-1.5 w-full h-full" />
+                      <Image src={decodeURIComponent(item.image)} alt={item.name} width={64} height={64} sizes="64px" className="object-contain p-1.5 w-full h-full" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">{item.name}</p>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
@@ -177,7 +178,7 @@ function ConfirmationContent() {
               {order.items.map((item) => (
                 <div key={item.id} className="flex items-center gap-3">
                   <div className="relative shrink-0">
-                    <img src={item.image} alt={item.name} className="w-11 h-11 object-contain rounded-lg bg-gray-50 border border-gray-100" />
+                    <Image src={item.image} alt={item.name} width={44} height={44} sizes="44px" className="w-11 h-11 object-contain rounded-lg bg-gray-50 border border-gray-100" />
                     <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{item.qty}</span>
                   </div>
                   <div className="flex-1 min-w-0">

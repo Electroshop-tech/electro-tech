@@ -81,6 +81,31 @@ export default function RootLayout({
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Store",
+              name: "ElectroShop-Tech",
+              image: "https://electroshop-tech.com/images/icon-512.png",
+              url: "https://electroshop-tech.com",
+              telephone: "+212-716-408919",
+              priceRange: "MAD",
+              currenciesAccepted: "MAD",
+              paymentAccepted: "Cash on Delivery",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Casablanca",
+                addressCountry: "MA",
+              },
+              areaServed: {
+                "@type": "Country",
+                name: "Maroc",
+              },
+            }),
+          }}
+        />
         <Providers>
           <Suspense fallback={null}><PageTracker /></Suspense>
           <ScrollAnimations />

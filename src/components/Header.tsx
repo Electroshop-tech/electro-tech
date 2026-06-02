@@ -720,7 +720,7 @@ export default function Header() {
                   className={`flex flex-col items-center gap-1.5 pt-3 pb-2.5 px-1 rounded-2xl border ${cat.bg} ${cat.border} active:scale-95 transition-all overflow-hidden`}
                 >
                   <div className="w-full h-16 flex items-center justify-center">
-                    <img src={cat.img} alt={cat.name} className="h-full w-full object-contain drop-shadow-sm" />
+                    <Image src={cat.img} alt={cat.name} width={64} height={64} sizes="64px" className="h-full w-full object-contain drop-shadow-sm" />
                   </div>
                   <span className="text-[11px] font-bold text-slate-700 text-center leading-tight">{cat.name}</span>
                 </Link>

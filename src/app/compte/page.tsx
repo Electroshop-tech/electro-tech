@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { SafeUser } from "@/lib/auth";
 import type { Order } from "@/lib/types";
 
@@ -625,7 +626,7 @@ export default function ComptePage() {
                             <div className="space-y-2">
                               {order.items.map((item, i) => (
                                 <div key={i} className="flex items-center gap-3">
-                                  {item.productImage && <img src={item.productImage} alt={item.productName} className="w-10 h-10 object-cover rounded-lg border border-gray-100" />}
+                                  {item.productImage && <Image src={item.productImage} alt={item.productName} width={40} height={40} sizes="40px" className="w-10 h-10 object-cover rounded-lg border border-gray-100" />}
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-gray-700 truncate">{item.productName}</p>
                                     <p className="text-xs text-gray-400">Qte: {item.quantity} x {item.price.toFixed(2)}€</p>
