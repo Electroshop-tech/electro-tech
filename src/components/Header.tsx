@@ -107,22 +107,21 @@ export default function Header() {
   const headerScrollY = useRef(0);
 
   useEffect(() => {
+    let raf = 0;
     const onScroll = () => {
-      const y = window.scrollY;
-      // Only auto-hide on mobile (< 640px)
-      if (window.innerWidth < 640) {
-        if (y > 80) {
-          setHeaderHidden(true);
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        headerScrollY.current = y;
+        if (window.innerWidth < 640) {
+          setHeaderHidden(y > 80);
         } else {
           setHeaderHidden(false);
         }
-      } else {
-        setHeaderHidden(false);
-      }
-      headerScrollY.current = y;
+      });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
   }, []);
 
   // Close menu on any scroll (including inside the menu panel itself)

@@ -65,9 +65,13 @@ export default function MobileNavBar() {
   const wishlistCount = wishlist.length;
 
   useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 80);
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setVisible(window.scrollY > 80));
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
   }, []);
 
   const isActive = (href: string) =>
