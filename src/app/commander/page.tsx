@@ -221,60 +221,68 @@ export default function CommanderPage() {
       <form onSubmit={handleSubmit} noValidate>
 
         {/* Mobile order summary strip */}
-        <div className="lg:hidden">
+        <div className="lg:hidden shadow-sm">
           <button
             type="button"
             onClick={() => setShowMobileSummary(p => !p)}
-            className="w-full bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between active:bg-gray-50 transition-colors"
+            className="w-full bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3.5 flex items-center justify-between active:from-slate-800 transition-all"
           >
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-              <span className="text-xs text-gray-500 font-semibold">{totalQty} article{totalQty > 1 ? "s" : ""}</span>
-              <svg className={`w-3.5 h-3.5 text-orange-500 transition-transform duration-200 ${showMobileSummary ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0">
+                <svg className="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <span className="text-xs text-white font-bold">{totalQty} article{totalQty > 1 ? "s" : ""}</span>
+              <svg className={`w-3.5 h-3.5 text-orange-400 transition-transform duration-300 ${showMobileSummary ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-gray-400">Total</span>
-              <span className="text-base font-black text-orange-500">{total.toLocaleString()}€</span>
-              <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100">Livraison gratuite</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-[10px] text-slate-400 font-medium">Total</span>
+              <span className="text-lg font-black text-orange-400 leading-none">{total.toLocaleString()}&euro;</span>
+              <span className="text-[9px] font-bold text-green-400 bg-green-900/30 px-2 py-0.5 rounded-full border border-green-700/40">Livraison gratuite</span>
             </div>
           </button>
           {showMobileSummary && (
-            <div className="bg-white border-b border-gray-100 px-4 py-4 space-y-3">
-              <div className="space-y-3 max-h-56 overflow-y-auto">
+            <div className="bg-slate-900 border-b border-slate-700/50 px-4 pt-1 pb-4">
+              {/* Items */}
+              <div className="space-y-3 max-h-56 overflow-y-auto py-3">
                 {cart.map((item) => (
                   <div key={item.id} className="flex items-center gap-3">
                     <div className="relative shrink-0">
-                      <Image src={item.image} alt={item.name} width={44} height={44} sizes="44px" className="w-11 h-11 object-contain rounded-lg bg-gray-50 border border-gray-100" />
-                      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{item.qty}</span>
+                      <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                        <Image src={item.image} alt={item.name} width={44} height={44} sizes="44px" className="w-11 h-11 object-contain" />
+                      </div>
+                      <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 w-[18px] h-[18px] bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-md">{item.qty}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{item.name}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{item.brand}</p>
+                      <p className="text-xs font-bold text-white leading-tight line-clamp-2">{item.name}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{item.brand}</p>
                     </div>
-                    <p className="text-sm font-black text-slate-900 shrink-0">{(item.price * item.qty).toLocaleString()}€</p>
+                    <p className="text-sm font-black text-orange-400 shrink-0">{(item.price * item.qty).toLocaleString()}&euro;</p>
                   </div>
                 ))}
               </div>
-              <div className="border-t border-gray-100 pt-3 space-y-1.5">
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Sous-total</span><span className="font-bold text-slate-900">{subtotal.toLocaleString()}€</span>
+              {/* Totals */}
+              <div className="border-t border-slate-700/60 pt-3 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Sous-total</span>
+                  <span className="font-bold text-white">{subtotal.toLocaleString()}&euro;</span>
                 </div>
                 {promoApplied && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-green-600 font-semibold">{promoApplied.code}</span>
-                    <span className="font-bold text-green-600">-{promoApplied.discount.toLocaleString()}€</span>
+                    <span className="text-green-400 font-semibold">{promoApplied.code}</span>
+                    <span className="font-bold text-green-400">-{promoApplied.discount.toLocaleString()}&euro;</span>
                   </div>
                 )}
-                <div className="flex justify-between text-xs text-green-600">
-                  <span className="font-semibold">Livraison</span><span className="font-black">Gratuite</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-400">Livraison</span>
+                  <span className="font-black text-green-400">Gratuite</span>
                 </div>
-                <div className="flex justify-between items-center pt-1 border-t border-gray-100">
-                  <span className="text-sm font-black text-slate-900">Total</span>
-                  <span className="text-xl font-black text-orange-500">{total.toLocaleString()}€</span>
+                <div className="flex justify-between items-center pt-2 border-t border-slate-700/60">
+                  <span className="text-sm font-black text-white">Total TTC</span>
+                  <span className="text-2xl font-black text-orange-400 leading-none">{total.toLocaleString()}&euro;</span>
                 </div>
               </div>
             </div>
