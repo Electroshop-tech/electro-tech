@@ -5,7 +5,7 @@
       <stop offset="0.45" stop-color="#f97316"/>
       <stop offset="1" stop-color="#c2410c"/>
     </linearGradient>
-    <linearGradient id="bolt" x1="10" y1="3" x2="22" y2="29" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bolt" x1="6" y1="1.5" x2="26" y2="30.5" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ffffff"/>
       <stop offset="1" stop-color="#fff7ed"/>
     </linearGradient>
@@ -14,12 +14,12 @@
     </filter>
   </defs>
   <!-- Orange gradient rounded square -->
-  <rect width="32" height="32" rx="8" fill="url(#bg)"/>
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
   <!-- Soft top highlight for depth -->
-  <rect width="32" height="16" rx="8" fill="#ffffff" opacity="0.12"/>
-  <!-- Bold lightning bolt, centered and balanced -->
-  <path d="M19 3 L8.5 17.5 L14.5 17.5 L13 29 L23.5 13.5 L17.5 13.5 Z"
+  <rect width="32" height="16" rx="7" fill="#ffffff" opacity="0.12"/>
+  <!-- Bold lightning bolt, enlarged to fill the canvas -->
+  <path d="M20.5 1.5 L6 18.5 L13.5 18.5 L11.5 30.5 L26 12 L18 12 Z"
         fill="url(#bolt)" filter="url(#boltShadow)"
-        stroke="#ffffff" stroke-width="0.6" stroke-linejoin="round"/>
+        stroke="#ffffff" stroke-width="0.7" stroke-linejoin="round"/>
 </svg>
 
