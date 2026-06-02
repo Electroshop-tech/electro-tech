@@ -96,26 +96,17 @@ export default function MobileNavBar() {
       }`}
       style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 10px)" }}
     >
-      <div
-        className="relative rounded-2xl backdrop-blur-2xl border shadow-[0_8px_40px_rgba(0,0,0,0.55),0_1px_0_rgba(255,255,255,0.06)_inset]"
-        style={{
-          background: "rgba(10,14,28,0.97)",
-          borderColor: "rgba(255,255,255,0.07)",
-        }}
-      >
-        {/* Top accent hairline */}
-        <div className="absolute top-0 left-[20%] right-[20%] h-px rounded-full bg-gradient-to-r from-transparent via-orange-400/40 to-transparent" />
-
+      <div className="relative rounded-2xl bg-white border border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]">
         {/* Sliding active pill */}
         {activeIndex >= 0 && (
           <div
-            className="absolute top-2 bottom-2 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)]"
+            className="absolute top-1.5 bottom-1.5 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)]"
             style={{
               width: "20%",
               transform: `translateX(${activeIndex * 100}%)`,
-              background: "linear-gradient(160deg, rgba(249,115,22,0.16) 0%, rgba(251,146,60,0.06) 100%)",
-              border: "1px solid rgba(249,115,22,0.22)",
-              boxShadow: "0 0 18px rgba(249,115,22,0.10)",
+              background: "linear-gradient(145deg, #fff7ed 0%, #ffedd5 100%)",
+              border: "1.5px solid rgba(249,115,22,0.25)",
+              boxShadow: "0 2px 12px rgba(249,115,22,0.14)",
             }}
           />
         )}
@@ -131,14 +122,14 @@ export default function MobileNavBar() {
                 key={item.href}
                 href={item.href}
                 onTouchStart={() => handleTap(item.href)}
-                className="flex-1 flex flex-col items-center justify-center py-3.5 gap-1.5 relative select-none"
+                className="flex-1 flex flex-col items-center justify-center py-3.5 gap-1 relative select-none"
               >
                 {/* Tap ripple */}
                 {isRippling && (
                   <span
                     className="absolute inset-0 rounded-xl pointer-events-none"
                     style={{
-                      background: "radial-gradient(circle at center, rgba(249,115,22,0.20) 0%, transparent 70%)",
+                      background: "radial-gradient(circle at center, rgba(249,115,22,0.18) 0%, transparent 70%)",
                       animation: "navRipple 0.45s ease-out forwards",
                     }}
                   />
@@ -146,15 +137,14 @@ export default function MobileNavBar() {
 
                 {/* Icon */}
                 <span
-                  className={`relative z-10 transition-all duration-250 ${
-                    active ? "text-orange-400 scale-[1.12]" : "text-slate-500 scale-100"
+                  className={`relative z-10 transition-all duration-200 ${
+                    active ? "text-orange-500 scale-[1.08]" : "text-slate-400 scale-100"
                   }`}
-                  style={active ? { filter: "drop-shadow(0 0 5px rgba(251,146,60,0.55))" } : undefined}
                 >
                   {item.icon(active)}
 
                   {badge > 0 && (
-                    <span className="absolute -top-1 -right-2 min-w-[15px] h-[15px] bg-gradient-to-br from-orange-400 to-orange-600 text-white text-[8px] font-black rounded-full flex items-center justify-center px-0.5 leading-none border-[1.5px] shadow-[0_0_8px_rgba(249,115,22,0.65)]" style={{ borderColor: "rgba(10,14,28,0.97)" }}>
+                    <span className="absolute -top-1 -right-2 min-w-[16px] h-4 bg-orange-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-1 leading-none shadow-[0_2px_6px_rgba(249,115,22,0.5)]">
                       {badge > 9 ? "9+" : badge}
                     </span>
                   )}
@@ -162,8 +152,8 @@ export default function MobileNavBar() {
 
                 {/* Label */}
                 <span
-                  className={`relative z-10 text-[10px] font-semibold leading-none tracking-wide transition-all duration-250 ${
-                    active ? "text-orange-400" : "text-slate-500"
+                  className={`relative z-10 text-[10px] font-bold leading-none tracking-wide transition-all duration-200 ${
+                    active ? "text-orange-500" : "text-slate-400"
                   }`}
                 >
                   {item.label}
@@ -172,12 +162,12 @@ export default function MobileNavBar() {
                 {/* Active dot */}
                 {active && (
                   <span
-                    className="absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full"
+                    className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full"
                     style={{
-                      width: 16,
-                      height: 2,
+                      width: 14,
+                      height: 2.5,
                       background: "linear-gradient(90deg, #fb923c, #f97316)",
-                      boxShadow: "0 0 6px rgba(249,115,22,0.8)",
+                      boxShadow: "0 0 5px rgba(249,115,22,0.6)",
                     }}
                   />
                 )}
