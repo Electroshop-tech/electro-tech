@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Solid orange background -->
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+
+  <!-- Shopping bag handle (white U-arc, bold) -->
+  <path d="M 11 15 Q 11 6 16 6 Q 21 6 21 15"
+        fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Bag body (white trapezoid, fills bottom 2/3) -->
+  <path d="M 4.5 15 L 6.5 29.5 Q 7 31.5 9.5 31.5 L 22.5 31.5 Q 25 31.5 25.5 29.5 L 27.5 15 Z"
+        fill="white"/>
+
+  <!-- Lightning bolt on bag (orange, bold) -->
+  <path d="M 19.5 17.5 L 13 24.5 L 17 24.5 L 15 29.5 L 22.5 22 L 18.5 22 Z"
+        fill="#f97316"/>
+</svg>
