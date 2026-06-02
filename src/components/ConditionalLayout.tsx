@@ -25,7 +25,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <main>{children}</main>
       {!isAdmin && <Footer />}
       {!isAdmin && <CookieConsent />}
-      {!isAdmin && <MobileNavBar />}
+      {!isAdmin && !isProductPage && <MobileNavBar />}
       {!isAdmin && showTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
