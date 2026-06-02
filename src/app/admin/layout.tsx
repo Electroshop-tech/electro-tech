@@ -199,11 +199,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
 
   useEffect(() => {
-    // Prefill the last used identifier if the user chose to save it.
+    // Restore the "remember me" preference (without pre-filling the identifier).
     try {
-      const saved = localStorage.getItem("admin_saved_login");
-      if (saved) setEmail(saved);
-      else setRemember(localStorage.getItem("admin_remember") !== "false");
+      setRemember(localStorage.getItem("admin_remember") !== "false");
     } catch { /* ignore */ }
 
     // Check if admin cookie is valid by making a test API call
@@ -226,15 +224,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           credentials: "include",
         });
         if (res.ok) {
-          // Persist the identifier so the next login is pre-filled.
+          // Persist only the "remember me" preference (never the identifier).
           try {
-            if (remember) {
-              localStorage.setItem("admin_saved_login", email);
-              localStorage.setItem("admin_remember", "true");
-            } else {
-              localStorage.removeItem("admin_saved_login");
-              localStorage.setItem("admin_remember", "false");
-            }
+            localStorage.setItem("admin_remember", remember ? "true" : "false");
+            localStorage.removeItem("admin_saved_login");
           } catch { /* ignore */ }
           setAuthenticated(true);
           setError("");
