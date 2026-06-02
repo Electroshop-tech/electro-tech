@@ -273,6 +273,10 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
 
             {/* ── Right: 3D image ── */}
             <div className="relative h-64 sm:h-72 lg:h-full flex items-center justify-center order-1 lg:order-2" style={{ transformStyle:"preserve-3d" }}>
+              {/* Warm ambient glow behind image so screen blend-mode dissolves the JPEG black background */}
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
+                <div style={{ width: '85%', height: '85%', borderRadius: '50%', background: 'radial-gradient(ellipse at 50% 55%, rgba(255,210,140,0.32) 0%, rgba(249,115,22,0.18) 38%, rgba(234,88,12,0.06) 60%, transparent 75%)' }} />
+              </div>
               {/* Floating spec chips */}
               <div className="absolute top-2 right-2 sm:top-4 sm:right-0 hidden sm:flex flex-col gap-2 z-10">
                 <div className="bg-white/[0.06] backdrop-blur-sm border border-white/[0.10] rounded-2xl px-3.5 py-2 text-center shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
@@ -290,7 +294,7 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
                   className={`absolute inset-0 flex items-center justify-center ${dir === "right" ? "hero-exit-left" : "hero-exit-right"}`}
                   style={{ transformStyle:"preserve-3d" }}
                 >
-                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" />
+                  <Image src={SLIDES[exiting].image} alt={SLIDES[exiting].alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" style={{ mixBlendMode: 'screen', WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)', maskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)' }} />
                 </div>
               )}
               <div
@@ -298,7 +302,7 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
                 className={busy ? (dir === "right" ? "hero-enter-right" : "hero-enter-left") : "hero-float"}
                 style={{ transformStyle:"preserve-3d" }}
               >
-                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" priority={current === 0} />
+                <Image src={slide.image} alt={slide.alt} width={680} height={560} className="max-h-[250px] sm:max-h-[320px] lg:max-h-[500px] w-auto object-contain" style={{ mixBlendMode: 'screen', WebkitMaskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)', maskImage: 'radial-gradient(ellipse 88% 88% at 50% 52%, black 48%, transparent 82%)' }} priority={current === 0} />
               </div>
             </div>
 
