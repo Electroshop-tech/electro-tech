@@ -3,10 +3,23 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { Product } from "@/lib/types";
 import { useWishlist } from "@/lib/wishlistContext";
 import { useCart } from "@/lib/cartContext";
+
+/** Subtle loading overlay shown while the product page is opening. */
+function CardNavPending() {
+  const { pending } = useLinkStatus();
+  return (
+    <div
+      aria-hidden
+      className={`absolute inset-0 z-[3] flex items-center justify-center bg-white/45 backdrop-blur-[1px] transition-opacity duration-200 ${pending ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+    >
+      <span className="w-7 h-7 rounded-full border-[3px] border-orange-200 border-t-orange-500 animate-spin" />
+    </div>
+  );
+}
 
 export default function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
@@ -64,7 +77,9 @@ export default function ProductCard({ product }: { product: Product }) {
         />
 
         {/* Full-card link overlay */}
-        <Link href={`/produits/${product.slug}`} className="absolute inset-0 z-[2]" aria-label={product.name} />
+        <Link href={`/produits/${product.slug}`} className="absolute inset-0 z-[2]" aria-label={product.name}>
+          <CardNavPending />
+        </Link>
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">

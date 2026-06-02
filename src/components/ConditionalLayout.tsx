@@ -6,6 +6,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import CookieConsent from "./CookieConsent";
 import MobileNavBar from "./MobileNavBar";
+import PageTransition from "./PageTransition";
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -29,7 +30,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   return (
     <>
       {!isAdmin && !hideHeader && <Header />}
-      <main>{children}</main>
+      <main>{isAdmin ? children : <PageTransition>{children}</PageTransition>}</main>
       {!isAdmin && <Footer />}
       {!isAdmin && <CookieConsent />}
       {!isAdmin && !hideMobileNav && <MobileNavBar />}

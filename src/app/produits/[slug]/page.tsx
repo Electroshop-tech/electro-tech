@@ -12,7 +12,7 @@ import ProductGallery from "@/components/ProductGallery";
 import MobileStickyCart from "@/components/MobileStickyCart";
 import RecentlyViewed from "@/components/RecentlyViewed";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

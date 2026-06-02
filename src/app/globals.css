@@ -164,6 +164,16 @@ html.reveal-js [data-reveal]:not(.in-view) {
   will-change: auto;
 }
 
+/* Smooth page/route transition (keyed on pathname) */
+.page-transition {
+  animation: pageEnter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -175,6 +185,7 @@ html.reveal-js [data-reveal]:not(.in-view) {
   }
   /* Immediately show everything if user prefers no motion */
   [data-reveal] { opacity: 1 !important; transform: none !important; }
+  .page-transition { animation: none !important; }
 }
 
 /* ─────────────────────────────────────────────
