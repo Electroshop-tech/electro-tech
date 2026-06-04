@@ -16,7 +16,7 @@ export default function BrandsPage() {
   const load = useCallback(() => {
     setLoading(true);
     fetch("/api/admin/brands", { credentials: "include" })
-      .then((r) => r.json()).then(setBrands).finally(() => setLoading(false));
+      .then((r) => r.ok ? r.json() : []).then(setBrands).finally(() => setLoading(false));
   }, []);
   useEffect(() => { load(); }, [load]);
 

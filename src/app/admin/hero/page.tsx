@@ -20,7 +20,7 @@ export default function HeroPage() {
   const load = useCallback(() => {
     setLoading(true);
     fetch("/api/admin/hero", { credentials: "include" })
-      .then((r) => r.json()).then(setSlides).finally(() => setLoading(false));
+      .then((r) => r.ok ? r.json() : []).then(setSlides).finally(() => setLoading(false));
   }, []);
   useEffect(() => { load(); }, [load]);
 

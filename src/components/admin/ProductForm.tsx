@@ -57,8 +57,8 @@ export default function ProductForm({ initial, productId }: Props) {
   const mainFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch("/api/admin/categories", { credentials: "include" }).then(r => r.json()).then(setCategories).catch(() => {});
-    fetch("/api/admin/brands", { credentials: "include" }).then(r => r.json()).then(setBrands).catch(() => {});
+    fetch("/api/admin/categories", { credentials: "include" }).then(r => r.ok ? r.json() : []).then(setCategories).catch(() => {});
+    fetch("/api/admin/brands", { credentials: "include" }).then(r => r.ok ? r.json() : []).then(setBrands).catch(() => {});
   }, []);
 
   const set = useCallback(<K extends keyof FormData>(key: K, val: FormData[K]) => {

@@ -17,7 +17,7 @@ export default function CategoriesPage() {
   const load = useCallback(() => {
     setLoading(true);
     fetch("/api/admin/categories", { credentials: "include" })
-      .then((r) => r.json()).then(setCategories).finally(() => setLoading(false));
+      .then((r) => r.ok ? r.json() : []).then(setCategories).finally(() => setLoading(false));
   }, []);
   useEffect(() => { load(); }, [load]);
 
