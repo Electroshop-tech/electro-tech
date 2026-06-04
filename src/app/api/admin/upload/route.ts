@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 import { isAdmin } from "@/lib/adminAuth";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif", "image/svg+xml"]);
 const ALLOWED_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif", ".svg"]);
 
 export async function POST(req: NextRequest) {
@@ -18,24 +18,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No files provided" }, { status: 400 });
   }
 
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadDir, { recursive: true });
-
   const urls: string[] = [];
   for (const file of files) {
-    const ext = path.extname(file.name).toLowerCase() || ".jpg";
-    if (!ALLOWED_EXTENSIONS.has(ext)) {
+    const ext = (file.name.includes(".") ? "." + file.name.split(".").pop()! : ".jpg").toLowerCase();
+    if (!ALLOWED_EXTENSIONS.has(ext) && !ALLOWED_TYPES.has(file.type)) {
       return NextResponse.json({ error: `Type de fichier non autorisé: ${ext}` }, { status: 400 });
     }
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json({ error: `Fichier trop volumineux (max 10 Mo)` }, { status: 400 });
     }
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
     const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-    const filename = `${Date.now()}-${safeName}`;
-    await writeFile(path.join(uploadDir, filename), buffer);
-    urls.push(`/uploads/${filename}`);
+    const filename = `products/${Date.now()}-${safeName}`;
+    const blob = await put(filename, file, { access: "public" });
+    urls.push(blob.url);
   }
 
   return NextResponse.json({ urls });

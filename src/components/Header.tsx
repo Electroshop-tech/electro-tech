@@ -114,11 +114,7 @@ export default function Header() {
       raf = requestAnimationFrame(() => {
         const y = window.scrollY;
         headerScrollY.current = y;
-        if (window.innerWidth < 640) {
-          setHeaderHidden(y > 80);
-        } else {
-          setHeaderHidden(false);
-        }
+        setHeaderHidden(false);
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
