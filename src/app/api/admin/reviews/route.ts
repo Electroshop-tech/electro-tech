@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProducts, getProductById, updateProduct, addAdminLog } from "@/lib/store";
+import { getProductsAdmin, getProductById, updateProduct, addAdminLog } from "@/lib/store";
 import { isAdmin } from "@/lib/adminAuth";
 import type { ProductReview } from "@/lib/types";
 
@@ -7,7 +7,7 @@ import type { ProductReview } from "@/lib/types";
 export async function GET(req: NextRequest) {
   if (!(await isAdmin(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const products = await getProducts();
+  const products = await getProductsAdmin();
   const reviews = products.flatMap((p) =>
     (p.productReviews ?? []).map((r) => ({
       ...r,

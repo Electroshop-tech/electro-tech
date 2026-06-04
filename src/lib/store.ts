@@ -336,6 +336,9 @@ export const getProducts = unstable_cache(_getProducts, ["all-products"], {
   tags: ["products"],
 });
 
+/** Uncached version for admin panel — always returns fresh data from DB */
+export const getProductsAdmin = _getProducts;
+
 export const getProductCards = unstable_cache(_getProductCards, ["product-cards"], {
   revalidate: 60,
   tags: ["products"],

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { countStockNotifications, getProducts } from "@/lib/store";
+import { countStockNotifications, getProductsAdmin } from "@/lib/store";
 import { isAdmin } from "@/lib/adminAuth";
 
 export async function GET(req: NextRequest) {
   if (!(await isAdmin(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const counts = await countStockNotifications();
-  const products = await getProducts();
+  const products = await getProductsAdmin();
   const byId = new Map(products.map((p) => [p.id, p]));
   const rows = counts.map((c) => ({
     productId: c.productId,
