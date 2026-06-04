@@ -134,6 +134,20 @@ async function main() {
   console.log(`   ${brands.length} brands`);
   console.log(`   ${reviews.length} reviews`);
   console.log(`   ${bestDeals.length} products`);
+
+  // Reset auto-increment sequences so new inserts don't collide with seeded IDs
+  console.log("  → Resetting sequences...");
+  const seqTables = ["Product", "Category", "Brand", "HeroSlide", "Review"];
+  for (const t of seqTables) {
+    try {
+      await prisma.$executeRawUnsafe(
+        `SELECT setval(pg_get_serial_sequence('"${t}"', 'id'), COALESCE((SELECT MAX(id) FROM "${t}"), 0) + 1, false)`
+      );
+      console.log(`     ✓ ${t} sequence reset`);
+    } catch {
+      // table may not have a serial sequence (e.g. no rows), ignore
+    }
+  }
 }
 
 main()
