@@ -70,24 +70,44 @@ export default function ProductForm({ initial, productId }: Props) {
     const fd = new FormData();
     Array.from(files).forEach((f) => fd.append("files", f));
     setUploadingIdx(target === "main" ? -1 : target);
-    const res = await fetch("/api/admin/upload", {
-      method: "POST",
-      credentials: "include",
-      body: fd,
-    });
-    const { urls } = await res.json();
-    if (target === "main") {
-      set("image", urls[0]);
-      set("images", form.images?.length ? [urls[0], ...form.images.slice(1)] : [urls[0]]);
-    } else {
-      const imgs = [...(form.images ?? [])];
-      urls.forEach((u: string, i: number) => {
-        if (target + i < imgs.length) imgs[target + i] = u;
-        else imgs.push(u);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        credentials: "include",
+        body: fd,
       });
-      set("images", imgs);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Erreur lors de l'upload");
+        return;
+      }
+      const urls: string[] = data.urls;
+      setForm((prev) => {
+        const imgs = [...(prev.images ?? [])];
+        if (target === "main") {
+          // First URL replaces slot 0 (or appends if empty); extra URLs are appended
+          if (imgs.length === 0) {
+            urls.forEach((u) => imgs.push(u));
+          } else {
+            imgs[0] = urls[0];
+            urls.slice(1).forEach((u) => imgs.push(u));
+          }
+          return { ...prev, image: imgs[0], images: imgs };
+        } else {
+          const idx = target as number;
+          urls.forEach((u, i) => {
+            if (idx + i < imgs.length) imgs[idx + i] = u;
+            else imgs.push(u);
+          });
+          return { ...prev, image: imgs[0] ?? prev.image, images: imgs };
+        }
+      });
+    } catch {
+      setError("Erreur lors de l'upload. Veuillez réessayer.");
+    } finally {
+      setUploadingIdx(null);
     }
-    setUploadingIdx(null);
   };
 
   // ── Save ─────────────────────────────────────────────────────────────────
@@ -224,15 +244,20 @@ export default function ProductForm({ initial, productId }: Props) {
         </div>
         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
           onChange={(e) => {
-            if (e.target.files) {
+            if (e.target.files && e.target.files.length > 0) {
               uploadFiles(e.target.files, "main");
-              // Also add to gallery
-              if (e.target.files.length > 1) {
-                uploadFiles(e.target.files, form.images?.length ?? 0);
-              }
+              e.target.value = "";
             }
           }} />
-        <input ref={mainFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && uploadFiles(e.target.files, "main")} />
+        <input ref={mainFileRef} type="file" accept="image/*" className="hidden"
+          onChange={(e) => {
+            if (e.target.files && e.target.files.length > 0) {
+              // Append to end of gallery (or as main if no images yet)
+              const target = form.images && form.images.length > 0 ? form.images.length : "main";
+              uploadFiles(e.target.files, target);
+              e.target.value = "";
+            }
+          }} />
 
         {/* Image grid */}
         <div className="flex flex-wrap gap-3">

@@ -46,6 +46,9 @@ public/*.png
 public/*.jpg
 public/images/For mobile version.png
 
+# user-uploaded product images (served from /uploads at runtime)
+public/uploads/
+
 .vercel
 
 /src/generated/prisma
