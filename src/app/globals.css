@@ -221,3 +221,40 @@ img {
   image-rendering: -webkit-optimize-contrast;
 }
 
+/* ═══════════════════════════════════════════════════
+   Mobile Performance Optimizations
+   ═══════════════════════════════════════════════════ */
+
+/* Reduce displacement distance → smaller compositing layers → less paint */
+@media (max-width: 640px) {
+  html.reveal-js [data-reveal] {
+    transition-duration: 0.4s;
+  }
+  html.reveal-js [data-reveal="up"]:not(.in-view)    { transform: translateY(16px); }
+  html.reveal-js [data-reveal="left"]:not(.in-view)  { transform: translateX(-20px); }
+  html.reveal-js [data-reveal="right"]:not(.in-view) { transform: translateX(20px); }
+  html.reveal-js [data-reveal="scale"]:not(.in-view) { transform: scale(0.95) translateY(10px); }
+}
+
+/* Touch screens: kill "sticky hover" — iOS/Android tap briefly fires :hover,
+   triggering a shadow+transform repaint+animation and wasting battery.
+   Keep the base style; just suppress the hover-state change. */
+@media (hover: none) and (pointer: coarse) {
+  /* Product card: no lift on tap */
+  .hover\:-translate-y-2:hover   { transform: none !important; }
+  .hover\:-translate-y-0\.5:hover { transform: none !important; }
+  /* CTA button: no upward hop on tap */
+  .hover\:-translate-y-0\.5:hover,
+  .active\:translate-y-0:active   { transform: none !important; }
+  /* Suppress the large shadow bloom on tap (triggers expensive blur repaint) */
+  .hover\:shadow-lg:hover { box-shadow: none !important; }
+}
+
+/* Content sections that are below the fold: skip rendering until scrolled to.
+   contain-intrinsic-size prevents scroll-height from collapsing. */
+.below-fold {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 480px;
+}
+
+

@@ -54,10 +54,10 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="h-full bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-[0_4px_24px_rgba(15,23,42,0.07)] hover:shadow-[0_24px_60px_rgba(249,115,22,0.16),0_8px_28px_rgba(15,23,42,0.10)] hover:-translate-y-2 hover:border-orange-200 transition-all duration-350 ease-out flex flex-col group relative">
+    <div className="h-full bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-[0_4px_24px_rgba(15,23,42,0.07)] [@media(hover:hover)]:hover:shadow-[0_24px_60px_rgba(249,115,22,0.16),0_8px_28px_rgba(15,23,42,0.10)] [@media(hover:hover)]:hover:-translate-y-2 [@media(hover:hover)]:hover:border-orange-200 transition-[transform,box-shadow,border-color] duration-300 ease-out flex flex-col group relative">
 
       {/* Outer glow on hover */}
-      <div className="absolute -inset-px rounded-3xl bg-gradient-to-br from-orange-400/0 via-amber-300/0 to-orange-500/0 group-hover:from-orange-400/10 group-hover:via-amber-300/5 group-hover:to-orange-500/10 transition-all duration-350 pointer-events-none z-0" />
+      <div className="absolute -inset-px rounded-3xl bg-gradient-to-br from-orange-400/0 via-amber-300/0 to-orange-500/0 [@media(hover:hover)]:group-hover:from-orange-400/10 [@media(hover:hover)]:group-hover:via-amber-300/5 [@media(hover:hover)]:group-hover:to-orange-500/10 transition-[opacity,background] duration-300 pointer-events-none z-0" />
 
       {/* ── IMAGE ── */}
       <div
@@ -71,7 +71,7 @@ export default function ProductCard({ product }: { product: Product }) {
           src={product.image}
           alt={product.name}
           fill
-          className="object-contain p-5 sm:p-7 group-hover:scale-[1.06] transition-transform duration-500 ease-out z-0 drop-shadow-lg"
+          className="object-contain p-5 sm:p-7 [@media(hover:hover)]:group-hover:scale-[1.06] transition-transform duration-500 ease-out z-0 drop-shadow-lg"
           style={{ mixBlendMode: "multiply" }}
           sizes="(max-width: 640px) 55vw, (max-width: 1024px) 33vw, 25vw"
         />

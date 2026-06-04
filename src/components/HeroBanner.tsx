@@ -145,6 +145,30 @@ export default function HeroBanner({ stats }: { stats?: SlideStats[] }) {
           from { width: 0%; }
           to   { width: 100%; }
         }
+        /* ── Mobile: strip GPU-hungry animations ── */
+        @keyframes heroFadeIn  { from { opacity:0; } to { opacity:1; } }
+        @keyframes heroFadeOut { from { opacity:1; } to { opacity:0; } }
+        @media (max-width: 640px) {
+          /* Kill the continuous 3D float — biggest GPU drain on mobile */
+          .hero-float { animation: none !important; will-change: auto !important; }
+          /* Replace 3D slide transitions with simple fade */
+          .hero-enter-right, .hero-enter-left { animation: heroFadeIn  320ms ease-out both !important; }
+          .hero-exit-left,  .hero-exit-right  { animation: heroFadeOut 220ms ease-out both !important; }
+          /* Disable blur blob animations — expensive repaint every frame */
+          .blob-a, .blob-b { animation: none !important; }
+          /* Remove pulsing ring overlays */
+          .ring-a, .ring-b { display: none !important; }
+          /* Static shimmer on mobile (no animation = no background-position repaint) */
+          .price-shimmer {
+            animation: none !important;
+            background: #fb923c !important;
+            background-clip: text !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+          }
+          /* Faster text slide on mobile */
+          .hero-text { animation-duration: 0.35s !important; }
+        }
       `}</style>
 
       <section className="bg-[#050814] border-b border-slate-900 overflow-hidden select-none">

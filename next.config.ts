@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   // Drop the `X-Powered-By: Next.js` header (tiny size + security win)
   poweredByHeader: false,
 
+  experimental: {
+    // Tree-shake large packages to reduce JS bundle size on mobile
+    optimizePackageImports: ["jose", "bcryptjs", "nodemailer"],
+  },
+
   async redirects() {
     return [
       { source: "/magasin", destination: "/contact", permanent: true },

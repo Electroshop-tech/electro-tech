@@ -20,7 +20,7 @@ export default function ProductSection({
   mobileScroll = false,
 }: ProductSectionProps) {
   return (
-    <section className="py-12 sm:py-14 bg-[#f5f7fb]">
+    <section className="below-fold py-12 sm:py-14 bg-[#f5f7fb]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         {/* Section header */}
         <div data-reveal="up" className="flex items-end justify-between mb-7 sm:mb-9 gap-3">
