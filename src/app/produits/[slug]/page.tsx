@@ -498,9 +498,11 @@ export default async function ProductPage({
             <h2 className="text-xl font-black text-gray-900 mb-6">
               Produits <span className="text-orange-500">similaires</span>
             </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
+              <div className="flex gap-4 overflow-x-auto pb-3 sm:pb-0 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-4 sm:gap-4 lg:gap-5">
               {related.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <div key={p.id} className="shrink-0 w-[220px] xs:w-[240px] sm:w-auto snap-start">
+                  <ProductCard product={p} />
+                </div>
               ))}
             </div>
           </div>
