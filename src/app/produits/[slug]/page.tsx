@@ -89,6 +89,7 @@ export default async function ProductPage({
   const catLabel = categoryLabels[product.category] ?? product.category;
   const related = allProducts
     .filter((p) => p.category === product.category && p.slug !== product.slug)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 4);
 
   // Fallback specs parsed from description
