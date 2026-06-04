@@ -29,8 +29,13 @@ export async function POST(req: NextRequest) {
     }
     const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
     const filename = `products/${Date.now()}-${safeName}`;
-    const blob = await put(filename, file, { access: "public" });
-    urls.push(blob.url);
+    try {
+      const blob = await put(filename, file, { access: "public" });
+      urls.push(blob.url);
+    } catch (err) {
+      console.error("Blob upload error:", err);
+      return NextResponse.json({ error: "Erreur de stockage. Vérifiez la configuration du blob." }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ urls });
