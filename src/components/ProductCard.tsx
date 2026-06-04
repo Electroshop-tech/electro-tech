@@ -208,7 +208,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="mt-auto pt-1">
           <div className="flex items-end justify-between gap-2 mb-2.5">
             <div>
-              {product.originalPrice !== product.currentPrice && (
+              {product.originalPrice > 0 && product.originalPrice !== product.currentPrice && (
                 <p className="text-xs text-slate-400 line-through leading-none mb-1">
                   {product.originalPrice.toLocaleString()} &euro;
                 </p>

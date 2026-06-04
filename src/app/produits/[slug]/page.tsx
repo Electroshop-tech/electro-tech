@@ -317,9 +317,11 @@ export default async function ProductPage({
 
               {/* Price block */}
               <div className="pb-4 border-b border-gray-100">
-                <p className="text-gray-400 text-sm line-through mb-0.5">
-                  {product.originalPrice.toLocaleString()}€
-                </p>
+                {product.originalPrice > 0 && product.originalPrice !== product.currentPrice && (
+                  <p className="text-gray-400 text-sm line-through mb-0.5">
+                    {product.originalPrice.toLocaleString()}€
+                  </p>
+                )}
                 <div className="flex items-end gap-2">
                   <p className="text-orange-500 text-4xl font-black leading-tight">
                     {product.currentPrice.toLocaleString()}€

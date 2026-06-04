@@ -52,3 +52,5 @@ public/uploads/
 .vercel
 
 /src/generated/prisma
+
+.env*.local
