@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const ADMIN_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "MISSING_JWT_SECRET"
+  process.env.JWT_SECRET ?? "set-jwt-secret-in-env"
 );
 
 const ALLOWED_ORIGINS = new Set([
