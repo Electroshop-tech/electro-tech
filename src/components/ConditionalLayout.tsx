@@ -11,7 +11,8 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
   const isCheckout = pathname.startsWith("/commander");
-  const hideHeader = isCheckout;
+  const isMaintenance = pathname === "/maintenance";
+  const hideHeader = isCheckout || isMaintenance;
   const [showTop, setShowTop] = useState(false);
 
   useEffect(() => {
@@ -27,10 +28,10 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   return (
     <>
       {!isAdmin && !hideHeader && <Header />}
-      <main>{isAdmin ? children : <PageTransition>{children}</PageTransition>}</main>
-      {!isAdmin && <Footer />}
-      {!isAdmin && <CookieConsent />}
-      {!isAdmin && showTop && (
+      <main>{isAdmin || isMaintenance ? children : <PageTransition>{children}</PageTransition>}</main>
+      {!isAdmin && !isMaintenance && <Footer />}
+      {!isAdmin && !isMaintenance && <CookieConsent />}
+      {!isAdmin && !isMaintenance && showTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Retour en haut"
@@ -41,7 +42,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
           </svg>
         </button>
       )}
-      {!isAdmin && (
+      {!isAdmin && !isMaintenance && (
         <a
           href="https://wa.me/212716408919"
           target="_blank"
