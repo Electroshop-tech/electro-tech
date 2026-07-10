@@ -6,6 +6,10 @@ import ConditionalLayout from "@/components/ConditionalLayout";
 import Providers from "@/components/Providers";
 import ScrollAnimations from "@/components/ScrollAnimations";
 import PageTracker from "@/components/PageTracker";
+import { headers, cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { getSiteSettings } from "@/lib/store";
+import { jwtVerify } from "jose";
 
 // Self-hosted, preloaded Inter — no external request, no layout shift (FOUT)
 const inter = Inter({
@@ -60,11 +64,40 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // ── Maintenance mode check (Node.js runtime — Prisma works here) ───────────
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") ?? "/";
+  const isExcluded =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api") ||
+    pathname === "/maintenance";
+
+  if (!isExcluded) {
+    // Check if admin is logged in (bypass maintenance)
+    const cookieStore = await cookies();
+    const adminToken = cookieStore.get("admin_token")?.value;
+    let isAdmin = false;
+    if (adminToken) {
+      try {
+        const ADMIN_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? "set-jwt-secret-in-env");
+        const { payload } = await jwtVerify(adminToken, ADMIN_SECRET);
+        isAdmin = payload.role === "admin";
+      } catch { /* invalid token */ }
+    }
+
+    if (!isAdmin) {
+      const settings = await getSiteSettings();
+      if (settings.maintenanceMode === "true") {
+        redirect("/maintenance");
+      }
+    }
+  }
+  // ──────────────────────────────────────────────────────────────────────────
   return (
     <html lang="fr" className={`reveal-js ${inter.variable}`} suppressHydrationWarning>
       <head>

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { neon } from "@neondatabase/serverless";
 
 const ADMIN_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET ?? "set-jwt-secret-in-env"
@@ -12,26 +11,6 @@ const ALLOWED_ORIGINS = new Set([
   "http://localhost:3000",
   "http://localhost:3001",
 ]);
-
-// ── Maintenance mode cache (30s TTL) ──────────────────────────────────────────
-let _maintenanceCache: { value: boolean; ts: number } | null = null;
-const CACHE_TTL = 30_000;
-
-async function isMaintenanceOn(): Promise<boolean> {
-  const now = Date.now();
-  if (_maintenanceCache && now - _maintenanceCache.ts < CACHE_TTL) {
-    return _maintenanceCache.value;
-  }
-  try {
-    const sql = neon(process.env.DATABASE_URL!);
-    const rows = await sql`SELECT value FROM "SiteSetting" WHERE key = 'maintenanceMode' LIMIT 1`;
-    const value = rows[0]?.value === "true";
-    _maintenanceCache = { value, ts: now };
-    return value;
-  } catch {
-    return false; // on DB error, keep site live
-  }
-}
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -63,31 +42,10 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // ── Maintenance mode (frontend routes only) ───────────────────────────────
-  const isFrontendRoute =
-    !pathname.startsWith("/api") &&
-    !pathname.startsWith("/admin") &&
-    !pathname.startsWith("/_next") &&
-    pathname !== "/maintenance" &&
-    !/\.[a-zA-Z0-9]+$/.test(pathname); // skip files with extensions
-
-  if (isFrontendRoute) {
-    // Logged-in admins always bypass maintenance
-    const adminToken = req.cookies.get("admin_token")?.value;
-    let isAdmin = false;
-    if (adminToken) {
-      try {
-        const { payload } = await jwtVerify(adminToken, ADMIN_SECRET);
-        isAdmin = payload.role === "admin";
-      } catch { /* not admin */ }
-    }
-
-    if (!isAdmin && await isMaintenanceOn()) {
-      return NextResponse.redirect(new URL("/maintenance", req.url));
-    }
-  }
-
-  return NextResponse.next();
+  // Pass pathname to server components via request header
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {
