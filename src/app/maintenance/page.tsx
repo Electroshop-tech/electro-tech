@@ -398,7 +398,6 @@ export default function MaintenancePage() {
               height: p.size,
               animationDelay: p.delay,
               animationDuration: p.dur,
-              // @ts-expect-error custom property
               "--dx": p.dx,
               opacity: 0,
             } as React.CSSProperties}
