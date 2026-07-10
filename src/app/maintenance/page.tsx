@@ -395,8 +395,8 @@
 
           {/* Description */}
           <p className="desc">
-            Nous effectuons des amÃ©liorations importantes pour vous offrir une meilleure expÃ©rience d&apos;achat.
-            Nous serons de retour trÃ¨s bientÃ´t â€” merci de votre patience.
+            Nous effectuons des am&eacute;liorations importantes pour vous offrir une meilleure exp&eacute;rience d&rsquo;achat.
+            Nous serons de retour tr&egrave;s bient&ocirc;t &mdash; merci de votre patience.
           </p>
 
           {/* Stats */}
@@ -410,8 +410,8 @@
               <span className="stat-label">Support</span>
             </div>
             <div className="stat">
-              <span className="stat-value">ðŸ”’</span>
-              <span className="stat-label">SÃ©curisÃ©</span>
+              <span className="stat-value">&#128274;</span>
+              <span className="stat-label">S&eacute;curis&eacute;</span>
             </div>
           </div>
 
@@ -419,7 +419,7 @@
           <div className="progress-wrap">
             <div className="progress-meta">
               <span className="progress-meta-left">Progression</span>
-              <span className="progress-meta-right">BientÃ´t prÃªt âœ¦</span>
+              <span className="progress-meta-right">Bient&ocirc;t pr&ecirc;t &#10022;</span>
             </div>
             <div className="progress-track">
               <div className="progress-bar" />
@@ -457,7 +457,7 @@
           </div>
 
           {/* Footer note */}
-          <p className="footer-note">Â© 2025 ElectroShop-Tech Â· Tous droits rÃ©servÃ©s</p>
+          <p className="footer-note">&copy; 2025 ElectroShop-Tech &middot; Tous droits r&eacute;serv&eacute;s</p>
         </div>
       </div>
     </>
