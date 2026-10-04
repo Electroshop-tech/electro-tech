@@ -17,8 +17,8 @@ const faqs = [
     category: "Livraison",
     icon: "M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM3 4h13M3 9h13M3 14h4",
     items: [
-      { q: "Quels sont les delais de livraison ?", a: "Livraison sous 24-48h dans les grandes villes (Casablanca, Rabat, Marrakech, Fes, Agadir). 48-72h pour les autres villes. Expedition le jour meme pour les commandes avant 14h." },
-      { q: "La livraison est-elle gratuite ?", a: "Oui, la livraison est gratuite sur toutes les commandes, sans minimum d'achat, partout au Maroc." },
+      { q: "Quels sont les delais de livraison ?", a: "Livraison sous 24-48h en France. Expedition le jour meme pour les commandes avant 14h." },
+      { q: "La livraison est-elle gratuite ?", a: "Oui, la livraison est gratuite sur toutes les commandes, sans minimum d'achat, partout en France." },
       { q: "Comment suivre ma livraison ?", a: "Vous recevrez un email et SMS avec un numero de suivi des l'expedition. Vous pouvez aussi utiliser notre page Suivi de commande." },
     ],
   },

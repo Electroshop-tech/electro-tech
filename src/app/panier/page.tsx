@@ -100,7 +100,7 @@ export default function PanierPage() {
                 {/* Text */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-black text-green-800 leading-none">Livraison offerte sur votre commande</p>
-                  <p className="text-[11px] text-green-600 mt-0.5">Expédition sous 24h · Suivi inclus · Partout au Maroc</p>
+                  <p className="text-[11px] text-green-600 mt-0.5">Expédition sous 24h · Suivi inclus · Partout en France</p>
                 </div>
                 {/* Saving badge */}
                 <div className="shrink-0 flex flex-col items-center bg-green-500 rounded-xl px-3 py-1.5 shadow-sm">
@@ -312,7 +312,7 @@ export default function PanierPage() {
                     </svg>
                     <div>
                       <p className={`text-sm font-bold ${deliveryFee > 0 ? "text-slate-700" : "text-green-800"}`}>Livraison à domicile</p>
-                      <p className={`text-[10px] ${deliveryFee > 0 ? "text-gray-400" : "text-green-600"}`}>Partout au Maroc · 24–48h</p>
+                      <p className={`text-[10px] ${deliveryFee > 0 ? "text-gray-400" : "text-green-600"}`}>Partout en France · 24–48h</p>
                     </div>
                   </div>
                   <span className={`text-sm font-black ${deliveryFee > 0 ? "text-slate-900" : "text-green-600"}`}>

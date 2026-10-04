@@ -205,6 +205,7 @@ model PaymentWebhookEvent {
 }
 
 model AdminOrderNotification {
+  pushDeliveries AdminPushDelivery[]
   id String @id @default(cuid())
   orderId String
   event String // ORDER_CREATED | PAYMENT_RECEIVED
@@ -221,6 +222,32 @@ model AdminOrderNotification {
   @@unique([orderId, event])
   @@index([readAt, createdAt])
   @@index([phoneStatus, createdAt])
+}
+
+model AdminPushSubscription {
+  id String @id @default(cuid())
+  endpoint String @unique
+  owner String
+  p256dh String
+  auth String
+  createdAt DateTime @default(now())
+  deliveries AdminPushDelivery[]
+}
+
+model AdminPushDelivery {
+  id String @id @default(cuid())
+  notificationId String
+  subscriptionId String
+  status String @default("PENDING")
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  startedAt DateTime?
+  acceptedAt DateTime?
+  error String?
+  notification AdminOrderNotification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  subscription AdminPushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  @@unique([notificationId, subscriptionId])
+  @@index([status, nextAttemptAt])
 }
 
 model OrderEmailDelivery {

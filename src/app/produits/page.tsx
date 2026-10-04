@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Tous les Produits — ElectroShop-Tech",
-  description: "Parcourez tout notre catalogue : box Android TV, caméras de surveillance et accessoires high-tech au Maroc.",
+  description: "Parcourez tout notre catalogue : box Android TV, caméras de surveillance et accessoires high-tech en France.",
 };
 
 const categoryLabels: Record<string, string> = {

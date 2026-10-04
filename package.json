@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:payments": "node --test tests/payments.test.mjs",
-    "test:notifications": "node --test tests/admin-notifications.test.mjs",
+    "test:notifications": "node --test tests/admin-notifications.test.mjs tests/admin-push.test.mjs",
     "test:orders": "node --test tests/order-flow.test.mjs",
     "postinstall": "prisma generate"
   },
@@ -29,6 +29,7 @@
     "resend": "^6.12.3",
     "server-only": "^0.0.1",
     "stripe": "^23.0.0",
+    "web-push": "^3.6.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -36,6 +37,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "@types/ws": "^8.18.1",
     "dotenv": "^17.4.2",
     "eslint": "^9",

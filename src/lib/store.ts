@@ -208,7 +208,7 @@ function dbUserToUser(u: {
           street: u.addressStreet,
           city: u.addressCity,
           postalCode: u.addressPostalCode ?? "",
-          country: u.addressCountry ?? "Maroc",
+          country: u.addressCountry ?? "France",
         }
       : undefined;
   return {

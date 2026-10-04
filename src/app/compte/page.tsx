@@ -33,7 +33,7 @@ export default function ComptePage() {
   const [showLoginPw, setShowLoginPw] = useState(false);
   const [regForm, setRegForm] = useState({ firstName: "", lastName: "", email: "", phone: "", password: "", confirm: "" });
   const [showRegPw, setShowRegPw] = useState(false);
-  const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", phone: "", street: "", city: "", postalCode: "", country: "Maroc" });
+  const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", phone: "", street: "", city: "", postalCode: "", country: "France" });
   const [savingProfile, setSavingProfile] = useState(false);
   const [googleEnabled, setGoogleEnabled] = useState(false);
   const [showForgotPw, setShowForgotPw] = useState(false);
@@ -80,7 +80,7 @@ export default function ComptePage() {
       setProfileForm({
         firstName: user.firstName, lastName: user.lastName, phone: user.phone ?? "",
         street: user.address?.street ?? "", city: user.address?.city ?? "",
-        postalCode: user.address?.postalCode ?? "", country: user.address?.country ?? "Maroc",
+        postalCode: user.address?.postalCode ?? "", country: user.address?.country ?? "France",
       });
     }
   }, [user]);

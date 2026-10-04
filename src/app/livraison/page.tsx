@@ -1,10 +1,7 @@
 import Link from "next/link";
 
 const zones = [
-  { zone: "Casablanca & Grand Casablanca", delay: "24h", price: "Gratuit" },
-  { zone: "Rabat, Sale, Temara", delay: "24-48h", price: "Gratuit" },
-  { zone: "Marrakech, Fes, Agadir", delay: "24-48h", price: "Gratuit" },
-  { zone: "Autres villes du Maroc", delay: "48-72h", price: "Gratuit" },
+  { zone: "France", delay: "24-48h", price: "Gratuit" },
 ];
 
 const steps = [
@@ -32,7 +29,7 @@ export default function LivraisonPage() {
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-[1.05] tracking-tight mb-5">
                 Livraison<br />
                 <span className="text-orange-400">gratuite</span><br />
-                partout au Maroc
+                partout en France
               </h1>
               <p className="text-slate-400 text-base leading-relaxed max-w-md">
                 Toutes nos commandes sont expédiées gratuitement en 24–48h. Suivi en temps réel inclus.
@@ -48,7 +45,7 @@ export default function LivraisonPage() {
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm">
                   <p className="text-3xl font-black text-orange-400">24h</p>
-                  <p className="text-slate-400 text-xs mt-1">Délai Casablanca</p>
+                  <p className="text-slate-400 text-xs mt-1">Expédition</p>
                 </div>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm flex items-center gap-4">
@@ -65,7 +62,7 @@ export default function LivraisonPage() {
                   <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </div>
                 <div>
-                  <p className="text-white font-bold text-sm">Partout au Maroc</p>
+                  <p className="text-white font-bold text-sm">Partout en France</p>
                   <p className="text-slate-400 text-xs">Toutes les villes desservies</p>
                 </div>
               </div>

@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
+      { source: "/admin-sw.js", headers: [
+        { key: "Cache-Control", value: "no-store, max-age=0" },
+        { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+      ] },
       {
         source: "/(.*)",
         headers: [

@@ -3,7 +3,7 @@ import Link from "next/link";
 const trustItems = [
   {
     title: "8 ans d'expertise",
-    desc: "Spécialiste reconnu au Maroc",
+    desc: "Spécialiste reconnu en France",
     path: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
   },
   {
@@ -76,7 +76,7 @@ export default function Footer() {
           </Link>
 
           <p className="hidden sm:block text-slate-400 text-sm leading-relaxed max-w-xs">
-            Votre Spécialiste marocain en box Android TV, accessoires high-tech et caméras de surveillance. Produits 100&nbsp;% authentiques, livrés directement chez vous.
+            Votre Spécialiste en France en box Android TV, accessoires high-tech et caméras de surveillance. Produits 100&nbsp;% authentiques, livrés directement chez vous.
           </p>
 
           {/* Contact */}

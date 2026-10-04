@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { after } from "next/server";
 import { dispatchOrderAlerts } from "@/lib/admin-notifications";
+import { drainPushAlerts } from "@/lib/admin-push";
 import { getOrdersByUserId, createOrder, getUserById, getProductById, validatePromoCode, incrementPromoUses, computeDeliveryFee, markCartRecovered } from "@/lib/store";
 import { dispatchOrderEmails } from "@/lib/order-emails";
 import { rateLimit } from "@/lib/rateLimit";
@@ -103,6 +104,8 @@ export async function POST(req: NextRequest) {
     });
 
     after(async () => {
+      try { await drainPushAlerts(); }
+      catch { console.error("[notifications] Push queue unavailable", { orderId: order.id }); }
       try { await dispatchOrderAlerts(order.id); }
       catch { console.error("[notifications] Phone dispatch unavailable", { orderId: order.id }); }
       try { await dispatchOrderEmails(order.id); }

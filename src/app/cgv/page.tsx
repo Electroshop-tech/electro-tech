@@ -14,7 +14,7 @@ const articles = [
   {
     num: "03",
     title: "Prix",
-    content: "Les prix sont indiqués en Dirhams marocains (€) TTC. Le Vendeur se réserve le droit de modifier ses prix à tout moment, sans préavis. Les commandes sont facturées au prix en vigueur au moment de la validation.",
+    content: "Les prix sont indiqués en euros (€) TTC. Le Vendeur se réserve le droit de modifier ses prix à tout moment, sans préavis. Les commandes sont facturées au prix en vigueur au moment de la validation.",
   },
   {
     num: "04",
@@ -29,7 +29,7 @@ const articles = [
   {
     num: "06",
     title: "Livraison",
-    content: "La livraison est effectuée partout au Maroc dans un délai de 24 à 72 heures ouvrées selon la zone géographique. Les frais de livraison sont offerts sur toutes les commandes. Le Vendeur ne peut être tenu responsable des retards liés aux transporteurs.",
+    content: "La livraison est effectuée partout en France dans un délai de 24 à 72 heures ouvrées selon la zone géographique. Les frais de livraison sont offerts sur toutes les commandes. Le Vendeur ne peut être tenu responsable des retards liés aux transporteurs.",
   },
   {
     num: "07",

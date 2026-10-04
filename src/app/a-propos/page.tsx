@@ -1,9 +1,9 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 const highlights = [
   { label: "Produits authentiques", desc: "100% originaux, sourcés chez les fabricants", icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" },
   { label: "SAV local", desc: "Support disponible 7j/7 en magasin & en ligne", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" },
-  { label: "Livraison rapide", desc: "Expédition 24–48h partout au Maroc", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+  { label: "Livraison rapide", desc: "Expédition 24–48h partout en France", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
   { label: "Garantie 1 an", desc: "Sur tous nos produits, sans exception", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" },
 ];
 
@@ -133,7 +133,7 @@ export default function AProposPage() {
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
         <div className="relative max-w-xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-black text-white mb-3">Prêt à transformer votre TV ?</h2>
-          <p className="text-orange-100 text-sm mb-7">Découvrez nos box Android TV et accessoires — qualité garantie, livraison rapide partout au Maroc.</p>
+          <p className="text-orange-100 text-sm mb-7">Découvrez nos box Android TV et accessoires — qualité garantie, livraison rapide partout en France.</p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link href="/produits" className="bg-white text-orange-500 font-black px-7 py-3 rounded-xl hover:bg-orange-50 transition-colors shadow-xl text-sm">
               Voir nos produits →

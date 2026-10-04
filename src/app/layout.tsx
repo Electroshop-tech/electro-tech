@@ -20,12 +20,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "ElectroShop-Tech – Passerelle Multimédia, Accessoires & Caméras au Maroc",
+    default: "ElectroShop-Tech – Passerelle Multimédia, Accessoires & Caméras en France",
     template: "%s | ElectroShop-Tech",
   },
   description:
-    "ElectroShop-Tech, votre spécialiste en ligne pour les box multimédias Android TV, systèmes de vidéosurveillance IP et accessoires high-tech au Maroc. Produits 100% authentiques, garantis et livrés rapidement.",
-  keywords: "android tv box maroc, box multimedia maroc, camera surveillance maroc, accessoires tv maroc, electroshop tech, electroshop-tech",
+    "ElectroShop-Tech, votre spécialiste en ligne pour les box multimédias Android TV, systèmes de vidéosurveillance IP et accessoires high-tech en France. Produits 100% authentiques, garantis et livrés rapidement.",
+  keywords: "android tv box france, box multimedia france, camera surveillance france, accessoires tv france, electroshop tech, electroshop-tech",
   metadataBase: new URL("https://electroshop-tech.com"),
   other: { "theme-color": "#f97316" },
   verification: {
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     locale: "fr_MA",
     url: "https://electroshop-tech.com",
     siteName: "ElectroShop-Tech",
-    title: "ElectroShop-Tech – Passerelle Multimédia, Accessoires & Caméras au Maroc",
+    title: "ElectroShop-Tech – Passerelle Multimédia, Accessoires & Caméras en France",
     description: "Votre spécialiste box Android TV, caméras de surveillance et accessoires high-tech. Livraison en France, paiement accompagné par notre équipe.",
     images: [
       {
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ElectroShop-Tech – Passerelle Multimédia au Maroc",
-    description: "Box Android TV, caméras de surveillance et accessoires high-tech. Livraison au Maroc.",
+    title: "ElectroShop-Tech – Passerelle Multimédia en France",
+    description: "Box Android TV, caméras de surveillance et accessoires high-tech. Livraison en France.",
     images: ["/images/3D%20hero%20section/3D%20Hero%20section%201.jpg"],
   },
   manifest: "/manifest.json",
@@ -111,7 +111,7 @@ export default async function RootLayout({
               name: "ElectroShop-Tech",
               url: "https://electroshop-tech.com",
               logo: "https://electroshop-tech.com/images/icon-512.png",
-              description: "Spécialiste en box multimédias Android TV, caméras de surveillance et accessoires high-tech au Maroc.",
+              description: "Spécialiste en box multimédias Android TV, caméras de surveillance et accessoires high-tech en France.",
               address: {
                 "@type": "PostalAddress",
                 addressLocality: "Casablanca",
@@ -137,8 +137,8 @@ export default async function RootLayout({
               image: "https://electroshop-tech.com/images/icon-512.png",
               url: "https://electroshop-tech.com",
               telephone: "+212-716-408919",
-              priceRange: "MAD",
-              currenciesAccepted: "MAD",
+              priceRange: "EUR",
+              currenciesAccepted: "EUR",
               paymentAccepted: "Cash on Delivery",
               address: {
                 "@type": "PostalAddress",
@@ -147,7 +147,7 @@ export default async function RootLayout({
               },
               areaServed: {
                 "@type": "Country",
-                name: "Maroc",
+                name: "France",
               },
             }),
           }}

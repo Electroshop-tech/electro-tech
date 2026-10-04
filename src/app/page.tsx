@@ -8,7 +8,7 @@ import Link from "next/link";
 import flashStyles from "@/components/FlashSale.module.css";
 
 export const metadata: Metadata = {
-  title: "Box Android TV, Caméras de Surveillance & Accessoires au Maroc",
+  title: "Box Android TV, Caméras de Surveillance & Accessoires en France",
   description:
     "Achetez vos box Android TV 4K, TV Sticks, caméras de surveillance IP et accessoires high-tech au meilleur prix. Produits authentiques, garantis, paiement accompagné par notre équipe.",
   alternates: { canonical: "https://electroshop-tech.com" },
@@ -98,11 +98,11 @@ export default async function Home() {
       <section data-reveal="up" className="py-12 bg-white border-t border-slate-200">
         <div className="max-w-3xl mx-auto px-4 text-center space-y-3">
           <h2 className="text-xl font-black text-slate-900">
-            ElectroShop-Tech&nbsp;: Passerelle Multimédia, Accessoires &amp; Caméras au Maroc
+            ElectroShop-Tech&nbsp;: Passerelle Multimédia, Accessoires &amp; Caméras en France
           </h2>
           <p className="text-sm text-slate-500 leading-relaxed">
             ElectroShop-Tech est votre spécialiste en ligne pour les box multimédias Android TV,
-            les systèmes de vidéosurveillance IP et les accessoires high-tech au Maroc.
+            les systèmes de vidéosurveillance IP et les accessoires high-tech en France.
             Produits 100% authentiques, garantis et livrés directement chez vous.
           </p>
           <Link

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -94,7 +94,7 @@ function TrackingContent() {
           status: statusMap[data.status] ?? "processing",
           date: data.createdAt ?? new Date().toISOString(),
           product: data.items?.[0]?.productName ?? "Votre commande",
-          city: data.city ?? "Maroc",
+          city: data.city ?? "France",
         });
       } else {
         setNotFound(true);
@@ -136,7 +136,7 @@ function TrackingContent() {
             status: statusMap[firstOrder.status] ?? "processing",
             date: firstOrder.createdAt ?? new Date().toISOString(),
             product: "Votre commande",
-            city: firstOrder.city ?? "Maroc",
+            city: firstOrder.city ?? "France",
           });
         } else {
           setNotFound(true);

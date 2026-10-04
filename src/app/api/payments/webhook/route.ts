@@ -2,6 +2,7 @@
 import { getStripe } from "@/lib/payments/stripe";
 import { after } from "next/server";
 import { drainPhoneAlerts } from "@/lib/admin-notifications";
+import { drainPushAlerts } from "@/lib/admin-push";
 import { processPaymentEvent } from "@/lib/payments/webhook";
 import { PaymentError } from "@/lib/payments/validation";
 
@@ -17,7 +18,10 @@ export async function POST(req: NextRequest) {
   try { event = getStripe().webhooks.constructEvent(body, signature, secret); }
   catch { return NextResponse.json({ error: "Signature invalide." }, { status: 400 }); }
   try {
-    after(async () => { try { await drainPhoneAlerts(); } catch { console.error("[notifications] Phone queue unavailable"); } });
+    after(async () => {
+      const results = await Promise.allSettled([drainPhoneAlerts(), drainPushAlerts()]);
+      if (results.some(result => result.status === "rejected")) console.error("[notifications] Delivery queue unavailable");
+    });
     await processPaymentEvent(event);
     return NextResponse.json({ received: true });
   } catch (error) {
