@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { getAdminUserByEmail, setAdminUserLastLogin } from "@/lib/store";
 import { verifyPassword } from "@/lib/auth";
@@ -75,22 +75,4 @@ export async function DELETE() {
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
   return NextResponse.json({ ok: true });
-}
-
-// Verify admin token — used by other admin API routes
-export async function verifyAdminToken(req: NextRequest): Promise<boolean> {
-  // Check cookie first
-  const cookieToken = req.cookies.get(COOKIE_NAME)?.value;
-  if (cookieToken) {
-    try {
-      const { payload } = await jwtVerify(cookieToken, ADMIN_SECRET);
-      return payload.role === "admin";
-    } catch { /* invalid token */ }
-  }
-
-  // Fallback: check x-admin-key header (for backward compat during migration)
-  const headerKey = req.headers.get("x-admin-key");
-  if (headerKey === ADMIN_PASSWORD) return true;
-
-  return false;
 }

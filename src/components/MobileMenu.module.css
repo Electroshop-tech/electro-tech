@@ -1,0 +1,30 @@
+.menu { display: none; }
+@media (max-width: 1023px) {
+  .menu { display: block; background: #fff; color: #17243a; padding: 20px 20px 96px; border-top: 1px solid #e7ebf1; max-height: 78dvh; overflow-y: auto; overscroll-behavior: contain; }
+  .account { display: flex; align-items: center; gap: 12px; padding: 16px; background: #f5f7fa; border-radius: 14px; }
+  .avatar { width: 38px; height: 38px; display: grid; place-items: center; flex-shrink: 0; border: 1px solid #e1e6ee; border-radius: 50%; color: #5c6c82; background: #fff; }
+  .accountCopy { min-width: 0; flex: 1; }
+  .accountCopy p { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .accountCopy > span { display: block; margin-top: 4px; color: #66758b; font-size: 10px; }
+  .login { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font-size: 11px; font-weight: 600; color: #17243a; white-space: nowrap; }
+  .login > span { color: #b95825; font-size: 17px; }
+  .categories { margin-top: 26px; }
+  .label { color: #66758b; font-size: 10px; font-weight: 600; letter-spacing: .08em; margin-bottom: 12px; }
+  .categoryGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .category { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 11px; min-height: 90px; border: 1px solid #e4e9f0; border-radius: 12px; font-size: 10px; font-weight: 600; padding: 12px 4px; background: #fff; text-align: center; transition: background .15s; }
+  .category > span { color: #50617a; }
+  .category:hover, .category[aria-current="page"] { background: #fff6ef; border-color: #f5c9aa; color: #a84c20; }
+  .group { margin-top: 26px; }
+  .group .label { margin-bottom: 5px; }
+  .link { display: flex; align-items: center; gap: 14px; min-height: 49px; font-size: 13px; font-weight: 500; border-bottom: 1px solid #f0f2f6; padding: 12px 4px; border-radius: 4px; }
+  .link > svg:first-child { color: #66758b; flex-shrink: 0; width: 19px; height: 19px; }
+  .link > span { flex: 1; }
+  .link > svg:last-child { color: #8b98aa; flex-shrink: 0; }
+  .link:hover, .link[aria-current="page"] { color: #a84c20; background: #fff6ef; }
+  .help { display: flex; align-items: center; gap: 12px; margin-top: 24px; padding: 16px 0; color: #66758b; }
+  .help > span { font-size: 10px; line-height: 1.6; }
+  .help strong { display: block; color: #17243a; font-size: 11px; font-weight: 600; }
+  .help .call { margin-left: auto; color: #a84c20; font-weight: 600; white-space: nowrap; }
+  .menu a:focus-visible { outline: 2px solid #e87938; outline-offset: 3px; }
+}
+@media (prefers-reduced-motion: reduce) { .category { transition: none; } }

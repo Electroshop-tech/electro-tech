@@ -1,11 +1,54 @@
 import { Resend } from "resend";
 import type { Order } from "./types";
 import { getSiteSettings } from "./store";
+import { paymentMethodLabel } from "./order-payment";
+import { paymentMessage } from "./payment-message";
+
+export async function sendPaymentRequestEmail(order: Order, url: string, idempotencyKey: string): Promise<string> {
+  const resend = getResend();
+  if (!resend) throw new Error("Service email non configuré.");
+  const message = paymentMessage(order, url);
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: order.customerEmail,
+    subject: `Votre lien de paiement — commande ${order.orderNumber || order.id}`,
+    text: message,
+    html: baseLayout(`<div style="line-height:1.8">${escapeEmail(message).replace(/\n/g, "<br />")}</div><p><a href="${escapeEmail(url)}" style="display:inline-block;padding:14px 24px;background:#f97316;color:#fff;border-radius:8px;text-decoration:none">Régler ma commande</a></p>`, "Votre lien de paiement"),
+  }, { idempotencyKey });
+  if (error || !data?.id) throw new Error("Le service email n’a pas confirmé l’envoi. Réessayez.");
+  return data.id;
+}
 
 function getResend(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return null;
   return new Resend(apiKey);
+}
+
+function escapeEmail(value: string): string {
+  return value.replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
+}
+
+export async function sendSubscriptionEmail(input: {
+  customerName: string; customerEmail: string; orderNumber: string; information: string; idempotencyKey: string;
+}): Promise<string> {
+  const resend = getResend();
+  if (!resend) throw new Error("Email service not configured");
+  const html = baseLayout(`
+    <h1 style="font-size:24px;color:#17243a;margin:0 0 20px;">Votre abonnement est prêt</h1>
+    <p>Bonjour ${escapeEmail(input.customerName)},</p>
+    <p>Merci pour votre commande. Le paiement de la commande <strong>#${escapeEmail(input.orderNumber)}</strong> a été confirmé.</p>
+    <p>Voici les informations de votre abonnement :</p>
+    <div style="padding:20px;background:#f5f7fa;border-radius:12px;font-size:14px;line-height:1.8;overflow-wrap:anywhere;">${escapeEmail(input.information).replace(/\n/g, "<br />")}</div>
+    <p>Merci pour votre confiance.<br />L’équipe ElectroShop-Tech</p>
+  `, "Votre abonnement ElectroShop-Tech");
+  const { data, error } = await resend.emails.send({
+    from: FROM_EMAIL, to: input.customerEmail,
+    subject: `Votre abonnement — commande #${input.orderNumber}`,
+    html, text: `Bonjour ${input.customerName},\n\nMerci pour votre commande #${input.orderNumber}. Votre paiement a été confirmé.\n\nVoici les informations de votre abonnement :\n\n${input.information}\n\nMerci pour votre confiance.\nElectroShop-Tech`,
+  }, { idempotencyKey: input.idempotencyKey });
+  if (error || !data?.id) throw new Error("Subscription email not accepted");
+  return data.id;
 }
 
 const BRAND_COLOR = "#f97316";
@@ -79,7 +122,7 @@ function orderItemsTable(order: Order): string {
   const rows = order.items.map(item => `
     <tr>
       <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;">
-        <span style="font-weight:600;color:#1e293b;">${item.productName}</span>
+        <span style="font-weight:600;color:#1e293b;">${escapeEmail(item.productName)}</span>
         <br/><span style="font-size:12px;color:#94a3b8;">Qté : ${item.quantity}</span>
       </td>
       <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700;color:#1e293b;">
@@ -108,20 +151,15 @@ function orderItemsTable(order: Order): string {
 }
 
 // ── Customer confirmation email ───────────────────────────────────────────────
-export async function sendOrderConfirmation(order: Order): Promise<void> {
-  const resend = getResend();
-  if (!resend) {
-    console.log(`[email] RESEND_API_KEY not configured — skipping customer confirmation for order ${order.id}`);
-    return;
-  }
-
+export async function prepareOrderConfirmation(order: Order): Promise<OrderEmailPayload> {
   const content = `
-    <h1 style="margin:0 0 4px;font-size:22px;font-weight:900;color:#1e293b;">Commande confirmée ! 🎉</h1>
-    <p style="margin:0 0 24px;color:#64748b;font-size:14px;">Merci <strong>${order.customerName}</strong>, votre commande a bien été reçue.</p>
+    <h1 style="margin:0 0 4px;font-size:22px;font-weight:900;color:#1e293b;">Commande reçue !</h1>
+    <p style="margin:0 0 24px;color:#64748b;font-size:14px;">Merci <strong>${escapeEmail(order.customerName)}</strong>, votre commande a bien été reçue.</p>
+    ${order.paymentMethod === "assisted" ? '<p style="color:#64748b;font-size:14px;">Notre équipe vous contactera pour confirmer les détails et vous accompagner pour le paiement avant expédition.</p>' : ""}
 
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
       <p style="margin:0;font-size:13px;color:#92400e;">
-        <strong>N° de commande :</strong> <code style="background:#fee0c0;padding:2px 8px;border-radius:6px;font-weight:700;">${order.id.slice(-12).toUpperCase()}</code>
+        <strong>N° de commande :</strong> <code style="background:#fee0c0;padding:2px 8px;border-radius:6px;font-weight:700;">${escapeEmail(order.orderNumber || order.id.slice(-12).toUpperCase())}</code>
       </p>
       <p style="margin:6px 0 0;font-size:13px;color:#92400e;">
         <strong>Statut :</strong> ${STATUS_LABELS[order.status]}
@@ -133,13 +171,13 @@ export async function sendOrderConfirmation(order: Order): Promise<void> {
 
     <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:20px 0 8px;">Adresse de livraison</h3>
     <p style="margin:0;font-size:13px;color:#64748b;line-height:1.6;">
-      ${order.address.street}<br/>
-      ${order.address.postalCode} ${order.address.city}<br/>
-      ${order.address.country}
+      ${escapeEmail(order.address.street)}<br/>
+      ${escapeEmail(order.address.postalCode)} ${escapeEmail(order.address.city)}<br/>
+      ${escapeEmail(order.address.country)}
     </p>
 
     <div style="margin:28px 0 0;text-align:center;">
-      <a href="${SITE_URL}/compte" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;padding:12px 32px;border-radius:10px;">
+      <a href="${SITE_URL}/suivi-commande?id=${encodeURIComponent(order.orderNumber || order.id)}" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;padding:12px 32px;border-radius:10px;">
         Suivre ma commande →
       </a>
     </div>
@@ -148,29 +186,18 @@ export async function sendOrderConfirmation(order: Order): Promise<void> {
     </p>
   `;
 
-  const { error } = await resend.emails.send({
+  return {
     from: FROM_EMAIL,
     to: order.customerEmail,
-    subject: `✅ Commande confirmée – ${order.id.slice(-8).toUpperCase()} | ${SITE_NAME}`,
+    subject: `Commande reçue – ${order.id.slice(-8).toUpperCase()} | ${SITE_NAME}`,
     html: baseLayout(content, "Confirmation de commande"),
-  });
-
-  if (error) {
-    console.error(`[email] Failed to send customer confirmation:`, error);
-  } else {
-    console.log(`[email] Confirmation sent to ${order.customerEmail}`);
-  }
+  };
 }
 
 // ── Admin notification email ──────────────────────────────────────────────────
-export async function sendAdminOrderNotification(order: Order): Promise<void> {
-  const resend = getResend();
-
-  if (!resend) {
-    console.log(`[email] RESEND_API_KEY not configured — skipping admin notification for order ${order.id}`);
-    return;
-  }
-
+export async function prepareAdminOrderNotification(order: Order): Promise<OrderEmailPayload | null> {
+  const settings = await getSiteSettings();
+  if (settings.newOrderEmail === "false") return null;
   const adminRecipient = await getAdminRecipient();
 
   const content = `
@@ -181,20 +208,20 @@ export async function sendAdminOrderNotification(order: Order): Promise<void> {
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="font-size:13px;color:#166534;padding:3px 0;"><strong>Commande :</strong></td>
-          <td style="font-size:13px;color:#166534;text-align:right;"><code style="background:#dcfce7;padding:2px 8px;border-radius:6px;font-weight:700;">${order.id.slice(-12).toUpperCase()}</code></td>
+          <td style="font-size:13px;color:#166534;text-align:right;"><code style="background:#dcfce7;padding:2px 8px;border-radius:6px;font-weight:700;">${escapeEmail(order.orderNumber || order.id.slice(-12).toUpperCase())}</code></td>
         </tr>
         <tr>
           <td style="font-size:13px;color:#166534;padding:3px 0;"><strong>Client :</strong></td>
-          <td style="font-size:13px;color:#166534;text-align:right;">${order.customerName}</td>
+          <td style="font-size:13px;color:#166534;text-align:right;">${escapeEmail(order.customerName)}</td>
         </tr>
         <tr>
           <td style="font-size:13px;color:#166534;padding:3px 0;"><strong>Email :</strong></td>
-          <td style="font-size:13px;color:#166534;text-align:right;">${order.customerEmail}</td>
+          <td style="font-size:13px;color:#166534;text-align:right;">${escapeEmail(order.customerEmail)}</td>
         </tr>
-        ${order.customerPhone ? `<tr><td style="font-size:13px;color:#166534;padding:3px 0;"><strong>Téléphone :</strong></td><td style="font-size:13px;color:#166534;text-align:right;">${order.customerPhone}</td></tr>` : ""}
+        ${order.customerPhone ? `<tr><td style="font-size:13px;color:#166534;padding:3px 0;"><strong>Téléphone :</strong></td><td style="font-size:13px;color:#166534;text-align:right;">${escapeEmail(order.customerPhone)}</td></tr>` : ""}
         <tr>
           <td style="font-size:13px;color:#166534;padding:3px 0;"><strong>Paiement :</strong></td>
-          <td style="font-size:13px;color:#166534;text-align:right;">${order.paymentMethod === "cash_on_delivery" ? "Paiement à la livraison" : order.paymentMethod}</td>
+          <td style="font-size:13px;color:#166534;text-align:right;">${paymentMethodLabel(order.paymentMethod)}</td>
         </tr>
       </table>
     </div>
@@ -204,30 +231,24 @@ export async function sendAdminOrderNotification(order: Order): Promise<void> {
 
     <h3 style="font-size:14px;font-weight:700;color:#1e293b;margin:20px 0 8px;">Adresse de livraison</h3>
     <p style="margin:0;font-size:13px;color:#64748b;line-height:1.6;">
-      ${order.address.street}<br/>
-      ${order.address.postalCode} ${order.address.city}<br/>
-      ${order.address.country}
+      ${escapeEmail(order.address.street)}<br/>
+      ${escapeEmail(order.address.postalCode)} ${escapeEmail(order.address.city)}<br/>
+      ${escapeEmail(order.address.country)}
     </p>
 
     <div style="margin:28px 0 0;text-align:center;">
-      <a href="${SITE_URL}/admin/orders" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;padding:12px 32px;border-radius:10px;">
+      <a href="${SITE_URL}/admin/orders?order=${encodeURIComponent(order.id)}" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;padding:12px 32px;border-radius:10px;">
         Voir dans le panel admin →
       </a>
     </div>
   `;
 
-  const { error } = await resend.emails.send({
+  return {
     from: FROM_EMAIL,
     to: adminRecipient,
     subject: `🛍️ Nouvelle commande ${order.id.slice(-8).toUpperCase()} – ${order.customerName} (${order.total.toFixed(2)}€)`,
     html: baseLayout(content, "Nouvelle commande"),
-  });
-
-  if (error) {
-    console.error(`[email] Failed to send admin notification:`, error);
-  } else {
-    console.log(`[email] Admin notification sent to ${adminRecipient}`);
-  }
+  };
 }
 
 // ── Newsletter bulk email ─────────────────────────────────────────────────────
@@ -621,4 +642,14 @@ export async function sendBackInStockEmail(emails: string[], productName: string
   } else {
     console.log(`[email] Back-in-stock email sent to ${emails.length} subscriber(s) for ${productName}`);
   }
+}
+
+export type OrderEmailPayload = { from: string; to: string; subject: string; html: string };
+
+export async function sendPreparedOrderEmail(payload: OrderEmailPayload, idempotencyKey: string): Promise<string> {
+  const resend = getResend();
+  if (!resend) throw new Error("Service email non configuré (RESEND_API_KEY manquant).");
+  const { data, error } = await resend.emails.send(payload, { idempotencyKey });
+  if (error || !data?.id) throw new Error("Email refusé par le prestataire. Vérifiez la clé API et le domaine expéditeur.");
+  return data.id;
 }

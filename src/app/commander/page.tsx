@@ -3,31 +3,22 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import CheckoutSummary from "./CheckoutSummary";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cartContext";
+import { normalizeFrenchPhone } from "@/lib/checkout-fr";
+import { validateCheckout, type CheckoutFields } from "@/lib/checkout-validation";
+import styles from "./Checkout.module.css";
+import CheckoutPaymentSection from "@/components/CheckoutPaymentSection";
 
-const REGIONS = [
-  "Tanger-Tétouan-Al Hoceïma",
-  "L'Oriental",
-  "Fès-Meknès",
-  "Rabat-Salé-Kénitra",
-  "Béni Mellal-Khénifra",
-  "Casablanca-Settat",
-  "Marrakech-Safi",
-  "Drâa-Tafilalet",
-  "Souss-Massa",
-  "Guelmim-Oued Noun",
-  "Laâyoune-Sakia El Hamra",
-  "Dakhla-Oued Ed-Dahab",
-];
 
 // Hoisted to module scope so they aren't recreated on every render (prevents
 // label/error remounting & input flicker while typing in the checkout form).
-const Label = ({ children }: { children: React.ReactNode }) => (
-  <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{children}</label>
+const Label = ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) => (
+  <label htmlFor={htmlFor} className={styles.fieldLabel}>{children}</label>
 );
-const Err = ({ msg }: { msg?: string }) =>
-  msg ? <p className="flex items-center gap-1 text-[10px] text-red-500 mt-1.5 font-semibold"><span>⚠</span>{msg}</p> : null;
+const Err = ({ msg, field }: { msg?: string; field: string }) =>
+  msg ? <p id={`${field}-error`} role="alert" className={styles.error}>{msg}</p> : null;
 
 export default function CommanderPage() {
   const router = useRouter();
@@ -35,24 +26,43 @@ export default function CommanderPage() {
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phone: "",
-    address: "", city: "", wilaya: "", zip: "", notes: "",
+    address: "", city: "", zip: "", notes: "",
   });
-  const [payment, setPayment] = useState<"cod" | "cmi">("cod");
+  const [payment, setPayment] = useState<"assisted" | "stripe">("assisted");
+  const [paymentAvailable, setPaymentAvailable] = useState(false);
+  useEffect(() => {
+    fetch("/api/payments/config").then(r => r.json()).then(data => setPaymentAvailable(Boolean(data.available))).catch(() => {});
+  }, []);
   const [showMobileSummary, setShowMobileSummary] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [errors, setErrors] = useState<Partial<typeof form>>({});
+  const [checkedFields, setCheckedFields] = useState<Partial<Record<keyof CheckoutFields, boolean>>>({});
+  const validationErrors = validateCheckout(form);
+  const errors = Object.fromEntries(Object.entries(validationErrors).filter(([field]) => checkedFields[field as keyof CheckoutFields])) as Partial<CheckoutFields>;
+
+  // Wait for a typing pause before showing the first warning. Once checked,
+  // each field updates immediately, so correcting it clears its warning.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCheckedFields(previous => ({
+        ...previous,
+        ...Object.fromEntries(Object.entries(form).filter(([, value]) => value.trim()).map(([field]) => [field, true])),
+      }));
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [form]);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState<{ code: string; label: string; discount: number } | null>(null);
 
   const discount = promoApplied?.discount ?? 0;
-  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [quotedDeliveryFee, setDeliveryFee] = useState(0);
+  const deliveryFee = subtotal > 0 ? quotedDeliveryFee : 0;
   const total = Math.max(0, subtotal - discount + deliveryFee);
   const [promoError, setPromoError] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
 
   useEffect(() => {
-    if (subtotal <= 0) { setDeliveryFee(0); return; }
+    if (subtotal <= 0) return;
     const city = form.city.trim();
     const params = new URLSearchParams({ subtotal: String(subtotal) });
     if (city) params.set("city", city);
@@ -69,16 +79,9 @@ export default function CommanderPage() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setForm((p) => ({ ...p, [k]: e.target.value }));
 
-  const validate = () => {
-    const e: Partial<typeof form> = {};
-    if (!form.firstName.trim()) e.firstName = "Obligatoire";
-    if (!form.lastName.trim()) e.lastName = "Obligatoire";
-    if (!form.phone.trim() || !/^(0|\+212)[5-7]\d{8}$/.test(form.phone.replace(/\s/g, "")))
-      e.phone = "Numéro invalide (ex: 0612345678)";
-    if (!form.address.trim()) e.address = "Obligatoire";
-    if (!form.city.trim()) e.city = "Obligatoire";
-    if (!form.wilaya) e.wilaya = "Obligatoire";
-    return e;
+  const checkOnBlur = (e: React.FocusEvent<HTMLFormElement>) => {
+    const field = e.target.name;
+    if (Object.hasOwn(form, field)) setCheckedFields(previous => ({ ...previous, [field]: true }));
   };
 
   const applyPromo = async () => {
@@ -108,9 +111,15 @@ export default function CommanderPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    setErrors({});
+    if (submitted) return;
+    const errs = validateCheckout(form);
+    setCheckedFields(Object.fromEntries(Object.keys(form).map(field => [field, true])));
+    const firstInvalid = Object.keys(errs)[0];
+    if (firstInvalid) {
+      const input = e.currentTarget instanceof HTMLFormElement ? e.currentTarget.elements.namedItem(firstInvalid) : null;
+      if (input instanceof HTMLElement) input.focus();
+      return;
+    }
     setSubmitted(true);
     setSubmitError("");
 
@@ -121,10 +130,10 @@ export default function CommanderPage() {
         credentials: "include",
         body: JSON.stringify({
           items: cart.map(i => ({ productId: i.id, name: i.name, price: i.price, quantity: i.qty, image: i.image })),
-          address: { street: form.address, city: form.city, wilaya: form.wilaya, zip: form.zip },
-          paymentMethod: payment === "cod" ? "cash_on_delivery" : "cmi",
+          address: { street: form.address, city: form.city, postalCode: form.zip.trim(), country: "France" },
+          paymentMethod: payment,
           notes: form.notes || undefined,
-          customer: { firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone },
+          customer: { firstName: form.firstName, lastName: form.lastName, email: form.email, phone: normalizeFrenchPhone(form.phone) },
           promoCode: promoApplied?.code,
           sessionId,
         }),
@@ -151,6 +160,7 @@ export default function CommanderPage() {
           total,
           customer: { firstName: form.firstName, lastName: form.lastName, city: form.city, phone: form.phone },
           payment,
+          deliveryFee,
           date: new Date().toISOString(),
         })
       );
@@ -163,549 +173,177 @@ export default function CommanderPage() {
     }
   };
 
-  const ic = (field: keyof typeof form) =>
-    `w-full bg-gray-50 border rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-gray-400 outline-none transition-colors focus:bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100 ${
-      errors[field] ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100" : "border-gray-200"
-    }`;
+  const ic = (field: keyof typeof form) => `${styles.input} ${errors[field] ? styles.invalid : ""}`;
 
   const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+  const summaryProps = { items: cart, subtotal, deliveryFee, total, promo: promoApplied };
 
-  const isFormReady =
-    form.firstName.trim() !== "" &&
-    form.lastName.trim() !== "" &&
-    form.phone.trim() !== "" &&
-    form.address.trim() !== "" &&
-    form.city.trim() !== "" &&
-    form.wilaya !== "";
+  const isFormReady = Object.keys(validationErrors).length === 0;
 
   if (cart.length === 0 && !submitted) {
     return (
-      <div className="min-h-screen bg-[#f5f7fb] flex items-center justify-center px-4">
-        <div className="bg-white rounded-lg p-12 flex flex-col items-center gap-5 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)] border border-slate-200 max-w-sm w-full">
+      <div className={`${styles.checkout} ${styles.emptyState}`}>
+        <div className={styles.emptyCard}>
           <svg className="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          <p className="text-xl font-black text-slate-900">Votre panier est vide</p>
-          <Link href="/produits" className="bg-orange-500 text-white font-bold px-8 py-3 rounded-xl">Voir les produits</Link>
+          <p>Votre panier attend vos essentiels.</p>
+          <span>Découvrez notre sélection et trouvez ce qui vous correspond.</span>
+          <Link href="/produits" className={styles.submitButton}>Découvrir les produits →</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7fb]">
-
-      {/* Steps bar */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-6 pt-5 pb-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-lg font-black text-slate-900 leading-tight">Finaliser ma commande</h1>
-              <p className="text-[11px] text-gray-400 mt-0.5">Plus qu&apos;une étape avant la livraison à votre porte</p>
-            </div>
-            <div className="hidden sm:flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-full px-3 py-1.5">
-              <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span className="text-[11px] font-bold text-green-700">Commande 100% sécurisée</span>
-            </div>
-          </div>
-          <div className="flex items-start">
-            <Link href="/panier" className="flex flex-col items-center gap-1.5">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md shadow-green-200">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">Panier</span>
-            </Link>
-            <div className="flex-1 h-0.5 bg-orange-300 mt-4 mx-2" />
-            <div className="flex flex-col items-center gap-1.5">
-              <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center shadow-md shadow-orange-200">
-                <span className="text-white text-xs font-black">2</span>
-              </div>
-              <span className="text-[10px] font-black text-orange-500 uppercase tracking-wider">Commander</span>
-            </div>
-            <div className="flex-1 h-0.5 bg-gray-200 mt-4 mx-2" />
-            <div className="flex flex-col items-center gap-1.5">
-              <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
-                <span className="text-gray-400 text-xs font-black">3</span>
-              </div>
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Terminé</span>
-            </div>
-          </div>
+    <div className={styles.checkout}>
+      <header className={styles.header}>
+        <div className={styles.brandBar}>
+          <Link href="/" className={`${styles.brand} ${styles.checkoutBrand}`} aria-label="ElectroShop-Tech — Accueil"><Image src="/icon.svg" width={44} height={44} alt="" className={styles.brandMark} priority /><span className={styles.brandCopy}><span className={styles.wordmark}>Electro<span>Shop</span><small>-Tech</small></span><span className={styles.brandTagline}>ÉLECTRONIQUE & HIGH-TECH</span></span></Link>
+          <span className={styles.secure}><LockIcon />Commande sécurisée</span>
         </div>
+      </header>
+      <div className={styles.content}>
+        <div className={styles.intro}>
+          <div className={styles.introToolbar}>
+            <Link href="/panier" className={styles.backLink}><span aria-hidden="true">←</span> Retour au panier</Link>
+            <span className={styles.stepCaption}>Étape 2 sur 3</span>
+          </div>
+          <h1>Finalisez votre commande</h1>
+          <p className={styles.subtitle}>Quelques informations et votre commande sera prête.</p>
+        </div>
+        <form onSubmit={handleSubmit} onBlur={checkOnBlur} noValidate>
+          <div className={styles.columns}>
+            <nav className={styles.steps} aria-label="Progression de la commande">
+              <Link href="/panier"><i aria-hidden="true">✓</i>Panier</Link><b aria-hidden="true" />
+              <span className={styles.current} aria-current="step"><i aria-hidden="true">2</i>Coordonnées</span><b aria-hidden="true" />
+              <span><i aria-hidden="true">3</i>Confirmation</span>
+            </nav>
+
+            <div className={styles.mobileSummary}>
+              <button type="button" onClick={() => setShowMobileSummary(p => !p)} aria-expanded={showMobileSummary} aria-controls="mobile-order-summary" className={styles.summaryToggle}>
+                <span><span className={styles.toggleTitle}>Votre commande <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className={showMobileSummary ? styles.chevronOpen : undefined}><path d="m6 9 6 6 6-6" /></svg></span><span className={styles.toggleDetail}>{totalQty} article{totalQty > 1 ? "s" : ""}{deliveryFee <= 0 && <span className={styles.free}> · Livraison gratuite</span>}</span></span>
+                <strong>{total.toLocaleString("fr-FR")} €</strong>
+              </button>
+              <div id="mobile-order-summary" hidden={!showMobileSummary}>
+                <CheckoutSummary {...summaryProps} />
+              </div>
+            </div>
+
+            <div className={styles.formColumn}>
+              <CheckoutSection number="01" title="Informations personnelles" subtitle="Vos coordonnées de contact">
+                <div className={styles.fieldGrid}>
+                  <div>
+                    <Label htmlFor="firstName">Prénom <span>*</span></Label>
+                    <input id="firstName" name="firstName" aria-required="true" aria-invalid={Boolean(errors.firstName)} aria-describedby={errors.firstName ? "firstName-error" : undefined} value={form.firstName} onChange={set("firstName")} placeholder="Votre prénom" className={ic("firstName")} autoComplete="given-name" />
+                    <Err field="firstName" msg={errors.firstName} />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName">Nom <span>*</span></Label>
+                    <input id="lastName" name="lastName" aria-required="true" aria-invalid={Boolean(errors.lastName)} aria-describedby={errors.lastName ? "lastName-error" : undefined} value={form.lastName} onChange={set("lastName")} placeholder="Votre nom" className={ic("lastName")} autoComplete="family-name" />
+                    <Err field="lastName" msg={errors.lastName} />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Téléphone <span>*</span></Label>
+                    <div className={styles.phone}>
+                      <span className={styles.phoneCountry} aria-hidden="true">FR</span>
+                      <input id="phone" name="phone" aria-required="true" aria-invalid={Boolean(errors.phone)} aria-describedby={`phone-help${errors.phone ? " phone-error" : ""}`} value={form.phone} onChange={set("phone")} placeholder="06 12 34 56 78" className={ic("phone")} type="tel" autoComplete="tel" />
+                    </div>
+                    <p id="phone-help" className={styles.helper}>Nous vous contacterons pour la livraison.</p>
+                    <Err field="phone" msg={errors.phone} />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email <span>*</span></Label>
+                    <input id="email" name="email" aria-required="true" aria-invalid={Boolean(errors.email)} aria-describedby={`email-help${errors.email ? " email-error" : ""}`} value={form.email} onChange={set("email")} placeholder="vous@exemple.fr" className={ic("email")} type="email" autoComplete="email" />
+                    <p id="email-help" className={styles.helper}>Pour recevoir la confirmation et le suivi de votre commande.</p>
+                    <Err field="email" msg={errors.email} />
+                  </div>
+                </div>
+              </CheckoutSection>
+
+              <CheckoutSection number="02" title="Adresse de livraison" subtitle="Où souhaitez-vous recevoir votre commande ?">
+                <div className={styles.fieldGrid}>
+                  <div>
+                    <Label htmlFor="city">Ville <span>*</span></Label>
+                    <input id="city" name="city" aria-required="true" aria-invalid={Boolean(errors.city)} aria-describedby={errors.city ? "city-error" : undefined} value={form.city} onChange={set("city")} placeholder="Votre ville" className={ic("city")} autoComplete="address-level2" />
+                    <Err field="city" msg={errors.city} />
+                  </div>
+                  <div>
+                    <Label htmlFor="zip">Code postal <span>*</span></Label>
+                    <input id="zip" name="zip" aria-required="true" aria-invalid={Boolean(errors.zip)} aria-describedby={errors.zip ? "zip-error" : undefined} value={form.zip} onChange={set("zip")} placeholder="75002" className={ic("zip")} maxLength={5} inputMode="numeric" autoComplete="postal-code" />
+                    <Err field="zip" msg={errors.zip} />
+                  </div>
+                  <div className={styles.fullWidth}>
+                    <Label htmlFor="address">Adresse complète <span>*</span></Label>
+                    <input id="address" name="address" aria-required="true" aria-invalid={Boolean(errors.address)} aria-describedby={errors.address ? "address-error" : undefined} value={form.address} onChange={set("address")} placeholder="Rue, quartier, numéro…" className={ic("address")} autoComplete="street-address" />
+                    <Err field="address" msg={errors.address} />
+                  </div>
+                  <div className={styles.fullWidth}>
+                    <Label htmlFor="notes">Complément d’adresse <small>(optionnel)</small></Label>
+                    <textarea id="notes" name="notes" value={form.notes} onChange={set("notes")} aria-invalid={Boolean(errors.notes)} aria-describedby={errors.notes ? "notes-error" : undefined} placeholder="Étage, code porte, point de repère…" rows={2} className={`${ic("notes")} ${styles.notes}`} />
+                    <Err field="notes" msg={errors.notes} />
+                  </div>
+                </div>
+                <div className={styles.countryRow}><span>Pays de livraison</span><strong>France</strong></div>
+              </CheckoutSection>
+
+              <CheckoutSection number="03" title="Mode de livraison" subtitle="Votre commande, directement chez vous">
+                <div className={styles.deliveryOption}>
+                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M3 6h11v11H3zM14 10h4l3 4v3h-7" /><circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" /></svg>
+                  <div><h3>Livraison à domicile</h3><p>Délai confirmé par notre équipe</p></div>
+                  <strong className={deliveryFee <= 0 ? styles.free : undefined}>{deliveryFee > 0 ? `${deliveryFee.toLocaleString("fr-FR")} €` : "Gratuite"}</strong>
+                  <span className={styles.selectedCheck} aria-label="Mode de livraison inclus">✓</span>
+                </div>
+              </CheckoutSection>
+
+              <CheckoutPaymentSection value={payment} onChange={setPayment} cardAvailable={paymentAvailable} />
+
+              <section className={styles.promoCard} aria-labelledby="promo-title">
+                <h2 id="promo-title">Vous avez un code promo ?</h2>
+                {promoApplied ? <div className={styles.promoSuccess} role="status">
+                  <div><strong>{promoApplied.code}</strong><p>{promoApplied.label} · −{promoApplied.discount.toLocaleString("fr-FR")} €</p></div>
+                  <button type="button" onClick={() => { setPromoApplied(null); setPromoCode(""); }}>Supprimer</button>
+                </div> : <div className={styles.promoControls}>
+                  <label htmlFor="promo-code" className="sr-only">Code promo</label>
+                  <input id="promo-code" type="text" aria-invalid={Boolean(promoError)} aria-describedby={promoError ? "promo-error" : undefined} value={promoCode} onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(""); }} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyPromo())} placeholder="Code promo" className={`${styles.input} ${styles.promoInput}`} />
+                  <button type="button" onClick={applyPromo} disabled={promoLoading || !promoCode.trim()} aria-busy={promoLoading} className={styles.promoButton}>{promoLoading ? "Vérification…" : "Appliquer"}</button>
+                </div>}
+                {promoError && <p id="promo-error" role="alert" className={styles.error}>{promoError}</p>}
+              </section>
+
+              <div className={styles.submitArea}>
+                <div className={styles.finalTotal}><span>Total TTC</span><strong>{total.toLocaleString("fr-FR")} €</strong></div>
+                <button type="submit" disabled={submitted} aria-busy={submitted} aria-describedby="submit-help" className={styles.submitButton}>
+                  {submitted ? <><svg className="animate-spin" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" opacity=".25" /><path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" strokeWidth="2" /></svg>Traitement en cours…</> : <><LockIcon /><span>Confirmer ma commande</span><span aria-hidden="true">→</span></>}
+                </button>
+                <p id="submit-help" className={styles.submitHelp}>{!isFormReady ? "Complétez les champs obligatoires pour continuer." : payment === "assisted" ? "Notre équipe vous accompagnera pour le règlement avant l’expédition." : "Vous pourrez régler par carte à l’étape suivante."}</p>
+                {submitError && <p role="alert" className={styles.submitError}>{submitError}</p>}
+                <p className={styles.privacy}><LockIcon /><span>Vos données servent au traitement de votre commande. <Link href="/confidentialite">Confidentialité</Link></span></p>
+              </div>
+            </div>
+
+            <aside className={styles.summaryColumn} aria-labelledby="summary-title">
+              <div className={styles.summary}>
+                <div className={styles.summaryHeader}><h2 id="summary-title">Résumé de la commande</h2><p>{totalQty} article{totalQty > 1 ? "s" : ""} dans votre panier</p></div>
+                <CheckoutSummary {...summaryProps} />
+                <Link href="/panier" className={styles.editCart}>Modifier mon panier <span aria-hidden="true">↗</span></Link>
+              </div>
+              <div className={styles.summaryService}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 11H3v7h4v-7zm16 0h1v7h-4v-7zM20 18c0 3-4 3-6 3" /></svg><div><strong>Une équipe à votre écoute</strong><p>Besoin d’aide pour votre commande ?</p><Link href="/contact">Contactez-nous →</Link></div></div>
+            </aside>
+          </div>
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit} noValidate>
-
-        {/* Mobile order summary strip */}
-        <div className="lg:hidden border-b border-gray-100">
-          <button
-            type="button"
-            onClick={() => setShowMobileSummary(p => !p)}
-            className="w-full bg-white px-4 py-3 flex items-center justify-between active:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-              <span className="text-xs font-bold text-slate-700">{totalQty} article{totalQty > 1 ? "s" : ""}</span>
-              <svg className={`w-3.5 h-3.5 text-orange-500 transition-transform duration-300 ${showMobileSummary ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-            <div className="flex items-center gap-2">
-              {deliveryFee <= 0 && <span className="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Livraison gratuite</span>}
-              <span className="text-base font-black text-orange-500">{total.toLocaleString()}&euro;</span>
-            </div>
-          </button>
-          {showMobileSummary && (
-            <div className="bg-gray-50/80 border-b border-gray-100 px-4 pt-1 pb-4">
-              {/* Items */}
-              <div className="space-y-3 max-h-56 overflow-y-auto py-3">
-                {cart.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3">
-                    <div className="relative shrink-0">
-                      <div className="w-12 h-12 rounded-xl bg-white border border-gray-100 flex items-center justify-center overflow-hidden shadow-sm">
-                        <Image src={item.image} alt={item.name} width={44} height={44} sizes="44px" className="w-11 h-11 object-contain" />
-                      </div>
-                      <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm">{item.qty}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{item.name}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{item.brand}</p>
-                    </div>
-                    <p className="text-sm font-black text-slate-900 shrink-0">{(item.price * item.qty).toLocaleString()}&euro;</p>
-                  </div>
-                ))}
-              </div>
-              {/* Totals */}
-              <div className="bg-white rounded-xl border border-gray-100 px-3 py-3 space-y-2 shadow-sm">
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-400">Sous-total</span>
-                  <span className="font-bold text-slate-800">{subtotal.toLocaleString()}&euro;</span>
-                </div>
-                {promoApplied && (
-                  <div className="flex justify-between text-xs">
-                    <span className="text-green-600 font-semibold">{promoApplied.code}</span>
-                    <span className="font-bold text-green-600">-{promoApplied.discount.toLocaleString()}&euro;</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-400">Livraison</span>
-                  <span className={`font-black ${deliveryFee > 0 ? "text-slate-900" : "text-green-600"}`}>{deliveryFee > 0 ? `${deliveryFee.toLocaleString()}€` : "Gratuite"}</span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                  <span className="text-sm font-black text-slate-900">Total TTC</span>
-                  <span className="text-xl font-black text-orange-500 leading-none">{total.toLocaleString()}&euro;</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="max-w-5xl mx-auto px-4 py-6 pb-36 lg:pb-6">
-          <div className="grid lg:grid-cols-3 gap-6 items-start">
-
-            {/* ── LEFT COLUMN ── */}
-            <div className="lg:col-span-2 space-y-4">
-
-              {/* 1 · Personal info */}
-              <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(15,23,42,0.04)] border border-slate-200/80 hover:border-slate-300/80 transition-colors overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-orange-50/70 to-transparent">
-                  <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shrink-0 shadow-sm shadow-orange-200">
-                    <span className="text-white text-xs font-black">1</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-slate-900">Informations personnelles</p>
-                    <p className="text-[11px] text-gray-400">Vos coordonnées de contact</p>
-                  </div>
-                </div>
-                <div className="px-5 py-5 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label>Prénom <span className="text-orange-400 normal-case">*</span></Label>
-                      <input value={form.firstName} onChange={set("firstName")} placeholder="Zakaria" className={ic("firstName")} autoComplete="given-name" />
-                      <Err msg={errors.firstName} />
-                    </div>
-                    <div>
-                      <Label>Nom <span className="text-orange-400 normal-case">*</span></Label>
-                      <input value={form.lastName} onChange={set("lastName")} placeholder="Zemzami" className={ic("lastName")} autoComplete="family-name" />
-                      <Err msg={errors.lastName} />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label>Téléphone <span className="text-orange-400 normal-case">*</span></Label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base select-none pointer-events-none">🇲🇦</span>
-                        <input value={form.phone} onChange={set("phone")} placeholder="0612 345 678" className={`${ic("phone")} pl-10`} type="tel" autoComplete="tel" />
-                      </div>
-                      <Err msg={errors.phone} />
-                    </div>
-                    <div>
-                      <Label>Email <span className="text-gray-300 normal-case font-normal text-[10px]">(optionnel)</span></Label>
-                      <input value={form.email} onChange={set("email")} placeholder="exemple@mail.com" className={ic("email")} type="email" autoComplete="email" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2 · Delivery address */}
-              <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(15,23,42,0.04)] border border-slate-200/80 hover:border-slate-300/80 transition-colors overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-blue-50/70 to-transparent">
-                  <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center shrink-0 shadow-sm shadow-blue-200">
-                    <span className="text-white text-xs font-black">2</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-slate-900">Adresse de livraison</p>
-                    <p className="text-[11px] text-gray-400">Où souhaitez-vous recevoir votre commande ?</p>
-                  </div>
-                </div>
-                <div className="px-5 py-5 space-y-4">
-                  <div>
-                    <Label>Adresse complète <span className="text-orange-400 normal-case">*</span></Label>
-                    <input value={form.address} onChange={set("address")} placeholder="N° rue, quartier, résidence..." className={ic("address")} autoComplete="street-address" />
-                    <Err msg={errors.address} />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label>Ville <span className="text-orange-400 normal-case">*</span></Label>
-                      <input value={form.city} onChange={set("city")} placeholder="Ex: Casablanca" className={ic("city")} autoComplete="address-level2" />
-                      <Err msg={errors.city} />
-                    </div>
-                    <div>
-                      <Label>Région / Wilaya <span className="text-orange-400 normal-case">*</span></Label>
-                      <div className="relative">
-                        <select value={form.wilaya} onChange={set("wilaya")} className={`${ic("wilaya")} appearance-none pr-8`}>
-                          <option value="">Sélectionner votre région...</option>
-                          {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-                        </select>
-                        <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                      <Err msg={errors.wilaya} />
-                    </div>
-                  </div>
-                  <div className="max-w-[200px]">
-                    <Label>Code postal <span className="text-gray-300 normal-case font-normal text-[10px]">(optionnel)</span></Label>
-                    <input value={form.zip} onChange={set("zip")} placeholder="Ex: 20000" className={ic("zip")} maxLength={5} autoComplete="postal-code" />
-                  </div>
-                  <div>
-                    <Label>Notes de livraison <span className="text-gray-300 normal-case font-normal text-[10px]">(optionnel)</span></Label>
-                    <textarea value={form.notes} onChange={set("notes")} placeholder="Instructions particulières pour le livreur..." rows={2} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-gray-400 outline-none transition-colors focus:bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100 resize-none" />
-                  </div>
-                </div>
-              </div>
-
-              {/* 3 · Payment */}
-              <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(15,23,42,0.04)] border border-slate-200/80 hover:border-slate-300/80 transition-colors overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-purple-50/70 to-transparent">
-                  <div className="w-7 h-7 rounded-full bg-purple-500 flex items-center justify-center shrink-0 shadow-sm shadow-purple-200">
-                    <span className="text-white text-xs font-black">3</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-slate-900">Mode de paiement</p>
-                    <p className="text-[11px] text-gray-400">Choisissez votre méthode de règlement</p>
-                  </div>
-                </div>
-                <div className="px-5 pb-5 pt-3 space-y-2.5">
-
-                  {/* COD */}
-                  <label className={`flex items-center gap-4 px-4 py-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                    payment === "cod"
-                      ? "border-orange-400 bg-gradient-to-r from-orange-50 to-amber-50 shadow-sm shadow-orange-100"
-                      : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
-                  }`}>
-                    <input type="radio" name="payment" value="cod" checked={payment === "cod"} onChange={() => setPayment("cod")} className="sr-only" />
-                    {/* Radio dot */}
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                      payment === "cod" ? "border-orange-500 bg-orange-500" : "border-slate-300"
-                    }`}>
-                      {payment === "cod" && <div className="w-2 h-2 rounded-full bg-white" />}
-                    </div>
-                    {/* Icon */}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                      payment === "cod" ? "bg-green-500 shadow-md shadow-green-200" : "bg-green-50"
-                    }`}>
-                      <svg className={`w-5 h-5 ${payment === "cod" ? "text-white" : "text-green-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                    {/* Text */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-black text-slate-900">Paiement à la livraison</p>
-                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                          payment === "cod" ? "bg-orange-500 text-white" : "bg-slate-100 text-slate-400"
-                        }`}>Populaire</span>
-                      </div>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Réglez en espèces à la réception · Sans prépaiement</p>
-                    </div>
-                    {/* Check */}
-                    {payment === "cod" && (
-                      <svg className="w-5 h-5 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    )}
-                  </label>
-
-                  {/* CMI — indisponible */}
-                  <div className="flex items-center gap-4 px-4 py-4 rounded-2xl border-2 border-slate-100 bg-slate-50/50 cursor-not-allowed select-none">
-                    <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                      <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-black text-slate-300">Carte bancaire (CMI)</p>
-                        <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-200 text-slate-400">Bientôt</span>
-                      </div>
-                      <p className="text-[11px] text-slate-300 mt-0.5">Visa, Mastercard · Disponible prochainement</p>
-                    </div>
-                    <svg className="w-4 h-4 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-
-                  {/* Trust row */}
-                  <div className="flex items-center justify-center gap-6 pt-1 pb-1">
-                    {[
-                      { path: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", text: "Paiement sécurisé" },
-                      { path: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z", text: "SSL 256-bit" },
-                      { path: "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z", text: "Support 24h" },
-                    ].map(({ path, text }) => (
-                      <div key={text} className="flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={path} />
-                        </svg>
-                        <span className="text-[10px] font-semibold text-slate-400">{text}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                </div>
-              </div>
-
-              {/* 4 · Promo code */}
-              <div className="bg-white rounded-2xl shadow-[0_2px_10px_rgba(15,23,42,0.04)] border border-slate-200/80 hover:border-slate-300/80 transition-colors overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-amber-50/70 to-transparent">
-                  <div className="w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shrink-0 shadow-sm shadow-amber-200">
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-slate-900">Code promo</p>
-                    <p className="text-[11px] text-gray-400">Avez-vous un code de réduction ?</p>
-                  </div>
-                </div>
-                <div className="px-5 py-4">
-                  {promoApplied ? (
-                    <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div>
-                          <p className="text-xs font-black text-green-800">{promoApplied.code} · {promoApplied.label}</p>
-                          <p className="text-[11px] text-green-600">-{promoApplied.discount.toLocaleString()}€</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => { setPromoApplied(null); setPromoCode(""); }}
-                        className="text-[10px] font-bold text-gray-400 hover:text-red-400 transition-colors"
-                      >
-                        Supprimer
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={promoCode}
-                        onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(""); }}
-                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyPromo())}
-                        placeholder="Ex: BIENVENUE10"
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-gray-400 outline-none focus:bg-white focus:border-orange-400 focus:ring-2 focus:ring-orange-100 uppercase font-mono tracking-widest"
-                      />
-                      <button
-                        type="button"
-                        onClick={applyPromo}
-                        disabled={promoLoading || !promoCode.trim()}
-                        className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-100 disabled:text-gray-400 text-white font-black px-4 py-2.5 rounded-xl text-sm transition-colors"
-                      >
-                        {promoLoading ? "..." : "Appliquer"}
-                      </button>
-                    </div>
-                  )}
-                  {promoError && (
-                    <p className="flex items-center gap-1 text-[11px] text-red-500 font-semibold mt-2">
-                      <span>⚠</span>{promoError}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Back to cart – mobile */}
-              <Link href="/panier" className="lg:hidden flex items-center justify-center gap-2 text-xs text-gray-400 font-semibold py-2">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Retour au panier
-              </Link>
-            </div>
-
-            {/* ── RIGHT COLUMN – Summary (desktop only) ── */}
-            <div className="hidden lg:block space-y-4">
-              <div className="bg-white rounded-2xl shadow-[0_18px_44px_rgba(15,23,42,0.08)] border border-slate-200/80 overflow-hidden sticky top-4">
-                <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3 bg-gradient-to-r from-slate-50 to-transparent">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <p className="text-sm font-black text-slate-900">Récapitulatif</p>
-                </div>
-
-                <div className="px-5 py-3 space-y-3 max-h-64 overflow-y-auto">
-                  {cart.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3">
-                      <div className="relative shrink-0">
-                        <Image src={item.image} alt={item.name} width={48} height={48} sizes="48px" className="w-12 h-12 object-contain rounded-lg bg-gray-50 border border-gray-100" />
-                        <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-orange-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{item.qty}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2">{item.name}</p>
-                        <p className="text-[10px] text-gray-400 mt-0.5">{item.brand}</p>
-                      </div>
-                      <p className="text-sm font-black text-slate-900 shrink-0">{(item.price * item.qty).toLocaleString()}€</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="px-5 py-4 space-y-3 border-t border-gray-50">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500">Sous-total ({totalQty} art.)</span>
-                    <span className="font-bold text-slate-900">{subtotal.toLocaleString()}€</span>
-                  </div>
-                  {promoApplied && (
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-green-600 font-semibold">{promoApplied.code} ({promoApplied.label})</span>
-                      <span className="font-bold text-green-600">-{promoApplied.discount.toLocaleString()}€</span>
-                    </div>
-                  )}
-                  <div className={`flex items-center justify-between border rounded-xl px-3 py-2 ${deliveryFee > 0 ? "bg-gray-50 border-gray-100" : "bg-green-50 border-green-100"}`}>
-                    <div className="flex items-center gap-2">
-                      <svg className={`w-3.5 h-3.5 shrink-0 ${deliveryFee > 0 ? "text-gray-400" : "text-green-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                      </svg>
-                      <p className={`text-xs font-bold ${deliveryFee > 0 ? "text-slate-700" : "text-green-800"}`}>Livraison à domicile</p>
-                    </div>
-                    <span className={`text-xs font-black ${deliveryFee > 0 ? "text-slate-900" : "text-green-600"}`}>{deliveryFee > 0 ? `${deliveryFee.toLocaleString()}€` : "Gratuite"}</span>
-                  </div>
-                  <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
-                    <span className="text-base font-black text-slate-900">Total</span>
-                    <div className="text-right">
-                      <p className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString()}€</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{deliveryFee > 0 ? "TTC · Livraison incluse" : "TTC · Livraison gratuite"}</p>
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={!isFormReady || submitted}
-                    title={!isFormReady ? "Veuillez remplir tous les champs obligatoires" : undefined}
-                    className={`flex items-center justify-center gap-2 w-full font-black py-4 rounded-2xl transition-all text-sm tracking-wide ${
-                      isFormReady && !submitted
-                        ? "bg-orange-500 active:bg-orange-600 text-white shadow-lg shadow-orange-200"
-                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    {submitted ? (
-                      <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>Traitement...</>
-                    ) : !isFormReady ? (
-                      <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>Remplissez le formulaire</>
-                    ) : (
-                      <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Confirmer la commande</>
-                    )}
-                  </button>
-                  {submitError && (
-                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mt-2">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      <p className="text-xs text-red-600 font-semibold">{submitError}</p>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-center gap-1.5 pt-0.5">
-                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <p className="text-[10px] text-gray-400">Paiement 100% sécurisé · Données protégées</p>
-                  </div>
-                </div>
-              </div>
-              <Link href="/panier" className="flex items-center justify-center gap-2 text-xs text-gray-500 font-semibold py-2 hover:text-slate-700 transition-colors">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Retour au panier
-              </Link>
-            </div>
-
-          </div>
-        </div>
-
-        {/* ── Mobile sticky bottom bar ── */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200/70 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] shadow-[0_-8px_32px_rgba(0,0,0,0.10)]">
-          {/* Total row */}
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">Total TTC</p>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-black text-orange-500 leading-none">{total.toLocaleString()}€</span>
-                {deliveryFee <= 0 && <span className="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">Livraison gratuite</span>}
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] text-gray-400 mb-0.5">{totalQty} article{totalQty > 1 ? "s" : ""}</p>
-              <p className="text-xs text-gray-400 font-semibold">Paiement à la livraison</p>
-            </div>
-          </div>
-          {/* Full-width button */}
-          <button
-            type="submit"
-            disabled={!isFormReady || submitted}
-            className={`relative flex items-center justify-center gap-2.5 w-full font-black py-4 rounded-2xl text-sm tracking-wide transition-all overflow-hidden ${
-              isFormReady && !submitted
-                ? "bg-gradient-to-r from-orange-500 to-orange-400 active:from-orange-600 active:to-orange-500 text-white shadow-lg shadow-orange-200"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed"
-            }`}
-          >
-            {submitted ? (
-              <>
-                <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
-                <span>Traitement en cours…</span>
-              </>
-            ) : !isFormReady ? (
-              <>
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                <span>Complétez le formulaire</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>Confirmer la commande</span>
-                <span className="ml-auto text-orange-200 font-black text-base leading-none">{total.toLocaleString()}€</span>
-              </>
-            )}
-          </button>
-          {submitError && (
-            <p className="text-[11px] text-red-500 font-semibold text-center mt-1.5">{submitError}</p>
-          )}
-        </div>
-      </form>
     </div>
   );
+}
+
+function LockIcon() {
+  return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2" /></svg>;
+}
+
+function CheckoutSection({ number, title, subtitle, children }: { number: string; title: string; subtitle: string; children: React.ReactNode }) {
+  return <section className={styles.card} aria-labelledby={`section-${number}`}>
+    <header className={styles.cardHeader}><span className={styles.sectionNumber}>{number}</span><div><h2 id={`section-${number}`}>{title}</h2><p>{subtitle}</p></div></header>
+    <div className={styles.cardBody}>{children}</div>
+  </section>;
 }

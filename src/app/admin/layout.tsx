@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import OrderNotifications from "@/components/admin/OrderNotifications";
+import styles from "./Admin.module.css";
 
 const navGroups = [
   {
@@ -83,6 +85,7 @@ const navGroups = [
   {
     label: "Ventes",
     items: [
+      { href: "/admin/notifications", label: "Notifications", icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.7} viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg> },
       {
         href: "/admin/orders",
         label: "Commandes",
@@ -204,24 +207,47 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [navSearch, setNavSearch] = useState("");
+  const sidebarRef = useRef<HTMLElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [counts, setCounts] = useState<{ unreadMessages: number; pendingOrders: number; pendingReturns: number; outOfStock: number } | null>(null);
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
-    // Restore the "remember me" preference (without pre-filling the identifier).
-    try {
-      setRemember(localStorage.getItem("admin_remember") !== "false");
-    } catch { /* ignore */ }
+    if (!sidebarOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const drawer = sidebarRef.current;
+    const focusable = () => Array.from(drawer?.querySelectorAll<HTMLElement>('a[href],button,input') ?? []).filter(el => el.getClientRects().length > 0);
+    focusable()[0]?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSidebarOpen(false);
+      if (event.key !== "Tab" || window.matchMedia("(min-width:1024px)").matches) return;
+      const elements = focusable();
+      const first = elements[0], last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    const desktop = window.matchMedia("(min-width:1024px)");
+    const closeOnDesktop = () => { if (desktop.matches) setSidebarOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => { document.removeEventListener("keydown", onKey); desktop.removeEventListener("change", closeOnDesktop); previous?.focus(); };
+  }, [sidebarOpen]);
 
+  useEffect(() => {
     // Check if admin cookie is valid by making a test API call
     fetch("/api/admin/stats", { credentials: "include" })
       .then(r => {
         if (r.ok) setAuthenticated(true);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => setLoading(false))
+      .finally(() => {
+        // Restore the preference when the authentication check completes.
+        try { setRemember(localStorage.getItem("admin_remember") !== "false"); }
+        catch { /* Storage may be unavailable in private browsing. */ }
+      });
   }, []);
 
   // Load the "needs attention" counts for the sidebar badges. Refreshes when the
@@ -364,6 +390,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const currentPage = navItems.find(
     (n) => n.href === pathname || (n.href !== "/admin" && pathname.startsWith(n.href))
   );
+  const normalizeSearch = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const visibleNavGroups = navGroups.map(group => ({
+    ...group, items: group.items.filter(item => normalizeSearch(item.label).includes(normalizeSearch(navSearch))),
+  })).filter(group => group.items.length);
 
   // Bottom nav items for mobile
   const bottomNav = [
@@ -374,7 +404,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className={`${styles.shell} flex overflow-hidden`}>
       {/* Overlay for mobile */}
       {sidebarOpen && (
         <div
@@ -385,7 +415,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-950 border-r border-slate-800 flex flex-col transition-transform duration-300 ${
+        ref={sidebarRef} id="admin-navigation" aria-label="Navigation administration" data-open={sidebarOpen}
+        className={`${styles.sidebar} fixed lg:static inset-y-0 left-0 z-30 bg-slate-950 border-r border-slate-800 flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
@@ -409,8 +440,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
             {/* Close button — mobile only */}
             <button
+              aria-label="Fermer le menu"
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="lg:hidden w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -419,9 +451,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
+        <input type="search" className={styles.sidebarSearch} value={navSearch} onChange={event => setNavSearch(event.target.value)} placeholder="Rechercher une rubrique…" aria-label="Rechercher dans le menu" />
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-5">
-          {navGroups.map((group) => (
+          {visibleNavGroups.length === 0 && <p role="status" className="px-3 py-6 text-sm text-slate-400">Aucune rubrique trouvée.</p>}
+          {visibleNavGroups.map((group) => (
             <div key={group.label}>
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 px-3 mb-1.5">{group.label}</p>
               <div className="space-y-0.5">
@@ -441,6 +475,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Link
                       key={item.href}
                       href={item.href}
+                      aria-current={active ? "page" : undefined}
                       onClick={() => setSidebarOpen(false)}
                       className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                         active
@@ -499,9 +534,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
-        <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-3 flex items-center gap-4 flex-shrink-0">
+        <header className={`${styles.topbar} border-b px-4 lg:px-6 py-3 flex items-center flex-shrink-0`}>
           {/* Hamburger — hidden on desktop since sidebar is always visible */}
           <button
+            aria-label="Ouvrir le menu" aria-expanded={sidebarOpen} aria-controls="admin-navigation"
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-colors text-slate-600"
           >
@@ -511,10 +547,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-xs font-bold hidden xs:inline">Menu</span>
           </button>
           <div className="flex-1 min-w-0">
+            <p className={styles.workspaceLabel}>ElectroShop · Gestion</p>
             <h1 className="text-slate-900 font-black text-sm sm:text-base truncate">
               {currentPage?.label ?? "Administration"}
             </h1>
           </div>
+          <OrderNotifications compact />
           <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-950 border border-slate-800 rounded-lg px-2 sm:px-2.5 py-1.5">
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -527,18 +565,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-20 lg:pb-6">
+        <main className={`${styles.content} flex-1 overflow-y-auto`} inert={sidebarOpen || undefined}>
           {children}
         </main>
 
         {/* ── Mobile bottom navigation ──────────────────────────────────── */}
-        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-white border-t border-gray-200 flex items-stretch" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <nav aria-label="Accès rapides" className={`${styles.bottomNav} lg:hidden fixed bottom-0 inset-x-0 z-20 bg-white border-t border-gray-200 flex items-stretch`} style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
           {bottomNav.map((item) => {
             const active = item.href === "/admin" ? pathname === "/admin" : pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${
                   active ? "text-orange-500" : "text-slate-400"
                 }`}
@@ -551,6 +590,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
           {/* More button opens full sidebar */}
           <button
+            aria-expanded={sidebarOpen} aria-controls="admin-navigation"
             onClick={() => setSidebarOpen(true)}
             className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-bold text-slate-400 transition-colors"
           >

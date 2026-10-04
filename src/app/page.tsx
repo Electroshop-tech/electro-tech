@@ -5,15 +5,16 @@ import ProductSection from "@/components/ProductSection";
 import ProductCard from "@/components/ProductCard";
 import { getProductCards } from "@/lib/store";
 import Link from "next/link";
+import flashStyles from "@/components/FlashSale.module.css";
 
 export const metadata: Metadata = {
   title: "Box Android TV, Caméras de Surveillance & Accessoires au Maroc",
   description:
-    "Achetez vos box Android TV 4K, TV Sticks, caméras de surveillance IP et accessoires high-tech au meilleur prix. Produits 100% authentiques, garantis, paiement à la livraison partout au Maroc.",
+    "Achetez vos box Android TV 4K, TV Sticks, caméras de surveillance IP et accessoires high-tech au meilleur prix. Produits authentiques, garantis, paiement accompagné par notre équipe.",
   alternates: { canonical: "https://electroshop-tech.com" },
 };
 
-const WhyUsSection = nextDynamic(() => import("@/components/RefurbishedSection"), { ssr: true });
+const CategoryHighlights = nextDynamic(() => import("@/components/CategoryHighlights"), { ssr: true });
 const PromoBanners = nextDynamic(() => import("@/components/PromoBanners"), { ssr: true });
 const ReviewsSection = nextDynamic(() => import("@/components/ReviewsSection"), { ssr: true });
 const NewsletterSection = nextDynamic(() => import("@/components/NewsletterSection"), { ssr: true });
@@ -25,70 +26,37 @@ export const revalidate = 60;
 export default async function Home() {
   const products = await getProductCards();
 
-  const heroStats = [
-    "android-tv-box-x96q",
-    "android-tv-stick-mortal-q8",
-  ].map((slug) => {
-    const p = products.find((x) => x.slug === slug);
-    const reviews = p?.productReviews ?? [];
-    const rating = reviews.length > 0
-      ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-      : 0;
-    return { rating: Math.round(rating * 10) / 10, reviews: reviews.length };
-  });
-
   return (
     <>
-      <HeroBanner stats={heroStats} />
+      <HeroBanner />
 
       {/* Flash sale banner */}
-      <section data-reveal="fade" className="bg-white border-y border-slate-200 py-3.5 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 w-full min-w-0">
-          <div className="flex items-center gap-3 text-slate-800 min-w-0">
-            <span className="bg-orange-50 text-orange-600 border border-orange-100 text-xs font-black px-2.5 py-1 rounded-md">
-              ⚡ VENTE FLASH
-            </span>
-            <span className="font-semibold text-xs sm:text-sm block truncate">
-              Offres limitées — Ne ratez pas ces prix exceptionnels&nbsp;!
-            </span>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="hidden md:flex items-center gap-1.5 text-slate-500 text-xs font-bold">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-              </svg>
-              Livraison gratuite incluse
-            </span>
-            <Link
-              href="/promotions"
-              className="flex-shrink-0 max-w-[136px] sm:max-w-none truncate bg-slate-950 text-white font-bold text-[11px] sm:text-xs px-3 sm:px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
-            >
-              Voir les offres →
-            </Link>
-          </div>
-        </div>
+      <section className={flashStyles.strip} aria-label="Promotions">
+        <Link href="/promotions" className={flashStyles.link}>
+          <span className={flashStyles.icon} aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="m13 3-8 11h6l-1 7 9-12h-6l1-6Z" strokeLinejoin="round" /></svg>
+          </span>
+          <span className={flashStyles.copy}><strong>Les offres du moment</strong><span>Vos essentiels à prix doux.</span></span>
+          <span className={flashStyles.action}>Découvrir <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+        </Link>
       </section>
 
       <ProductSection
-        title="Nos Meilleures Offres"
-        subtitle="Box multimédia, accessoires et caméras aux meilleurs prix"
+        title="Nos meilleures offres"
+        subtitle="La tech qu’il vous faut, au meilleur prix."
         products={products}
         viewAllHref="/promotions"
-        accentColor="red"
-        mobileScroll
       />
 
-      <WhyUsSection />
+      <CategoryHighlights />
 
-      <PromoBanners />
+      <PromoBanners products={products} />
 
       <ProductSection
         title="Meilleures Ventes"
         subtitle="Kits de surveillance, box TV et accessoires plébiscités par nos clients"
         products={products.slice(0, 12)}
         viewAllHref="/produits"
-        accentColor="red"
-        mobileScroll
       />
 
       {/* New arrivals */}
@@ -112,9 +80,9 @@ export default async function Home() {
               </svg>
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-3 sm:pb-0 sm:grid sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5 snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
             {[...products].sort((a, b) => b.id - a.id).slice(0, 8).map((product) => (
-              <div key={product.id} className="shrink-0 w-[260px] sm:w-auto snap-start">
+              <div key={product.id} className="min-w-0">
                 <ProductCard product={product} />
               </div>
             ))}
@@ -135,7 +103,7 @@ export default async function Home() {
           <p className="text-sm text-slate-500 leading-relaxed">
             ElectroShop-Tech est votre spécialiste en ligne pour les box multimédias Android TV,
             les systèmes de vidéosurveillance IP et les accessoires high-tech au Maroc.
-            Produits 100% authentiques, garantis et livrés rapidement partout au Maroc.
+            Produits 100% authentiques, garantis et livrés directement chez vous.
           </p>
           <Link
             href="/a-propos"

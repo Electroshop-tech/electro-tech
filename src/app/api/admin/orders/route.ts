@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getOrders, updateOrder, addAdminLog } from "@/lib/store";
+import { after, NextRequest, NextResponse } from "next/server";
+import { getOrders, getOrderById, updateOrder, addAdminLog } from "@/lib/store";
+import prisma from "@/lib/prisma";
 import { isAdmin } from "@/lib/adminAuth";
 import { sendOrderStatusEmail } from "@/lib/email";
 import type { Order } from "@/lib/types";
@@ -35,11 +36,12 @@ export async function GET(req: NextRequest) {
       o.customerName.toLowerCase().includes(q) ||
       o.customerEmail.toLowerCase().includes(q) ||
       (o.customerPhone ?? "").toLowerCase().includes(q) ||
-      o.id.toLowerCase().includes(q)
+      o.id.toLowerCase().includes(q) ||
+      (o.orderNumber ?? "").toLowerCase().includes(q)
     );
   }
 
-  return NextResponse.json({ orders });
+  return NextResponse.json({ orders }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -53,15 +55,25 @@ export async function PATCH(req: NextRequest) {
   };
 
   if (!id) return NextResponse.json({ error: "ID manquant." }, { status: 400 });
+  const current = await getOrderById(id);
+  if (!current) return NextResponse.json({ error: "Commande introuvable." }, { status: 404 });
+  if (["shipped", "delivered"].includes(status ?? "") && ["assisted", "stripe"].includes(current.paymentMethod) && current.paymentStatus !== "paid") {
+    return NextResponse.json({ error: "Confirmez le règlement de cette commande avant l’expédition." }, { status: 409 });
+  }
+  if (paymentStatus !== undefined) {
+    const checkout = await prisma.paymentCheckout.findUnique({ where: { orderId: id } });
+    if (current.paymentProvider === "stripe" || current.paymentMethod === "stripe" || checkout) return NextResponse.json({ error: "Le statut Stripe est confirmé uniquement par le prestataire." }, { status: 409 });
+  }
 
   const updated = await updateOrder(id, { status, trackingNumber, notes, paymentStatus });
   if (!updated) return NextResponse.json({ error: "Commande introuvable." }, { status: 404 });
 
   // Send status email to customer when the status changed (non-blocking)
-  if (status !== undefined && updated.customerEmail) {
-    sendOrderStatusEmail(updated, trackingNumber).catch(err =>
-      console.error("[email] Failed to send status email:", err)
-    );
+  if (status !== undefined && status !== current.status && updated.customerEmail) {
+    after(async () => {
+      try { await sendOrderStatusEmail(updated, trackingNumber); }
+      catch { console.error("[email] Failed to send status email", { orderId: updated.id }); }
+    });
   }
 
   // Log admin action

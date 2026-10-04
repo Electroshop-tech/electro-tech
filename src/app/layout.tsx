@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     url: "https://electroshop-tech.com",
     siteName: "ElectroShop-Tech",
     title: "ElectroShop-Tech – Passerelle Multimédia, Accessoires & Caméras au Maroc",
-    description: "Votre spécialiste box Android TV, caméras de surveillance et accessoires high-tech au Maroc. Livraison rapide, paiement à la livraison.",
+    description: "Votre spécialiste box Android TV, caméras de surveillance et accessoires high-tech. Livraison en France, paiement accompagné par notre équipe.",
     images: [
       {
         url: "/images/3D%20hero%20section/3D%20Hero%20section%201.jpg",
@@ -59,8 +59,8 @@ export const metadata: Metadata = {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
     ],
-    apple: "/icon.svg",
-    shortcut: "/icon.svg",
+    apple: "/apple-icon.png",
+    shortcut: "/favicon.ico",
   },
 };
 

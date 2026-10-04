@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import styles from "./ProductGallery.module.css";
 
 interface Props {
   images: string[];
@@ -11,8 +12,15 @@ interface Props {
   isRefurbished?: boolean;
 }
 
-export default function ProductGallery({ images, name, discount, badge, isRefurbished }: Props) {
+export default function ProductGallery({ images: sourceImages, name, discount, badge, isRefurbished }: Props) {
   const [active, setActive] = useState(0);
+  const [failedImages, setFailedImages] = useState<string[]>([]);
+  const images = [...new Set(sourceImages.filter((image) => image && !failedImages.includes(image)))];
+  const selected = Math.min(active, Math.max(0, images.length - 1));
+  const removeImage = (source: string) => {
+    setFailedImages((failed) => failed.includes(source) ? failed : [...failed, source]);
+    setActive(0);
+  };
   const [zoomed, setZoomed] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -32,6 +40,7 @@ export default function ProductGallery({ images, name, discount, badge, isRefurb
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return;
+    if (images.length < 2) { setTouchStart(null); return; }
     const diff = touchStart - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 40) {
       if (diff > 0) setActive((a) => (a + 1) % images.length);
@@ -41,12 +50,12 @@ export default function ProductGallery({ images, name, discount, badge, isRefurb
   };
 
   return (
-    <div className="md:col-span-5">
+    <div>
       {/* Main image */}
       <div
         ref={imgRef}
-        className="relative rounded-lg border border-slate-200 overflow-hidden bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] cursor-zoom-in select-none"
-        onMouseEnter={() => setZoomed(true)}
+        className={styles.stage}
+        onPointerEnter={(e) => { if (e.pointerType === "mouse") setZoomed(true); }}
         onMouseLeave={() => setZoomed(false)}
         onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
@@ -55,7 +64,7 @@ export default function ProductGallery({ images, name, discount, badge, isRefurb
         {/* Badges */}
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
           {discount > 0 && (
-            <span className="bg-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-md shadow-sm">
+            <span className={styles.discount}>
               -{discount}%
             </span>
           )}
@@ -73,8 +82,8 @@ export default function ProductGallery({ images, name, discount, badge, isRefurb
 
         {/* Image counter — mobile only */}
         {images.length > 1 && (
-          <div className="absolute top-3 right-3 z-10 md:hidden bg-black/40 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-full pointer-events-none">
-            {active + 1}/{images.length}
+          <div className="absolute top-3 right-3 z-10 md:hidden bg-white/90 border border-slate-200/70 text-slate-500 text-[10px] font-medium px-2.5 py-1.5 rounded-lg pointer-events-none" aria-live="polite">
+            {selected + 1}/{images.length}
           </div>
         )}
 
@@ -105,14 +114,15 @@ export default function ProductGallery({ images, name, discount, badge, isRefurb
         )}
 
         {/* Main image */}
-        <div className="aspect-square flex items-center justify-center p-4 overflow-hidden">
-          <Image
-            key={active}
-            src={images[active]}
+        <div className={styles.frame}>
+          {images.length > 0 ? <Image
+            key={images[selected]}
+            src={images[selected]}
             alt={name}
             width={480}
             height={480}
-            className="object-contain w-full h-full transition-transform duration-200"
+            sizes="(max-width: 640px) 100vw, 50vw"
+            className="object-contain w-full h-full mix-blend-multiply transition-transform duration-200"
             style={
               zoomed
                 ? {
@@ -122,17 +132,18 @@ export default function ProductGallery({ images, name, discount, badge, isRefurb
                   }
                 : {}
             }
-            priority
-          />
+            onError={() => removeImage(images[selected])}
+            preload
+          /> : <div className={styles.unavailable} role="status"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="15" cy="8" r="1"/></svg><span>Photo bientôt disponible</span></div>}
         </div>
       </div>
 
       {/* Desktop thumbnails + arrows */}
       {images.length > 1 && (
-        <div className="hidden md:flex items-center gap-2 mt-3">
+        <div className={styles.navigation}>
           <button
             onClick={() => setActive((a) => (a - 1 + images.length) % images.length)}
-            className="w-9 h-9 shrink-0 bg-white border border-slate-200 rounded-lg flex items-center justify-center shadow-sm hover:border-orange-400 hover:shadow transition-all"
+            className={styles.arrow}
             aria-label="Image précédente"
           >
             <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,25 +151,23 @@ export default function ProductGallery({ images, name, discount, badge, isRefurb
             </svg>
           </button>
 
-          <div className="flex gap-2 flex-1 overflow-hidden">
+          <div className={styles.thumbnails}>
             {images.map((img, i) => (
               <button
                 key={i}
+                aria-label={`Afficher la vue ${i + 1}`}
+                aria-pressed={selected === i}
                 onClick={() => setActive(i)}
-                className={`w-16 h-16 shrink-0 rounded-lg border-2 overflow-hidden flex items-center justify-center bg-white transition-all ${
-                  active === i
-                    ? "border-orange-500 shadow-md shadow-orange-100"
-                    : "border-gray-200 hover:border-orange-300 opacity-70 hover:opacity-100"
-                }`}
+                className={`${styles.thumbnail} ${selected === i ? styles.selected : ""}`}
               >
-                <Image src={img} alt={`Vue ${i + 1}`} width={56} height={56} className="object-contain p-1" />
+                <Image src={img} alt="" width={56} height={56} sizes="56px" onError={() => removeImage(img)} className="object-contain p-1" />
               </button>
             ))}
           </div>
 
           <button
             onClick={() => setActive((a) => (a + 1) % images.length)}
-            className="w-9 h-9 shrink-0 bg-white border border-slate-200 rounded-lg flex items-center justify-center shadow-sm hover:border-orange-400 hover:shadow transition-all"
+            className={styles.arrow}
             aria-label="Image suivante"
           >
             <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

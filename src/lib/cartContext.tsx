@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
+import CartFeedback, { type CartNotice } from "@/components/CartFeedback";
 
 export interface CartItem {
   id: number;
@@ -18,7 +19,7 @@ interface CartContextValue {
   cartCount: number;
   cartTotal: number;
   sessionId: string;
-  addToCart: (item: Omit<CartItem, "qty">, qty?: number) => void;
+  addToCart: (item: Omit<CartItem, "qty">, qty?: number, origin?: HTMLElement | null) => void;
   removeFromCart: (id: number) => void;
   updateQty: (id: number, delta: number) => void;
   clearCart: () => void;
@@ -45,6 +46,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [mounted, setMounted] = useState(false);
   const [sessionId, setSessionId] = useState("");
+  const [notice, setNotice] = useState<CartNotice | null>(null);
+  const noticeId = useRef(0);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = setTimeout(() => setNotice(null), 4000);
+    return () => clearTimeout(timeout);
+  }, [notice]);
 
   useEffect(() => {
     setMounted(true);
@@ -83,7 +92,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, [items, mounted, sessionId]);
 
-  const addToCart = (product: Omit<CartItem, "qty">, qty = 1) => {
+  const addToCart = (product: Omit<CartItem, "qty">, qty = 1, origin?: HTMLElement | null) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {
@@ -93,6 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...product, qty }];
     });
+    setNotice({ id: ++noticeId.current, name: product.name, image: product.image, origin });
   };
 
   const removeFromCart = (id: number) =>
@@ -115,6 +125,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{ items, cartCount, cartTotal, sessionId, addToCart, removeFromCart, updateQty, clearCart }}
     >
       {children}
+      <CartFeedback notice={notice} onDismiss={() => setNotice(null)} />
     </CartContext.Provider>
   );
 }

@@ -1,0 +1,19 @@
+.stage { position: relative; border-radius: 20px; border: 1px solid #e9ebee; overflow: hidden; background: #fff; cursor: zoom-in; user-select: none; }
+.discount { padding: 6px 11px; border-radius: 8px; background: #fff; color: #a8552c; border: 1px solid #f0e3d8; font-size: 11px; font-weight: 600; }
+.frame { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; padding: 48px; overflow: hidden; }
+.navigation { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.arrow { width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid #e6e9ee; border-radius: 50%; background: #fff; }
+.thumbnails { display: flex; gap: 8px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.thumbnail { width: 64px; height: 64px; flex-shrink: 0; border: 1px solid #e6e9ee; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fff; opacity: .65; }
+.selected { border-color: #ed792f; box-shadow: 0 0 0 1px #ed792f; opacity: 1; }
+.unavailable { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #788596; font-size: 13px; }
+.arrow:hover, .thumbnail:hover { border-color: #b8c2cf; opacity: 1; }
+.navigation button:focus-visible { outline: 2px solid #d26a30; outline-offset: 2px; }
+@media (max-width: 760px) {
+  .stage { border-radius: 20px; cursor: default; }
+  .frame { aspect-ratio: 1.35; max-height: 320px; padding: 24px; }
+  .navigation { gap: 10px; margin-top: 10px; }
+  .thumbnails { gap: 8px; justify-content: center; }
+  .thumbnail { width: 52px; height: 52px; border-radius: 9px; }
+  .arrow { width: 36px; height: 36px; }
+}

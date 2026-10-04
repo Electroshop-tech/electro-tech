@@ -8,7 +8,7 @@ const faqs = [
     category: "Commandes & Paiement",
     icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z",
     items: [
-      { q: "Quels moyens de paiement acceptez-vous ?", a: "Nous acceptons les cartes Visa/Mastercard, le virement bancaire, et le paiement a la livraison disponible sur certaines zones." },
+      { q: "Quels moyens de paiement acceptez-vous ?", a: "Envoyez votre commande : notre équipe vous contacte pour confirmer les détails et vous accompagner pour le règlement avant expédition. Un lien sécurisé par carte Visa/Mastercard peut être proposé lorsque le paiement en ligne est disponible." },
       { q: "Puis-je modifier ou annuler ma commande ?", a: "Vous pouvez annuler ou modifier votre commande dans les 2 heures suivant la validation en nous contactant. Au-dela, si le colis est expedie, vous devrez effectuer un retour." },
       { q: "Puis-je commander par telephone ?", a: "Oui, notre equipe est disponible au (+212) 716-408919 du lundi au samedi de 9h a 19h pour prendre votre commande par telephone." },
     ],

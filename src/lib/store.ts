@@ -1,4 +1,5 @@
 import prisma from "./prisma";
+import { resolveProductImage } from "./product-images";
 import { unstable_cache, revalidateTag } from "next/cache";
 import type {
   Product,
@@ -79,7 +80,7 @@ function dbProductToProduct(p: {
     description: p.description,
     originalPrice: p.originalPrice,
     currentPrice: p.currentPrice,
-    image: p.image,
+    image: resolveProductImage(p.image),
     badge: p.badge ?? undefined,
     isRefurbished: p.isRefurbished,
     category: p.category,
@@ -91,8 +92,11 @@ function dbProductToProduct(p: {
     inStock: p.inStock,
     stockQuantity: p.stockQuantity,
     specs: p.specs,
-    images: p.images,
-    descriptionSections: (p.descriptionSections as Product["descriptionSections"]) ?? undefined,
+    images: p.images.map(resolveProductImage),
+    descriptionSections: (p.descriptionSections as Product["descriptionSections"])?.map((section) => ({
+      ...section,
+      image: resolveProductImage(section.image),
+    })) ?? undefined,
     characteristics: (p.characteristics as Product["characteristics"]) ?? undefined,
     productReviews: (p.productReviews as Product["productReviews"]) ?? undefined,
     metaTitle: p.metaTitle ?? undefined,
@@ -112,6 +116,15 @@ function dbOrderToOrder(o: {
   status: OrderStatus;
   paymentMethod: string;
   paymentStatus: PaymentStatus;
+  paymentProvider?: string | null;
+  paymentReference?: string | null;
+  paymentAmount?: number | null;
+  paymentCurrency?: string;
+  subscriptionInformation?: string | null;
+  subscriptionSentAt?: Date | null;
+  subscriptionEmailId?: string | null;
+  subscriptionFirstAttemptAt?: Date | null;
+  subscriptionDeliveryError?: string | null;
   paidAt: Date | null;
   notes: string | null;
   trackingNumber: string | null;
@@ -156,6 +169,15 @@ function dbOrderToOrder(o: {
     },
     paymentMethod: o.paymentMethod,
     paymentStatus: ENUM_TO_PAYMENT[o.paymentStatus],
+    paymentProvider: o.paymentProvider ?? undefined,
+    paymentReference: o.paymentReference ?? undefined,
+    paymentAmount: o.paymentAmount ?? undefined,
+    paymentCurrency: o.paymentCurrency,
+    subscriptionInformation: o.subscriptionInformation ?? undefined,
+    subscriptionSentAt: o.subscriptionSentAt?.toISOString(),
+    subscriptionEmailId: o.subscriptionEmailId ?? undefined,
+    subscriptionFirstAttemptAt: o.subscriptionFirstAttemptAt?.toISOString(),
+    subscriptionDeliveryError: o.subscriptionDeliveryError ?? undefined,
     paidAt: o.paidAt ? o.paidAt.toISOString() : undefined,
     notes: o.notes ?? undefined,
     trackingNumber: o.trackingNumber ?? undefined,
@@ -331,7 +353,7 @@ async function _getProductCards(): Promise<Product[]> {
 
 // Cache DB reads across requests (revalidate every 60s, or on demand via
 // revalidateTag("products")). Eliminates a database round-trip on every page view.
-export const getProducts = unstable_cache(_getProducts, ["all-products"], {
+export const getProducts = unstable_cache(_getProducts, ["all-products", "local-product-images-v2"], {
   revalidate: 60,
   tags: ["products"],
 });
@@ -339,7 +361,7 @@ export const getProducts = unstable_cache(_getProducts, ["all-products"], {
 /** Uncached version for admin panel — always returns fresh data from DB */
 export const getProductsAdmin = _getProducts;
 
-export const getProductCards = unstable_cache(_getProductCards, ["product-cards"], {
+export const getProductCards = unstable_cache(_getProductCards, ["product-cards", "local-product-images-v2"], {
   revalidate: 60,
   tags: ["products"],
 });
@@ -657,9 +679,31 @@ export async function createOrder(
     paymentStatus?: Order["paymentStatus"];
   }
 ): Promise<Order> {
-  const o = await prisma.order.create({
+  const { notificationSeed } = await import("@/lib/admin-notifications");
+  const notification = await notificationSeed("ORDER_CREATED");
+  const o = await prisma.$transaction(async tx => {
+    if (data.userId === "guest") {
+      await tx.user.upsert({
+        where: { id: "guest" }, update: {},
+        create: { id: "guest", email: "guest@checkout.invalid", passwordHash: "!login-disabled!", firstName: "Guest", lastName: "Checkout" },
+      });
+    }
+    // Reserve every item before saving; any shortage rolls back the entire order.
+    const quantities = new Map<number, number>();
+    for (const item of data.items) quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
+    for (const [productId, quantity] of [...quantities].sort((a, b) => a[0] - b[0])) {
+      const reserved = await tx.product.updateMany({
+        where: { id: productId, inStock: true, stockQuantity: { gte: quantity } },
+        data: { stockQuantity: { decrement: quantity } },
+      });
+      if (!reserved.count) throw new Error("ORDER_OUT_OF_STOCK");
+      await tx.product.updateMany({ where: { id: productId, stockQuantity: 0 }, data: { inStock: false } });
+    }
+    return tx.order.create({
     data: {
       orderNumber: generateOrderNumber(),
+      adminNotifications: { create: notification },
+      emailDeliveries: { create: [{ kind: "CUSTOMER_CONFIRMATION" }, { kind: "ADMIN_ORDER" }] },
       userId: data.userId,
       customerName: data.customerName,
       customerEmail: data.customerEmail,
@@ -688,7 +732,8 @@ export async function createOrder(
       },
     },
     include: { items: true },
-  });
+    });
+  }, { timeout: 15000 });
   return dbOrderToOrder(o);
 }
 
@@ -730,10 +775,15 @@ export async function updateOrder(
       patch.paymentStatus = PAYMENT_TO_ENUM[data.paymentStatus] ?? PaymentStatus.UNPAID;
       patch.paidAt = data.paymentStatus === "paid" ? new Date() : null;
     }
-    const o = await prisma.order.update({
-      where: { id },
-      data: patch,
-      include: { items: true },
+    const o = await prisma.$transaction(async (tx) => {
+      if (data.paymentStatus !== undefined) {
+        await tx.$queryRaw`SELECT "id" FROM "Order" WHERE "id" = ${id} FOR UPDATE`;
+        const current = await tx.order.findUnique({ where: { id }, include: { checkout: true } });
+        if (!current || current.paymentMethod === "stripe" || current.paymentProvider === "stripe" || current.checkout) {
+          throw new Error("Online payment status is managed by its provider.");
+        }
+      }
+      return tx.order.update({ where: { id }, data: patch, include: { items: true } });
     });
     return dbOrderToOrder(o);
   } catch {

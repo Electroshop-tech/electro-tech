@@ -49,7 +49,7 @@ function getSteps(status: "processing" | "shipped" | "delivered", date: string):
     {
       key: "delivered",
       label: "Livrée",
-      sub: "Livraison à domicile · Paiement à la réception",
+      sub: "Livraison à votre adresse",
       date: status === "delivered" ? fmt(2) : undefined,
       done: status === "delivered",
       active: status === "delivered",

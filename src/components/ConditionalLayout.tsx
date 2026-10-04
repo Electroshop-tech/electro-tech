@@ -35,20 +35,20 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Retour en haut"
-          className="flex fixed bottom-24 left-5 z-50 w-11 h-11 bg-slate-800 hover:bg-orange-500 text-white rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.35)] items-center justify-center transition-all duration-300 hover:scale-110 hover:-translate-y-0.5"
+          className="hidden sm:flex fixed bottom-24 left-5 z-50 w-11 h-11 bg-slate-800 hover:bg-orange-500 text-white rounded-full shadow-sm items-center justify-center transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
           </svg>
         </button>
       )}
-      {!isAdmin && !isMaintenance && (
+      {!isAdmin && !isMaintenance && !isCheckout && (
         <a
           href="https://wa.me/212716408919"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Contacter sur WhatsApp"
-          className="fixed right-5 z-50 flex items-center justify-center w-14 h-14 bg-[#25D366] hover:bg-[#20bc5c] rounded-full shadow-lg transition-transform hover:scale-110"
+          className={`fixed right-3 sm:right-5 z-50 ${pathname.startsWith("/produits/") ? "hidden md:flex" : "flex"} items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-[#25D366] hover:bg-[#20bc5c] rounded-full shadow-sm transition-colors`}
           style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)" }}
         >
           <svg viewBox="0 0 32 32" className="w-8 h-8 fill-white" xmlns="http://www.w3.org/2000/svg">

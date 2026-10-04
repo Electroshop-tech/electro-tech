@@ -135,6 +135,17 @@ model Order {
   paymentMethod  String
   paymentStatus  PaymentStatus @default(UNPAID)
   paidAt         DateTime?
+  paymentProvider String?
+  paymentReference String? @unique
+  paymentAmount Int? // minor units (EUR cents)
+  paymentCurrency String @default("EUR")
+  subscriptionInformation String?
+  subscriptionSentAt DateTime?
+  subscriptionEmailId String?
+  subscriptionDeliveryKey String? @unique
+  subscriptionSendingAt DateTime?
+  subscriptionFirstAttemptAt DateTime?
+  subscriptionDeliveryError String?
   notes          String?
   trackingNumber String?
   promoCode      String?
@@ -151,6 +162,10 @@ model Order {
 
   user  User        @relation(fields: [userId], references: [id])
   items OrderItem[]
+  checkout PaymentCheckout?
+  paymentEvents PaymentWebhookEvent[]
+  adminNotifications AdminOrderNotification[]
+  emailDeliveries OrderEmailDelivery[]
 
   @@index([userId])
   @@index([status])
@@ -170,6 +185,61 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+model PaymentCheckout {
+  orderId String @id
+  generation String @unique @default(uuid())
+  sessionId String? @unique
+  amount Int
+  currency String
+  createdAt DateTime @default(now())
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model PaymentWebhookEvent {
+  id String @id
+  orderId String
+  createdAt DateTime @default(now())
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model AdminOrderNotification {
+  id String @id @default(cuid())
+  orderId String
+  event String // ORDER_CREATED | PAYMENT_RECEIVED
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  phoneStatus String @default("DISABLED") // PENDING | SENDING | ACCEPTED | FAILED | UNKNOWN | DISABLED
+  phoneTo String?
+  phoneChannel String?
+  phoneStartedAt DateTime?
+  phoneAcceptedAt DateTime?
+  phoneReference String?
+  phoneError String?
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  @@unique([orderId, event])
+  @@index([readAt, createdAt])
+  @@index([phoneStatus, createdAt])
+}
+
+model OrderEmailDelivery {
+  id String @id @default(cuid())
+  orderId String
+  kind String // CUSTOMER_CONFIRMATION | ADMIN_ORDER
+  status String @default("PENDING") // PENDING | SENDING | ACCEPTED | FAILED | UNKNOWN | SKIPPED
+  payload Json?
+  attempts Int @default(0)
+  firstAttemptAt DateTime?
+  startedAt DateTime?
+  nextAttemptAt DateTime @default(now())
+  acceptedAt DateTime?
+  providerId String?
+  error String?
+  createdAt DateTime @default(now())
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  @@unique([orderId, kind])
+  @@index([status, nextAttemptAt])
 }
 
 model OrderItem {

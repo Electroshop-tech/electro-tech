@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { after } from "next/server";
+import { dispatchOrderAlerts } from "@/lib/admin-notifications";
 import { getOrdersByUserId, createOrder, getUserById, getProductById, validatePromoCode, incrementPromoUses, computeDeliveryFee, markCartRecovered } from "@/lib/store";
-import { sendOrderConfirmation, sendAdminOrderNotification } from "@/lib/email";
+import { dispatchOrderEmails } from "@/lib/order-emails";
 import { rateLimit } from "@/lib/rateLimit";
 import { validate, createOrderSchema } from "@/lib/validation";
 import type { OrderItem } from "@/lib/types";
-import prisma from "@/lib/prisma";
+import { grantOrderPaymentAccess } from "@/lib/payments/access";
+import { paymentConfigured } from "@/lib/payments/stripe";
+
+export const maxDuration = 60;
 
 export async function GET() {
   const session = await getCurrentUser();
@@ -24,6 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
     const { items, address, paymentMethod, notes, customer, promoCode, sessionId } = parsed.data;
+    if (paymentMethod === "stripe" && !paymentConfigured()) return NextResponse.json({ error: "Le paiement en ligne n’est pas disponible." }, { status: 503 });
 
     let customerName: string;
     let customerEmail: string;
@@ -34,7 +40,7 @@ export async function POST(req: NextRequest) {
       const user = await getUserById(session.userId);
       customerName = user ? `${user.firstName} ${user.lastName}` : "Client";
       customerEmail = user?.email ?? session.email;
-      customerPhone = user?.phone;
+      customerPhone = customer?.phone || user?.phone;
       userId = session.userId;
     } else {
       // Guest checkout
@@ -51,6 +57,7 @@ export async function POST(req: NextRequest) {
     const verifiedItems: OrderItem[] = [];
     for (const item of items) {
       const dbProduct = await getProductById(Number(item.productId));
+      if (!dbProduct) return NextResponse.json({ error: "Un produit de votre panier n’est plus disponible." }, { status: 400 });
       verifiedItems.push({
         productId: item.productId,
         productName: dbProduct?.name ?? item.productName,
@@ -61,6 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     const subtotal = verifiedItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) return NextResponse.json({ error: "Une adresse email valide est nécessaire pour recevoir la confirmation de commande." }, { status: 400 });
 
     // Apply promo code if provided
     let promoDiscount = 0;
@@ -88,10 +96,17 @@ export async function POST(req: NextRequest) {
       total,
       status: "pending",
       address,
-      paymentMethod: paymentMethod ?? "cash_on_delivery",
+      paymentMethod,
       notes,
       promoCode: appliedPromoCode,
       promoDiscount,
+    });
+
+    after(async () => {
+      try { await dispatchOrderAlerts(order.id); }
+      catch { console.error("[notifications] Phone dispatch unavailable", { orderId: order.id }); }
+      try { await dispatchOrderEmails(order.id); }
+      catch { console.error("[email] Queued order emails unavailable", { orderId: order.id }); }
     });
 
     // Increment promo uses
@@ -104,31 +119,11 @@ export async function POST(req: NextRequest) {
       markCartRecovered(sessionId).catch(() => {});
     }
 
-    // Decrement stock quantities atomically (block overselling)
-    for (const item of verifiedItems) {
-      const updated = await prisma.product.updateMany({
-        where: { id: Number(item.productId), stockQuantity: { gte: item.quantity } },
-        data: { stockQuantity: { decrement: item.quantity } },
-      });
-      if (updated.count === 0) {
-        // Stock insufficient — but order already created, log warning
-        console.warn(`[stock] Product ${item.productId} may be oversold`);
-      }
-    }
-    // Auto-mark products out of stock if quantity reached 0
-    await prisma.product.updateMany({
-      where: { stockQuantity: { lte: 0 }, inStock: true },
-      data: { inStock: false, stockQuantity: 0 },
-    });
-
-    // Send emails (non-blocking — don't fail the request if email fails)
-    Promise.all([
-      sendOrderConfirmation(order),
-      sendAdminOrderNotification(order),
-    ]).catch(err => console.error("[email] Failed to send order emails:", err));
-
+    try { await grantOrderPaymentAccess(order.id); }
+    catch { console.error("[orders] Payment access cookie unavailable", { orderId: order.id }); }
     return NextResponse.json({ order }, { status: 201 });
   } catch (err) {
+    if (err instanceof Error && err.message === "ORDER_OUT_OF_STOCK") return NextResponse.json({ error: "Un produit est en rupture de stock. Veuillez vérifier votre panier." }, { status: 409 });
     console.error("[orders] POST failed:", err);
     return NextResponse.json({ error: "Erreur serveur." }, { status: 500 });
   }

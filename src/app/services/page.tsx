@@ -18,12 +18,12 @@ const services = [
     badge: "Gratuite",
     badgeColor: "bg-orange-100 text-orange-600",
     description:
-      "Livraison rapide partout au Maroc sous 24 à 72h ouvrables. Paiement à la livraison disponible — vous payez uniquement à la réception de votre colis.",
+      "Livraison à votre adresse en France après validation de la commande et confirmation du règlement. Notre équipe vous précise le délai de livraison.",
     points: [
       "Livraison gratuite sur toutes les commandes",
-      "Disponible dans toutes les villes du Maroc",
+      "Livraison en France",
       "Suivi de commande en temps réel",
-      "Paiement à la réception (cash)",
+      "Règlement accompagné avant expédition",
     ],
   },
   {
@@ -75,11 +75,11 @@ const services = [
     badge: "100% Sécurisé",
     badgeColor: "bg-emerald-100 text-emerald-600",
     description:
-      "Paiement à la livraison ou par carte bancaire (CMI) avec cryptage SSL. Vos données bancaires ne sont jamais stockées sur nos serveurs.",
+      "Notre équipe vous accompagne pour le règlement avant expédition. Un lien sécurisé par carte bancaire peut être proposé lorsque le paiement en ligne est disponible. Vos données bancaires ne sont jamais stockées sur nos serveurs.",
     points: [
-      "Paiement à la livraison (cash)",
-      "Carte Visa / Mastercard via CMI",
-      "Cryptage SSL 256-bit",
+      "Paiement accompagné par notre équipe",
+      "Carte Visa / Mastercard lorsque disponible",
+      "Lien de paiement sécurisé",
       "Aucun stockage de données bancaires",
     ],
   },

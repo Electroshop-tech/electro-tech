@@ -9,11 +9,21 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/images/fav icon.jpg",
-      "sizes": "any",
-      "type": "image/png"
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
-  "categories": ["shopping", "electronics"],
+  "categories": [
+    "shopping",
+    "electronics"
+  ],
   "lang": "fr"
 }

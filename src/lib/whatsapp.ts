@@ -1,4 +1,5 @@
 import type { Order } from "./types";
+import { paymentLink, paymentMessage } from "./payment-message";
 
 const SITE_NAME = "ElectroShop-Tech";
 
@@ -50,6 +51,11 @@ export function orderStatusMessage(order: Order): string {
 }
 
 /** Convenience: WhatsApp link addressed to the order's customer. */
-export function customerWhatsAppLink(order: Order): string {
-  return buildWhatsAppLink(order.customerPhone, orderStatusMessage(order));
+export function customerWhatsAppLink(order: Order, paymentUrl = ""): string {
+  const phone = normalizePhone(order.customerPhone || "", order.address.country.trim().toLowerCase() === "france" ? "33" : "212");
+  if (!/^\d{8,15}$/.test(phone)) return "";
+  const url = paymentLink(paymentUrl);
+  const canRequestPayment = !["paid", "refunded"].includes(order.paymentStatus) && !["cancelled", "delivered"].includes(order.status);
+  const message = url && canRequestPayment ? paymentMessage(order, url) : orderStatusMessage(order);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }

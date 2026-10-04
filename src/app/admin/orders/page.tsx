@@ -3,6 +3,10 @@
 import { useEffect, useState, Fragment } from "react";
 import type { Order } from "@/lib/types";
 import { customerWhatsAppLink } from "@/lib/whatsapp";
+import AdminSubscriptionPanel from "@/components/AdminSubscriptionPanel";
+import AssistedPaymentPanel from "@/components/admin/AssistedPaymentPanel";
+import { paymentMethodLabel } from "@/lib/order-payment";
+import styles from "./Orders.module.css";
 
 const STATUS_MAP: Record<Order["status"], { label: string; color: string; dot: string }> = {
   pending:   { label: "En attente",  color: "bg-yellow-100 text-yellow-700 border-yellow-200", dot: "bg-yellow-400" },
@@ -28,19 +32,43 @@ export default function AdminOrdersPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
   const [noteInputs, setNoteInputs] = useState<Record<string, string>>({});
+  const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/admin/orders", { credentials: "include" })
-      .then(r => r.json())
-      .then(d => { setOrders(d.orders ?? []); setLoading(false); })
-      .catch(() => setLoading(false));
+    const controller = new AbortController();
+    let inFlight = false;
+    let initial = true;
+    const refresh = () => {
+      if (inFlight || document.visibilityState !== "visible") return;
+      inFlight = true;
+      fetch("/api/admin/orders", { credentials: "include", cache: "no-store", signal: controller.signal })
+      .then(async r => { const data = await r.json(); if (!r.ok) throw new Error(data.error || "Commandes indisponibles."); return data; })
+      .then(d => {
+        setOrders(d.orders ?? []); setLoading(false); setError("");
+        const requested = new URLSearchParams(window.location.search).get("order");
+        if (initial && requested && d.orders?.some((o: Order) => o.id === requested)) {
+          setExpanded(requested); setSearch(requested); setFilter("all");
+        }
+        initial = false;
+      })
+      .catch(e => { if (!controller.signal.aborted) { setLoading(false); setError(e instanceof Error ? e.message : "Commandes indisponibles."); } })
+      .finally(() => { inFlight = false; });
+    };
+    refresh();
+    const interval = setInterval(refresh, 20000);
+    window.addEventListener("admin-orders-changed", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { controller.abort(); clearInterval(interval); window.removeEventListener("admin-orders-changed", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, []);
 
   async function patchOrder(id: string, body: Record<string, unknown>) {
     setUpdating(id);
+    setError("");
+    try {
     const res = await fetch("/api/admin/orders", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -48,8 +76,11 @@ export default function AdminOrdersPage() {
       body: JSON.stringify({ id, ...body }),
     });
     const data = await res.json();
-    if (res.ok) setOrders(prev => prev.map(o => o.id === id ? data.order : o));
-    setUpdating(null);
+    if (!res.ok) throw new Error(data.error || "Modification impossible.");
+    setOrders(prev => prev.map(o => o.id === id ? data.order : o));
+    window.dispatchEvent(new Event("admin-notifications-changed"));
+    } catch (e) { setError(e instanceof Error ? e.message : "Modification impossible."); }
+    finally { setUpdating(null); }
   }
 
   async function updateStatus(id: string, status: Order["status"]) {
@@ -59,7 +90,7 @@ export default function AdminOrdersPage() {
   async function saveTracking(id: string) {
     const order = orders.find(o => o.id === id);
     if (!order) return;
-    await patchOrder(id, { status: order.status, trackingNumber: trackingInputs[id] || "" });
+    await patchOrder(id, { trackingNumber: trackingInputs[id] ?? order.trackingNumber ?? "" });
   }
 
   async function savePayment(id: string, paymentStatus: Order["paymentStatus"]) {
@@ -67,7 +98,8 @@ export default function AdminOrdersPage() {
   }
 
   async function saveNotes(id: string) {
-    await patchOrder(id, { notes: noteInputs[id] ?? "" });
+    const order = orders.find(o => o.id === id);
+    await patchOrder(id, { notes: noteInputs[id] ?? order?.notes ?? "" });
   }
 
   const filtered = orders.filter(o => {
@@ -78,7 +110,8 @@ export default function AdminOrdersPage() {
         o.customerName.toLowerCase().includes(q) ||
         o.customerEmail.toLowerCase().includes(q) ||
         (o.customerPhone ?? "").toLowerCase().includes(q) ||
-        o.id.toLowerCase().includes(q);
+        o.id.toLowerCase().includes(q) ||
+        (o.orderNumber ?? "").toLowerCase().includes(q);
       if (!hit) return false;
     }
     if (dateFrom && new Date(o.createdAt).getTime() < new Date(dateFrom + "T00:00:00").getTime()) return false;
@@ -100,7 +133,7 @@ export default function AdminOrdersPage() {
         o.customerPhone ?? "",
         o.total.toFixed(2),
         STATUS_MAP[o.status].label,
-        o.paymentMethod === "cash_on_delivery" ? "À la livraison" : o.paymentMethod,
+        paymentMethodLabel(o.paymentMethod),
         PAYMENT_MAP[o.paymentStatus].label,
         `${o.address.street}, ${o.address.postalCode} ${o.address.city}, ${o.address.country}`,
         new Date(o.createdAt).toLocaleDateString("fr-FR"),
@@ -119,12 +152,12 @@ export default function AdminOrdersPage() {
 
   function renderDetail(order: Order) {
     return (
-      <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
+      <div className={styles.detail}>
         <div>
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Articles commandés</p>
           <div className="space-y-2">
             {order.items.map((item, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
+              <div key={i} className={styles.item}>
                 <span className="text-gray-700">{item.productName} <span className="text-gray-400">×{item.quantity}</span></span>
                 <span className="font-bold text-gray-900">{(item.price * item.quantity).toFixed(2)}€</span>
               </div>
@@ -143,7 +176,7 @@ export default function AdminOrdersPage() {
             {order.address.country}
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            <strong>Paiement :</strong> {order.paymentMethod === "cash_on_delivery" ? "À la livraison" : order.paymentMethod}
+            <strong>Paiement :</strong> {paymentMethodLabel(order.paymentMethod)}
           </p>
           {order.promoCode && <p className="text-xs text-gray-500 mt-1"><strong>Code promo :</strong> {order.promoCode} (-{order.promoDiscount?.toFixed(2)}€)</p>}
 
@@ -156,7 +189,7 @@ export default function AdminOrdersPage() {
               </span>
               <select
                 value={order.paymentStatus}
-                disabled={updating === order.id}
+                disabled={updating === order.id || order.paymentProvider === "stripe" || order.paymentMethod === "stripe"}
                 onChange={e => savePayment(order.id, e.target.value as Order["paymentStatus"])}
                 className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white disabled:opacity-50"
               >
@@ -166,6 +199,8 @@ export default function AdminOrdersPage() {
               </select>
             </div>
           </div>
+
+          <AssistedPaymentPanel key={order.id} order={order} url={paymentLinks[order.id] ?? ""} onUrlChange={url => setPaymentLinks(previous => ({ ...previous, [order.id]: url }))} />
 
           {/* Tracking number */}
           <div className="mt-3">
@@ -217,7 +252,7 @@ export default function AdminOrdersPage() {
               Facture (PDF)
             </button>
             {(() => {
-              const wa = customerWhatsAppLink(order);
+              const wa = customerWhatsAppLink(order, paymentLinks[order.id]);
               return wa ? (
                 <a
                   href={wa}
@@ -232,16 +267,18 @@ export default function AdminOrdersPage() {
             })()}
           </div>
         </div>
+        <AdminSubscriptionPanel order={order} onUpdated={updated => setOrders(previous => previous.map(item => item.id === updated.id ? updated : item))} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
-      <div className="flex items-center justify-between gap-3">
+    <div className={`${styles.page} space-y-5 sm:space-y-6`}>
+      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+      <div className={styles.heading}>
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-gray-900">Commandes</h1>
-          <p className="text-gray-500 text-sm mt-1">{orders.length} commande{orders.length !== 1 ? "s" : ""} au total</p>
+          <p className="text-gray-500 text-sm mt-1">{orders.length} commande{orders.length !== 1 ? "s" : ""} au total · Actualisation automatique</p>
         </div>
         {orders.length > 0 && (
           <button onClick={exportCSV} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-sm transition-colors shadow-sm">
@@ -252,11 +289,17 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {(["all", "pending", "confirmed", "shipped", "delivered", "cancelled"] as const).map(s => (
+      <div className={styles.metrics} aria-label="Résumé des commandes">
+        <div className={styles.metric}><span>À confirmer</span><strong>{orders.filter(o => o.status === "pending").length}</strong></div>
+        <div className={styles.metric}><span>À préparer</span><strong>{orders.filter(o => ["confirmed", "preparing"].includes(o.status)).length}</strong></div>
+        <div className={styles.metric}><span>Paiements en attente</span><strong>{orders.filter(o => ["unpaid", "failed"].includes(o.paymentStatus) && !["cancelled", "delivered"].includes(o.status)).length}</strong></div>
+      </div>
+      <div className={styles.filters} aria-label="Filtrer par statut">
+        {(["all", "pending", "confirmed", "preparing", "shipped", "delivered", "cancelled"] as const).map(s => (
           <button
             key={s}
             onClick={() => setFilter(s)}
+            aria-pressed={filter === s}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
               filter === s
                 ? "bg-orange-500 text-white border-orange-500"
@@ -272,8 +315,8 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Search + date range */}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="flex-1 min-w-[200px]">
+      <div className={styles.search}>
+        <div>
           <label className="block text-xs font-bold text-gray-500 mb-1">Recherche (nom, email, téléphone, n°)</label>
           <input
             type="text"
@@ -386,14 +429,15 @@ export default function AdminOrdersPage() {
               const s = STATUS_MAP[order.status];
               const isExp = expanded === order.id;
               return (
-                <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div key={order.id} className={styles.card} data-expanded={isExp}>
                   <button
                     onClick={() => setExpanded(isExp ? null : order.id)}
+                    aria-expanded={isExp} aria-controls={`order-detail-${order.id}`}
                     className="w-full text-left p-4 flex items-start gap-3"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="font-black text-gray-900 text-sm">#{order.id.slice(-8).toUpperCase()}</span>
+                        <span className="font-black text-gray-900 text-sm">#{order.orderNumber || order.id.slice(-8).toUpperCase()}</span>
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${s.color}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
                           {s.label}
@@ -412,7 +456,9 @@ export default function AdminOrdersPage() {
                     </svg>
                   </button>
                   <div className="px-4 pb-4">
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-500" htmlFor={`order-status-${order.id}`}>Statut de la commande</label>
                     <select
+                      id={`order-status-${order.id}`}
                       value={order.status}
                       disabled={updating === order.id}
                       onChange={e => updateStatus(order.id, e.target.value as Order["status"])}
@@ -424,7 +470,7 @@ export default function AdminOrdersPage() {
                     </select>
                   </div>
                   {isExp && (
-                    <div className="bg-gray-50 px-4 py-4 border-t border-gray-100">
+                    <div id={`order-detail-${order.id}`} className={styles.cardDetails}>
                       {renderDetail(order)}
                     </div>
                   )}

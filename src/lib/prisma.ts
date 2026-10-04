@@ -6,24 +6,12 @@ import ws from "ws";
 // Enable WebSocket connections for Neon serverless
 neonConfig.webSocketConstructor = ws;
 
-function parseDbUrl(raw: string) {
-  const url = new URL(raw);
-  return {
-    host: url.hostname,
-    port: parseInt(url.port || "5432"),
-    user: decodeURIComponent(url.username),
-    password: decodeURIComponent(url.password),
-    database: url.pathname.slice(1),
-    ssl: true,
-  };
-}
-
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL environment variable is not set");
   }
-  const adapter = new PrismaNeon(parseDbUrl(connectionString));
+  const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({ adapter } as never);
 }
 

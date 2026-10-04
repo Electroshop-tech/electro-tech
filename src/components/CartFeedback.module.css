@@ -1,0 +1,12 @@
+.toast { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; align-items: center; gap: 14px; width: min(450px, calc(100vw - 32px)); padding: 18px; background: #fff; color: #17243a; border: 1px solid #dfe7e2; border-radius: 16px; box-shadow: 0 12px 45px #14203526; animation: appear .2s ease-out; }
+.message { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.message > div { min-width: 0; }
+.message strong { display: block; font-size: 12px; font-weight: 600; line-height: 1.5; }
+.message p { font-size: 11px; color: #647084; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.check { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e9f7ef; color: #257448; flex-shrink: 0; }
+.cart { display: grid; place-items: center; width: 42px; height: 42px; background: #17243a; color: #fff; border-radius: 10px; flex-shrink: 0; }
+.close { background: transparent; color: #647084; border: 0; font-size: 22px; width: 28px; height: 40px; cursor: pointer; }
+.cart:focus-visible, .close:focus-visible { outline: 2px solid #e87938; outline-offset: 3px; }
+@keyframes appear { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 639px) { .toast { left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 104px); padding: 14px; gap: 10px; } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; } }

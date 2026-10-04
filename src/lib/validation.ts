@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isFrenchPhone, isFrenchPostalCode, normalizeFrenchPhone } from "./checkout-fr";
 
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
@@ -15,7 +16,7 @@ export const addressSchema = z
     street: a.street,
     city: a.city,
     postalCode: a.postalCode ?? a.zip ?? "",
-    country: a.country ?? "Maroc",
+    country: a.country ?? "France",
   }));
 
 export const orderItemSchema = z
@@ -41,7 +42,7 @@ export const orderItemSchema = z
 export const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "Panier vide."),
   address: addressSchema,
-  paymentMethod: z.string().trim().max(50).optional().default("cash_on_delivery"),
+  paymentMethod: z.enum(["assisted", "stripe"]).optional().default("assisted"),
   notes: z.string().trim().max(2000).optional(),
   promoCode: z.string().trim().max(60).optional(),
   sessionId: z.string().trim().max(100).optional(),
@@ -53,7 +54,20 @@ export const createOrderSchema = z.object({
       phone: z.string().trim().min(6).max(30),
     })
     .optional(),
-});
+}).superRefine((order, ctx) => {
+  if (order.address.country.toLowerCase() !== "france") return;
+  if (!isFrenchPostalCode(order.address.postalCode)) {
+    ctx.addIssue({ code: "custom", path: ["address", "postalCode"], message: "Code postal français à 5 chiffres requis." });
+  }
+  if (order.customer && !isFrenchPhone(order.customer.phone)) {
+    ctx.addIssue({ code: "custom", path: ["customer", "phone"], message: "Numéro de téléphone français invalide." });
+  }
+}).transform((order) => ({
+  ...order,
+  customer: order.customer && order.address.country.toLowerCase() === "france"
+    ? { ...order.customer, phone: normalizeFrenchPhone(order.customer.phone) }
+    : order.customer,
+}));
 
 // ── Contact form ──────────────────────────────────────────────────────────────
 

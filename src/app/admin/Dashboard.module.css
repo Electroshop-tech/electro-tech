@@ -1,0 +1,18 @@
+.welcome { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:28px; border-radius:20px; background:linear-gradient(120deg,#17243a,#243b61); color:#fff; }
+.welcome small { display:block; color:#fdba74; text-transform:uppercase; font-size:10px; font-weight:700; letter-spacing:.18em; margin-bottom:10px; }
+.welcome h2 { font-size:26px; font-weight:750; letter-spacing:-.04em; line-height:1.2; }
+.welcome p { max-width:440px; margin-top:10px; font-size:13px; line-height:1.7; color:#becce0; }
+.welcome a { display:flex; align-items:center; justify-content:center; min-height:46px; flex-shrink:0; padding:12px 18px; border:1px solid #ffffff30; border-radius:12px; font-size:12px; font-weight:650; background:#ffffff0d; }
+.welcome a:hover { background:#ffffff20; }
+.quickLinks { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.quickLinks a { display:flex; gap:12px; align-items:center; min-height:76px; padding:18px; border:1px solid #e0e6ef; border-radius:16px; background:#fff; color:#334155; transition:border-color .15s,box-shadow .15s; }
+.quickLinks a:hover { border-color:#fb923c; box-shadow:0 4px 16px #17243a08; }
+.quickLinks svg { color:#ea580c; }
+.quickLinks span { font-size:12px; line-height:1.5; }
+@media (max-width:767px) {
+  .welcome { display:block; padding:24px 20px; }
+  .welcome h2 { font-size:24px; }
+  .welcome a { margin-top:18px; }
+  .quickLinks { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .quickLinks a { flex-direction:column; align-items:flex-start; padding:16px; gap:12px; }
+}

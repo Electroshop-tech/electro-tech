@@ -8,7 +8,7 @@ const trustItems = [
   },
   {
     title: "Livraison 24–48h",
-    desc: "Partout au Maroc",
+    desc: "Directement chez vous",
     path: "M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4",
   },
   {
@@ -76,7 +76,7 @@ export default function Footer() {
           </Link>
 
           <p className="hidden sm:block text-slate-400 text-sm leading-relaxed max-w-xs">
-            Votre Spécialiste marocain en box Android TV, accessoires high-tech et caméras de surveillance. Produits 100&nbsp;% authentiques, livrés rapidement partout au Maroc.
+            Votre Spécialiste marocain en box Android TV, accessoires high-tech et caméras de surveillance. Produits 100&nbsp;% authentiques, livrés directement chez vous.
           </p>
 
           {/* Contact */}

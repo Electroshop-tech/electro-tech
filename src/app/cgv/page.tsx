@@ -24,7 +24,7 @@ const articles = [
   {
     num: "05",
     title: "Paiement",
-    content: "Le règlement peut s'effectuer par carte bancaire (Visa, Mastercard), virement bancaire, ou paiement à la livraison. Le paiement en ligne est sécurisé. Aucune information bancaire n'est conservée sur nos serveurs.",
+    content: "Le règlement est organisé avec notre équipe avant expédition. Un lien de paiement sécurisé par carte bancaire (Visa, Mastercard) peut être proposé lorsque le paiement en ligne est disponible. Aucune information bancaire n'est conservée sur nos serveurs.",
   },
   {
     num: "06",

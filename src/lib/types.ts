@@ -115,6 +115,15 @@ export interface Order {
   address: Address;
   paymentMethod: string;
   paymentStatus: "unpaid" | "paid" | "failed" | "refunded";
+  paymentProvider?: string;
+  paymentReference?: string;
+  paymentAmount?: number; // cents
+  paymentCurrency?: string;
+  subscriptionInformation?: string;
+  subscriptionSentAt?: string;
+  subscriptionEmailId?: string;
+  subscriptionFirstAttemptAt?: string;
+  subscriptionDeliveryError?: string;
   paidAt?: string;
   notes?: string;
   trackingNumber?: string;

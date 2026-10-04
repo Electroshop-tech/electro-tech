@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import styles from "./Dashboard.module.css";
 
 
 interface Stats {
@@ -70,9 +71,10 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6 max-w-6xl">
       {/* Welcome */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 text-white">
-        <h2 className="text-xl font-black mb-1">Bienvenue dans l&apos;administration 👋</h2>
-        <p className="text-slate-400 text-sm">Gérez vos produits, catégories, marques et bannières depuis ce tableau de bord.</p>
+      <div className={styles.welcome}>
+        <div><small>Votre espace de gestion</small><h2>Votre boutique, en un coup d’œil.</h2>
+        <p>Suivez vos commandes, accompagnez vos clients et gardez le contrôle de votre catalogue.</p></div>
+        <Link href="/admin/orders">Gérer les commandes <span aria-hidden="true" className="ml-3">→</span></Link>
       </div>
 
       {/* À traiter — needs action */}
@@ -133,12 +135,11 @@ export default function AdminDashboard() {
       {/* Quick links */}
       <div>
         <h3 className="text-slate-900 font-black text-sm uppercase tracking-widest mb-3">Actions rapides</h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className={styles.quickLinks}>
           {quickLinks.map((q) => (
             <Link
               key={q.href}
               href={q.href}
-              className={`${q.color} text-white rounded-2xl p-4 flex items-center gap-3 transition-colors shadow-sm`}
             >
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d={q.icon} />

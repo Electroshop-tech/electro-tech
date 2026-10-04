@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { useCart } from "@/lib/cartContext";
 import { useWishlist } from "@/lib/wishlistContext";
+import styles from "./AddToCartWidget.module.css";
 
 type CartProduct = {
   id: number;
@@ -14,71 +15,70 @@ type CartProduct = {
   slug: string;
 };
 
-export default function AddToCartWidget({ product }: { product: CartProduct }) {
+export default function AddToCartWidget({ product, variant = "light" }: { product: CartProduct; variant?: "light" | "dark" }) {
+  const dark = variant === "dark";
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { toggle: toggleWishlist, isWished } = useWishlist();
   const wishlist = isWished(product.slug);
   const { addToCart } = useCart();
 
-  const handleAdd = () => {
-    addToCart({ ...product, image: decodeURIComponent(product.image) }, qty);
+  const handleAdd = (event: MouseEvent<HTMLButtonElement>) => {
+    addToCart({ ...product, image: decodeURIComponent(product.image) }, qty, event.currentTarget);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   return (
-    <div className="space-y-3">
+    <div className={`${styles.widget} ${dark ? styles.dark : ""}`}>
       {/* Quantity */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-gray-500">Qté :</span>
-        <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+      <div className={styles.quantityRow}>
+        <div className={styles.quantityGroup}>
+        <span className={styles.label}>Quantité</span>
+        <div className={styles.stepper}>
           <button
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             aria-label="Réduire la quantité"
-            className="w-9 h-9 text-gray-600 hover:bg-gray-100 flex items-center justify-center font-bold transition-colors"
+            disabled={qty === 1}
+            className={styles.step}
           >
             −
           </button>
-          <span className="w-10 text-center font-black text-gray-900 text-sm">{qty}</span>
+          <span aria-live="polite" className={styles.quantity}>{qty}</span>
           <button
             onClick={() => setQty((q) => q + 1)}
             aria-label="Augmenter la quantité"
-            className="w-9 h-9 text-gray-600 hover:bg-gray-100 flex items-center justify-center font-bold transition-colors"
+            className={styles.step}
           >
             +
           </button>
         </div>
-        <span className="ml-auto text-sm font-black text-gray-800">
-          {(product.price * qty).toLocaleString()}€
-        </span>
+        </div>
+        <div className={styles.total}><span>Total</span><strong aria-live="polite">{(product.price * qty).toLocaleString("fr-FR")} €</strong></div>
       </div>
 
       {/* Add to cart + wishlist */}
-      <div className="flex gap-2">
+      <div className={styles.actions}>
         <button
           onClick={handleAdd}
-          className={`flex-1 py-3.5 rounded-lg font-black text-sm tracking-wide transition-all ${
-            added
-              ? "bg-emerald-600 text-white"
-              : "bg-slate-950 hover:bg-orange-600 text-white shadow-[0_10px_22px_rgba(15,23,42,0.12)] hover:-translate-y-0.5"
-          }`}
+          className={`${styles.add} ${added ? styles.added : ""}`}
         >
-          {added ? "✓ Ajouté au panier !" : "Ajouter au panier"}
+          <span className={styles.buttonContent} aria-live="polite">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 3h2l3 12h11l2-9H6M9 20h.01M18 20h.01" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            {added ? "Ajouté, merci !" : "Ajouter au panier"}
+          </span>
         </button>
         <button
           onClick={() => toggleWishlist(product.slug)}
           title={wishlist ? "Retirer des favoris" : "Ajouter aux favoris"}
           aria-label={wishlist ? "Retirer des favoris" : "Ajouter aux favoris"}
-          className={`w-12 rounded-lg border-2 flex items-center justify-center transition-all ${
-            wishlist
-              ? "border-red-300 bg-red-50 text-red-500"
-              : "border-gray-200 text-gray-400 hover:border-red-200 hover:text-red-400"
-          }`}
+          aria-pressed={wishlist}
+          className={`${styles.wishlist} ${wishlist ? styles.wished : ""}`}
         >
           <svg className="w-5 h-5" fill={wishlist ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
+          <span>{wishlist ? "Enregistré" : "Enregistrer"}</span>
         </button>
       </div>
     </div>

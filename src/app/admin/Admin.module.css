@@ -1,0 +1,38 @@
+.shell { height:100dvh; background:#f3f5f9; color:#17243a; }
+.shell :is(button,a,input,select,textarea,summary):focus-visible { outline:3px solid #fb923c; outline-offset:3px; }
+.shell :is(button,a,summary) { touch-action:manipulation; }
+.sidebar { width:272px; flex-shrink:0; }
+.sidebar nav { overscroll-behavior:contain; scrollbar-width:thin; }
+.sidebar nav a { min-height:46px; }
+.sidebar nav p { color:#94a3b8; }
+.sidebar nav a:not([aria-current="page"]) { color:#b5c0d2; }
+.sidebarSearch { margin:14px 16px 0; padding:11px 12px; width:calc(100% - 32px); min-width:0; border:1px solid #334155; border-radius:12px; background:#172238; color:white; font-size:14px; }
+.sidebarSearch::placeholder { color:#a4b1c5; }
+.topbar { min-height:76px; gap:12px; background:#ffffffed; border-color:#e4e9f1; }
+.topbar > button { min-height:44px; min-width:44px; }
+.content { padding:28px; scrollbar-gutter:stable; overscroll-behavior-y:contain; }
+.content > :first-child { max-width:1440px; margin-inline:auto; }
+.content :is(input,textarea,select) { max-width:100%; }
+.content :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),select) { min-height:44px; }
+.content textarea { border-radius:12px; }
+.bottomNav { box-shadow:0 -6px 24px #17243a08; padding-top:5px; }
+.bottomNav > :is(a,button) { position:relative; min-height:62px; color:#64748b; }
+.bottomNav a[aria-current="page"] { color:#c2410c; background:#fff7ed; border-radius:14px; }
+.workspaceLabel { color:#64748b; font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:3px; }
+@media (max-width:1023px) {
+  .sidebar { width:min(320px,calc(100vw - 32px)); padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom); box-shadow:16px 0 60px #0f172a26; }
+  .sidebar[data-open="false"] { visibility:hidden; }
+  .topbar { min-height:70px; padding:10px 16px; }
+  .content { padding:20px 16px calc(96px + env(safe-area-inset-bottom)); scrollbar-gutter:auto; }
+  .content button { min-height:44px; }
+  .content :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) { font-size:16px; }
+  .content :is(input[type="checkbox"],input[type="radio"]) { min-width:18px; min-height:18px; }
+  .content table { min-width:620px; }
+}
+@media (max-width:389px) {
+  .content { padding-inline:12px; }
+  .topbar { padding-inline:12px; gap:8px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .shell *, .shell *::before, .shell *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+}

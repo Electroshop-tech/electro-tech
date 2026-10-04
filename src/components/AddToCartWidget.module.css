@@ -1,0 +1,41 @@
+.widget { --ink: #17263c; --muted: #768194; --line: #e7ebf0; --surface: #f7f8fa; color: var(--ink); display: grid; grid-template-columns: 114px minmax(0, 1fr); column-gap: 12px; align-items: end; }
+.dark { --ink: #f5f7fb; --muted: #b7c3d4; --line: #ffffff25; --surface: #ffffff08; }
+.quantityRow { display: contents; }
+.quantityGroup { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: 8px; }
+.label, .total > span { font-size: 11px; color: var(--muted); }
+.stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.step { display: grid; place-items: center; width: 44px; height: 50px; font-size: 18px; color: var(--ink); }
+.step:disabled { opacity: .3; cursor: default; }
+.step:hover:not(:disabled) { background: #8794a515; }
+.quantity { width: 24px; text-align: center; font-size: 14px; font-weight: 600; }
+.total { grid-column: 1; grid-row: 2; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; align-self: center; padding: 14px 0; }
+.total strong { font-size: 12px; font-weight: 650; }
+.actions { display: contents; }
+.add { grid-column: 2; grid-row: 1; min-width: 0; min-height: 52px; padding: 12px 8px; border-radius: 10px; background: #ff863e; color: #23180e; font-size: 12px; font-weight: 650; transition: background .2s; }
+.buttonContent { display: flex; align-items: center; justify-content: center; gap: 9px; }
+.buttonContent svg { flex-shrink: 0; }
+.added { background: #e4f5eb; color: #226144; }
+.wishlist { grid-column: 2; grid-row: 2; justify-self: end; min-height: 48px; display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 11px; border-radius: 4px; }
+.wishlist svg { width: 16px; height: 16px; }
+.wished { color: #c44461; }
+.widget button:focus-visible { outline: 2px solid #c96732; outline-offset: 3px; }
+@media (hover: hover) { .add:hover { background: #ff9b60; } .added:hover { background: #d4efdf; } .wishlist:hover { border-color: #bdc7d4; } }
+@media (max-width: 359px) { .widget { column-gap: 8px; } .add { font-size: 11px; padding-inline: 6px; } .buttonContent svg { display: none; } }
+@media (prefers-reduced-motion: reduce) { .add { transition: none; } }
+@media (max-width: 760px) {
+  .widget { display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
+  .quantityRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .quantityGroup { flex-direction: row; align-items: center; gap: 12px; }
+  .label, .total > span { font-size: 12px; }
+  .stepper { background: #fff; border-radius: 9px; }
+  .step { width: 36px; height: 40px; }
+  .total { padding: 0; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .total strong { font-size: 14px; }
+  .actions { display: flex; gap: 10px; }
+  .add { flex: 1; font-size: 14px; min-height: 48px; background: #f97316; color: #fff; }
+  .added { background: #e4f5eb; color: #226144; }
+  .wishlist { justify-content: center; width: 48px; flex-shrink: 0; border: 1px solid var(--line); border-radius: 10px; }
+  .wishlist svg { width: 20px; height: 20px; }
+  .wishlist span { display: none; }
+  .buttonContent svg { display: block; }
+}
