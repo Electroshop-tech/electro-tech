@@ -7,7 +7,7 @@ Implemented with Web Push, a push-only service worker, database subscriptions, a
 1. Install dependencies and run `node scripts/setup-admin-push.mjs`. This generates a stable VAPID key pair and cron secret in ignored `.env.local` without printing secrets. Do not regenerate keys after registering devices.
 2. Apply `prisma/migrations/20261004000200_admin_push/migration.sql` to the intended database using your migration workflow. For a database with complete migration history use `npx prisma migrate deploy`; do not reset an existing database. Generate the client with `npx prisma generate`.
 3. Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, and `CRON_SECRET` in the hosting environment. Keep the private key and cron secret server-only. Deploy the application over HTTPS.
-4. `vercel.json` schedules `/api/cron/admin-notifications` every minute. This frequency requires a Vercel plan supporting minute-level cron jobs. On Hobby, remove the Vercel cron entry and use an external scheduler every minute, sending `Authorization: Bearer <CRON_SECRET>` to this route. The existing custom `ADMIN_NOTIFICATIONS_CRON_SECRET` remains supported if `CRON_SECRET` is unset. A scheduler is required for recovery without any page open.
+4. `vercel.json` schedules `/api/cron/admin-notifications` daily at 08:00 UTC for the current Hobby plan. New orders dispatch immediately; recovery without an open page otherwise waits for the daily job. For prompt retries, use an external scheduler every minute, sending `Authorization: Bearer <CRON_SECRET>` to this route. The existing custom `ADMIN_NOTIFICATIONS_CRON_SECRET` remains supported if `CRON_SECRET` is unset. A scheduler is required for recovery without any page open.
 
 ## Phone setup
 

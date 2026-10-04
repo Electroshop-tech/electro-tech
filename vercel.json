@@ -1,5 +1,5 @@
 {
   "crons": [
-    { "path": "/api/cron/admin-notifications", "schedule": "* * * * *" }
+    { "path": "/api/cron/admin-notifications", "schedule": "0 8 * * *" }
   ]
 }
