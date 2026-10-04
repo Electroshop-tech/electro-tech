@@ -97,6 +97,10 @@ test("stock shortages stop saving orders and notifications", async () => {
 test("confirmation email supports guest tracking, reference numbers and escaped customer content", async () => {
   const api = load("src/lib/email.ts", { "./store": { getSiteSettings: async () => ({ siteEmail: "owner@example.com" }) } });
   const payload = await api.prepareOrderConfirmation(order); assert.equal(payload.to, order.customerEmail); assert.match(payload.html, /MA123456789/); assert.match(payload.html, /suivi-commande\?id=MA123456789/); assert.match(payload.html, /Test &lt;Client&gt;/); assert.match(payload.html, /Test &lt;Product&gt;/);
+  assert.match(payload.subject, /Confirmation de votre commande MA123456789/);
+  assert.match(payload.text, /Total : 65\.00 €/);
+  assert.match(payload.text, /suivi-commande\?id=MA123456789/);
+  assert.match(payload.text, /paiement avant expédition/);
   const admin = await api.prepareAdminOrderNotification(order); assert.equal(admin.to, "owner@example.com"); assert.match(admin.html, /admin\/orders\?order=order-1/);
 });
 

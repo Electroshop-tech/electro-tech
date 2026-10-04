@@ -104,12 +104,12 @@ export async function POST(req: NextRequest) {
     });
 
     after(async () => {
-      try { await drainPushAlerts(); }
-      catch { console.error("[notifications] Push queue unavailable", { orderId: order.id }); }
-      try { await dispatchOrderAlerts(order.id); }
-      catch { console.error("[notifications] Phone dispatch unavailable", { orderId: order.id }); }
-      try { await dispatchOrderEmails(order.id); }
-      catch { console.error("[email] Queued order emails unavailable", { orderId: order.id }); }
+      const results = await Promise.allSettled([
+        dispatchOrderEmails(order.id), drainPushAlerts(), dispatchOrderAlerts(order.id),
+      ]);
+      results.forEach((result, index) => {
+        if (result.status === "rejected") console.error("[orders] Delivery queue unavailable", { orderId: order.id, channel: ["email", "push", "phone"][index] });
+      });
     });
 
     // Increment promo uses

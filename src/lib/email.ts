@@ -152,6 +152,8 @@ function orderItemsTable(order: Order): string {
 
 // ── Customer confirmation email ───────────────────────────────────────────────
 export async function prepareOrderConfirmation(order: Order): Promise<OrderEmailPayload> {
+  const reference = order.orderNumber || order.id.slice(-12).toUpperCase();
+  const trackingUrl = `${SITE_URL}/suivi-commande?id=${encodeURIComponent(reference)}`;
   const content = `
     <h1 style="margin:0 0 4px;font-size:22px;font-weight:900;color:#1e293b;">Commande reçue !</h1>
     <p style="margin:0 0 24px;color:#64748b;font-size:14px;">Merci <strong>${escapeEmail(order.customerName)}</strong>, votre commande a bien été reçue.</p>
@@ -189,8 +191,18 @@ export async function prepareOrderConfirmation(order: Order): Promise<OrderEmail
   return {
     from: FROM_EMAIL,
     to: order.customerEmail,
-    subject: `Commande reçue – ${order.id.slice(-8).toUpperCase()} | ${SITE_NAME}`,
+    subject: `Confirmation de votre commande ${reference} | ${SITE_NAME}`,
     html: baseLayout(content, "Confirmation de commande"),
+    text: [
+      `Bonjour ${order.customerName},`, "", "Merci ! Votre commande a bien été reçue.",
+      `Numéro de commande : ${reference}`, `Statut : ${STATUS_LABELS[order.status]}`,
+      ...(order.paymentMethod === "assisted" ? ["Notre équipe vous contactera pour vous accompagner pour le paiement avant expédition."] : []),
+      "", "Récapitulatif de votre commande :",
+      ...order.items.map(item => `${item.quantity} × ${item.productName} — ${(item.price * item.quantity).toFixed(2)} €`),
+      `Total : ${order.total.toFixed(2)} €`, "", "Adresse de livraison :",
+      order.address.street, `${order.address.postalCode} ${order.address.city}`, order.address.country,
+      "", `Suivre votre commande : ${trackingUrl}`, `Une question ? ${CONTACT_EMAIL}`, "", SITE_NAME,
+    ].join("\n"),
   };
 }
 
@@ -644,7 +656,7 @@ export async function sendBackInStockEmail(emails: string[], productName: string
   }
 }
 
-export type OrderEmailPayload = { from: string; to: string; subject: string; html: string };
+export type OrderEmailPayload = { from: string; to: string; subject: string; html: string; text?: string };
 
 export async function sendPreparedOrderEmail(payload: OrderEmailPayload, idempotencyKey: string): Promise<string> {
   const resend = getResend();
