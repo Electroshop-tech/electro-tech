@@ -15,7 +15,13 @@ export async function GET(req: NextRequest) {
   const from = sp.get("from"); // YYYY-MM-DD
   const to = sp.get("to");
 
-  let orders: Order[] = await getOrders();
+  let orders: Order[];
+  try {
+    orders = await getOrders();
+  } catch (error) {
+    console.error("[admin/orders] Failed to load orders", error);
+    return NextResponse.json({ error: "Commandes indisponibles. Veuillez réessayer." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
 
   if (status && status !== "all") {
     orders = orders.filter((o) => o.status === status);

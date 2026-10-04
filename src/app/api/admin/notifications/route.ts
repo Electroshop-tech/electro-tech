@@ -8,6 +8,7 @@ import { dispatchOrderEmail } from "@/lib/order-emails";
 
 export async function GET(req: NextRequest) {
   if (!await isAdmin(req)) return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
+  try {
   const [notifications, unread] = await Promise.all([
     prisma.adminOrderNotification.findMany({ orderBy: { createdAt: "desc" }, take: 50, select: {
       id: true, event: true, readAt: true, createdAt: true, phoneStatus: true, phoneChannel: true, phoneError: true,
@@ -17,6 +18,10 @@ export async function GET(req: NextRequest) {
     } }), prisma.adminOrderNotification.count({ where: { readAt: null } }),
   ]);
   return NextResponse.json({ notifications, unread }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    console.error("[admin/notifications] Failed to load notifications", error);
+    return NextResponse.json({ error: "Notifications indisponibles. Veuillez réessayer." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
 }
 
 export async function PATCH(req: NextRequest) {

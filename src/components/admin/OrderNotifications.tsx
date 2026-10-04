@@ -21,7 +21,7 @@ export default function OrderNotifications({ compact = false }: { compact?: bool
   const load = useCallback(async (signal?: AbortSignal) => {
     try {
       const res = await fetch("/api/admin/notifications", { cache: "no-store", signal });
-      const data = await res.json();
+      const data = await res.json().catch(() => { throw new Error("Notifications indisponibles. Veuillez réessayer."); });
       if (!res.ok) throw new Error(data.error || "Notifications indisponibles.");
       const rows: Notice[] = data.notifications;
       if (initialized.current && rows[0] && newest.current !== rows[0].id) setAnnouncement(rows[0].event === "PAYMENT_RECEIVED" ? "Un paiement vient d’être confirmé. Ouvrez les notifications pour traiter la commande." : "Nouvelle commande reçue. Ouvrez les notifications pour la consulter.");

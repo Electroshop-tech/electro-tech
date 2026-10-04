@@ -46,7 +46,7 @@ export default function AdminOrdersPage() {
       if (inFlight || document.visibilityState !== "visible") return;
       inFlight = true;
       fetch("/api/admin/orders", { credentials: "include", cache: "no-store", signal: controller.signal })
-      .then(async r => { const data = await r.json(); if (!r.ok) throw new Error(data.error || "Commandes indisponibles."); return data; })
+      .then(async r => { const data = await r.json().catch(() => { throw new Error("Commandes indisponibles. Veuillez réessayer."); }); if (!r.ok) throw new Error(data.error || "Commandes indisponibles."); return data; })
       .then(d => {
         setOrders(d.orders ?? []); setLoading(false); setError("");
         const requested = new URLSearchParams(window.location.search).get("order");
