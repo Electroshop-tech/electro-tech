@@ -21,4 +21,8 @@ Retries may reach the device more than once when a provider response is lost. St
 
 ## Acceptance check
 
+Production push activation requires all four variables (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET`) in Vercel's Production environment and a fresh deployment. Local `.env.local` configuration is not automatically published. Keep the same VAPID key pair across deployments.
+
+Email is a separate provider: an invalid `RESEND_API_KEY` blocks customer confirmation emails but does not disable browser push. Replace the production key in Vercel, verify the sender domain in Resend, and redeploy. Never commit provider credentials.
+
 Run `npm run test:notifications`, `node --test tests/admin-push.test.mjs`, and `npx tsc --noEmit`. On a registered phone, verify the test alert, close the panel, place a real test order, and confirm its alert opens the correct protected order page. Verify cron requests without a secret return 401. Monitor cron execution and pending/failed deliveries after deployment.

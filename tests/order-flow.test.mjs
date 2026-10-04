@@ -31,6 +31,23 @@ function emailWorker(row, send) {
   } });
 }
 const delivery = () => ({ id: "email-1", orderId: order.id, kind: "CUSTOMER_CONFIRMATION", status: "PENDING", payload: null, attempts: 0, nextAttemptAt: new Date(0), firstAttemptAt: null });
+test("provider configuration failures explain the repair without exposing raw responses", async () => {
+  const previous = process.env.RESEND_API_KEY;
+  process.env.RESEND_API_KEY = "test-only";
+  try {
+    for (const [error, expected] of [
+      [{ name: "validation_error", message: "API key is invalid" }, /RESEND_API_KEY/],
+      [{ name: "validation_error", message: "The domain is not verified" }, /Domaine expéditeur non vérifié/],
+      [{ name: "validation_error", message: "You can only send testing emails to your own email" }, /emails de test/],
+    ]) {
+      const api = load("src/lib/email.ts", {
+        resend: { Resend: class { emails = { send: async () => ({ data: null, error }) }; } },
+        "./store": { getSiteSettings: async () => ({}) },
+      });
+      await assert.rejects(api.sendPreparedOrderEmail({ from: "shop@example.com", to: "client@example.com", subject: "Test", html: "Test" }, "test-key"), expected);
+    }
+  } finally { previous === undefined ? delete process.env.RESEND_API_KEY : process.env.RESEND_API_KEY = previous; }
+});
 async function configured(work) {
   const previous = process.env.RESEND_API_KEY; process.env.RESEND_API_KEY = "test-only";
   try { await work(); } finally { if (previous === undefined) delete process.env.RESEND_API_KEY; else process.env.RESEND_API_KEY = previous; }

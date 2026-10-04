@@ -650,6 +650,19 @@ export async function sendPreparedOrderEmail(payload: OrderEmailPayload, idempot
   const resend = getResend();
   if (!resend) throw new Error("Service email non configuré (RESEND_API_KEY manquant).");
   const { data, error } = await resend.emails.send(payload, { idempotencyKey });
-  if (error || !data?.id) throw new Error("Email refusé par le prestataire. Vérifiez la clé API et le domaine expéditeur.");
+  if (error) {
+    const reason = `${error.name} ${error.message}`.toLowerCase();
+    if (reason.includes("api key") || reason.includes("api_key") || reason.includes("unauthorized")) {
+      throw new Error("Clé API Resend invalide. Remplacez RESEND_API_KEY dans les variables de production Vercel, puis redéployez.");
+    }
+    if (reason.includes("domain") && (reason.includes("verif") || reason.includes("not"))) {
+      throw new Error("Domaine expéditeur non vérifié. Vérifiez le domaine dans Resend et configurez RESEND_FROM sur Vercel.");
+    }
+    if (reason.includes("testing") || reason.includes("own email")) {
+      throw new Error("Resend limite cet expéditeur aux emails de test. Vérifiez votre domaine pour envoyer aux clients.");
+    }
+    throw new Error("Email refusé par le prestataire. Vérifiez les journaux Resend et la configuration expéditeur.");
+  }
+  if (!data?.id) throw new Error("Référence email absente. Vérifiez les journaux Resend avant tout nouvel envoi.");
   return data.id;
 }
