@@ -56,7 +56,12 @@ export async function POST(req: NextRequest) {
       await prisma.adminPushSubscription.upsert({ where: { endpoint }, create: { endpoint, owner: auth.owner!, ...keys }, update: keys });
     }
     return NextResponse.json({ ok: true });
-  } catch { return NextResponse.json({ error: "Enregistrement impossible. Réessayez." }, { status: 500 }); }
+  } catch (error) {
+    const code = typeof (error as { code?: unknown })?.code === "string" ? (error as { code: string }).code : "UNKNOWN";
+    console.error("[admin/push] Registration failed", { code });
+    if (code === "P2021" || code === "P2022") return NextResponse.json({ error: "Le service de notifications nécessite une mise à jour de la base de données. Contactez le responsable du site." }, { status: 503 });
+    return NextResponse.json({ error: "Enregistrement impossible. Réessayez." }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {
